@@ -1,6 +1,3 @@
-Perfeito, Guilherme 👌
-Aqui está o **README.md final completo** do **Soul Surf Backend** já com **arquitetura**, **MER** e **fluxo JWT**, pronto para você colocar no repositório:
-
 ```markdown
 # 🌊 Soul Surf - Backend
 
