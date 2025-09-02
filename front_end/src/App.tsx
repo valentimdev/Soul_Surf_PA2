@@ -1,8 +1,11 @@
 import React from 'react'
+import Header from './components/Header.tsx'
 
 function App() {
   return (
-    <div>App</div>
+    <div className="bg-[var(--card)] w-full h-screen ">
+      <Header></Header>
+    </div>
   )
 }
 

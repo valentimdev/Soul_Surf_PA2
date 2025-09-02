@@ -41,73 +41,69 @@
   --color-sidebar-ring: var(--sidebar-ring);
 }
 
+/* Tema Claro - Soul Surf
+  ----------------------
+  Cor de fundo principal (Areia): #FAF5E8
+  Cor primária (Azul Oceano): #5D9AB6
+  Cor de texto (Azul Profundo): #2A4B7C
+*/
 :root {
   --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
+  --background: oklch(96.48% 0.016 99.45); /* #FAF5E8 */
+  --foreground: oklch(37.56% 0.071 259.04); /* #2A4B7C */
+  --card: oklch(96.48% 0.016 99.45); /* #FAF5E8 */
+  --card-foreground: oklch(37.56% 0.071 259.04); /* #2A4B7C */
+  --popover: oklch(96.48% 0.016 99.45); /* #FAF5E8 */
+  --popover-foreground: oklch(37.56% 0.071 259.04); /* #2A4B7C */
+  --primary: oklch(65.59% 0.091 238.25); /* #5D9AB6 */
+  --primary-foreground: oklch(96.48% 0.016 99.45); /* #FAF5E8 */
+  --secondary: oklch(93% 0.016 99.45); /* Tom mais escuro de #FAF5E8 */
+  --secondary-foreground: oklch(65.59% 0.091 238.25); /* #5D9AB6 */
+  --muted: oklch(93% 0.016 99.45); /* Tom mais escuro de #FAF5E8 */
+  --muted-foreground: oklch(63.29% 0.06 248); /* #5D9AB6 um pouco mais claro */
+  --accent: oklch(93% 0.016 99.45); /* Tom mais escuro de #FAF5E8 */
+  --accent-foreground: oklch(65.59% 0.091 238.25); /* #5D9AB6 */
   --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --border: oklch(90.13% 0.02 99.43); /* #E6E0D2 */
+  --input: oklch(90.13% 0.02 99.43); /* #E6E0D2 */
+  --ring: oklch(65.59% 0.091 238.25); /* #5D9AB6 */
+  --chart-1: oklch(65.59% 0.091 238.25); /* #5D9AB6 */
+  --chart-2: oklch(50% 0.08 250);
+  --chart-3: oklch(37.56% 0.071 259.04); /* #2A4B7C */
+  --chart-4: oklch(75% 0.08 230);
+  --chart-5: oklch(85% 0.05 220);
 }
 
+/* Tema Escuro - Soul Surf
+  ----------------------
+  Cor de fundo principal (Azul Profundo): #2A4B7C
+  Cor primária (Azul Oceano): #5D9AB6
+  Cor de texto (Areia): #FAF5E8
+*/
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
+  --background: oklch(37.56% 0.071 259.04); /* #2A4B7C */
+  --foreground: oklch(96.48% 0.016 99.45); /* #FAF5E8 */
+  --card: oklch(40.5% 0.071 259.04); /* #2A4B7C um pouco mais claro */
+  --card-foreground: oklch(96.48% 0.016 99.45); /* #FAF5E8 */
+  --popover: oklch(40.5% 0.071 259.04); /* #2A4B7C um pouco mais claro */
+  --popover-foreground: oklch(96.48% 0.016 99.45); /* #FAF5E8 */
+  --primary: oklch(65.59% 0.091 238.25); /* #5D9AB6 */
+  --primary-foreground: oklch(37.56% 0.071 259.04); /* #2A4B7C */
+  --secondary: oklch(45% 0.07 259.04);
+  --secondary-foreground: oklch(96.48% 0.016 99.45); /* #FAF5E8 */
+  --muted: oklch(45% 0.07 259.04);
+  --muted-foreground: oklch(85% 0.02 99.45); /* #FAF5E8 um pouco mais escuro */
+  --accent: oklch(45% 0.07 259.04);
+  --accent-foreground: oklch(65.59% 0.091 238.25); /* #5D9AB6 */
   --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  --border: oklch(48% 0.07 259.04);
+  --input: oklch(48% 0.07 259.04);
+  --ring: oklch(65.59% 0.091 238.25); /* #5D9AB6 */
+  --chart-1: oklch(65.59% 0.091 238.25); /* #5D9AB6 */
+  --chart-2: oklch(75% 0.08 230);
+  --chart-3: oklch(96.48% 0.016 99.45); /* #FAF5E8 */
+  --chart-4: oklch(55% 0.09 245);
+  --chart-5: oklch(85% 0.05 220);
 }
 
 @layer base {
