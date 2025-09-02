@@ -6,7 +6,9 @@ function App() {
   return (
     <div className="bg-[var(--card)] w-full h-screen justify-center items-center ">
       <Header></Header>
+      <div className="flex justify-center items-center h-[calc(100vh-96px)]">
       <LoginPage></LoginPage>
+      </div>
     </div>
   )
 }
