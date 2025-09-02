@@ -14,14 +14,14 @@ import { Label } from "@/components/ui/label"
 
 function LoginPage() {
   return (
-    <Card className="w-full max-w-sm">
+    <Card className="w-full max-w-sm border justify-center">
       <CardHeader>
-        <CardTitle>Login to your account</CardTitle>
+        <CardTitle>Entre na sua conta</CardTitle>
         <CardDescription>
-          Enter your email below to login to your account
+            Insira seu email e senha para acessar sua conta.
         </CardDescription>
         <CardAction>
-          <Button variant="link">Sign Up</Button>
+          <Button variant="link">Cadastre-se</Button>
         </CardAction>
       </CardHeader>
       <CardContent>
@@ -32,18 +32,18 @@ function LoginPage() {
               <Input
                 id="email"
                 type="email"
-                placeholder="m@example.com"
+                placeholder="exemplo@exemplo.com"
                 required
               />
             </div>
             <div className="grid gap-2">
               <div className="flex items-center">
-                <Label htmlFor="password">Password</Label>
+                <Label htmlFor="password">Senha</Label>
                 <a
                   href="#"
                   className="ml-auto inline-block text-sm underline-offset-4 hover:underline"
                 >
-                  Forgot your password?
+                  Esqueceu a senha?
                 </a>
               </div>
               <Input id="password" type="password" required />
@@ -56,7 +56,7 @@ function LoginPage() {
           Login
         </Button>
         <Button variant="outline" className="w-full">
-          Login with Google
+          Login com o  Google
         </Button>
       </CardFooter>
     </Card>
