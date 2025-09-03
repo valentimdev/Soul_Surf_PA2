@@ -12,7 +12,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 
-function LoginPage() {
+function LoginCard() {
   return (
     <Card className="w-full max-w-sm border justify-center">
       <CardHeader>
@@ -63,4 +63,4 @@ function LoginPage() {
   )
 }
 
-export default LoginPage
+export default LoginCard
