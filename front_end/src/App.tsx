@@ -1,4 +1,3 @@
-import React from 'react'
 import Header from './components/Header.tsx'
 import LoginPage from './components/pages/LoginPage.tsx'
 
