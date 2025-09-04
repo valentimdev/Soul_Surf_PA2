@@ -16,7 +16,7 @@ import {
   ResizablePanelGroup,
 } from "@/components/ui/application"
 
-function LoginPage() {
+function LoginCard() {
   return (
     <div className="h-screen w-full flex flex-col">
       <header className="p-6 text-xl font-semibold">
@@ -91,4 +91,4 @@ function LoginPage() {
   )
 }
 
-export default LoginPage
+export default LoginCard
