@@ -9,6 +9,7 @@ import App from './App';
 import LoginPage from './pages/LoginPage';
 
 import './index.css'; // Seu CSS global
+import CadastroPage from './pages/CadastroPage';
 
 // Crie a configuração das rotas
 const router = createBrowserRouter([
@@ -23,6 +24,10 @@ const router = createBrowserRouter([
       {
         path: 'login',
         element: <LoginPage />, // Rota '/login' renderiza a LoginPage
+      },
+            {
+        path: 'cadastro',
+        element: <CadastroPage />, // Rota '/cadastro' renderiza a CadastroPage
       },
     ],
   },
