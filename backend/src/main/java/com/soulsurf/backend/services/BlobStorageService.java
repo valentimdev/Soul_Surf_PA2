@@ -38,4 +38,15 @@ public class BlobStorageService {
 
         return blobClient.getBlobUrl(); // retorna a URL do arquivo
     }
+
+    public List<String> listFiles() {
+        List<String> urls = new ArrayList<>();
+
+        for (BlobItem blobItem : containerClient.listBlobs()) {
+            String blobUrl = containerClient.getBlobClient(blobItem.getName()).getBlobUrl();
+            urls.add(blobUrl);
+        }
+
+        return urls;
+    }
 }
