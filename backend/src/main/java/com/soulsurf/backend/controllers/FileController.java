@@ -22,4 +22,9 @@ public class FileController {
             return ResponseEntity.status(500).body("Erro no upload: " + e.getMessage());
         }
     }
+    @GetMapping("/list")
+    public ResponseEntity<List<String>> listFiles() {
+        List<String> files = blobStorageService.listFiles();
+        return ResponseEntity.ok(files);
+    }
 }
