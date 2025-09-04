@@ -1,5 +1,5 @@
-import surf01 from "../../assets/login_page/surf01.jpg"
-import surf02 from "../../assets/login_page/surf02.jpg"
+import surf01 from "../assets/login_page/surf01.jpg"
+import surf02 from "../assets/login_page/surf02.jpg"
 
 import {
   Button,
@@ -11,7 +11,6 @@ import {
   CardTitle,
   Input,
   Label,
-  ResizableHandle,
   ResizablePanel,
   ResizablePanelGroup,
 } from "@/components/ui/application"
@@ -29,7 +28,6 @@ function LoginCard() {
           </div>
         </ResizablePanel>
 
-        <ResizableHandle />
 
         <ResizablePanel defaultSize={40}>
           <div className="h-full flex items-center justify-center">
@@ -79,7 +77,6 @@ function LoginCard() {
           </div>
         </ResizablePanel>
 
-        <ResizableHandle />
 
         <ResizablePanel defaultSize={30}>
           <div className="h-full flex items-center justify-center">
