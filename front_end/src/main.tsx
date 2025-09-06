@@ -7,6 +7,7 @@ import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import RootLayout from './layouts/RootLayout';
 import App from './App';
 import LoginPage from './pages/LoginPage';
+import LandingPage from './pages/LandingPage';
 
 import './index.css'; // Seu CSS global
 
@@ -24,6 +25,10 @@ const router = createBrowserRouter([
         path: 'login',
         element: <LoginPage />, // Rota '/login' renderiza a LoginPage
       },
+      {
+        path: 'landing',
+        element: <LandingPage />
+      }
     ],
   },
 ]);
