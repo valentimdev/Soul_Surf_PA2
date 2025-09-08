@@ -11,6 +11,7 @@ import LandingPage from './pages/LandingPage';
 
 import './index.css'; // Seu CSS global
 import CadastroPage from './pages/CadastroPage';
+import HomePage from './pages/HomePage';
 
 // Crie a configuração das rotas
 const router = createBrowserRouter([
@@ -30,10 +31,14 @@ const router = createBrowserRouter([
       {
         path: 'landing',
         element: <LandingPage />
-      }
-            {
+      },
+      {
         path: 'cadastro',
         element: <CadastroPage />, // Rota '/cadastro' renderiza a CadastroPage
+      },
+      {
+        path: 'home',
+        element: <HomePage />, // Rota '/cadastro' renderiza a CadastroPage
       },
     ],
   },
