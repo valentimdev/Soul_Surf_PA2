@@ -1,3 +1,4 @@
+
 import {
   Button,
   Card,
@@ -8,11 +9,16 @@ import {
   CardTitle,
   Input,
   Label,
+  ResizablePanel,
+  ResizablePanelGroup,
+
 } from "@/components/ui/application"
 
 function LoginCard() {
   return (
+
    <div className="h-full flex items-center justify-center">
+
             <Card className="w-full max-w-sm border">
               <CardHeader>
                 <CardTitle>Entre na sua conta</CardTitle>
@@ -58,6 +64,7 @@ function LoginCard() {
             </Card>
           </div>
           
+
   )
 }
 

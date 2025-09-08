@@ -9,7 +9,7 @@ import {
 import LoginCard from "../components/LoginCard"
 
 function LoginPage() {
-  return (
+  
 <div className="h-screen w-full flex flex-col">
       <header className="p-6 text-xl font-semibold">
       </header>
