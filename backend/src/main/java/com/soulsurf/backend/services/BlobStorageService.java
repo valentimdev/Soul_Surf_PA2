@@ -1,4 +1,4 @@
-package com.example.demo.service;
+package com.soulsurf.backend.services;
 
 import com.azure.storage.blob.*;
 import com.azure.storage.blob.models.*;
