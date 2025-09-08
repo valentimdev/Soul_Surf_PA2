@@ -1,16 +1,16 @@
-import React from 'react'
-import Header from './components/Header.tsx'
-import LoginPage from './components/pages/LoginPage.tsx'
+import CadastroCard from './components/CadastroCard.tsx';
+import Header from './components/Header.tsx';
+import LoginCard from './components/LoginCard.tsx';
 
 function App() {
   return (
-    <div className="bg-[var(--card)] w-full h-screen justify-center items-center ">
-      <Header></Header>
-      <div className="flex justify-center items-center h-[calc(100vh-96px)]">
-      <LoginPage></LoginPage>
+    <div className="bg-[var(--card)] w-full h-screen flex flex-col ">
+      <Header />
+      <div className="flex-1 flex justify-center items-center my-8">
+        <CadastroCard />
       </div>
     </div>
-  )
+  );
 }
 
-export default App
+export default App;
