@@ -9,10 +9,9 @@ import {
 import LoginCard from "../components/LoginCard"
 
 function LoginPage() {
-  
-<div className="h-screen w-full flex flex-col">
-      <header className="p-6 text-xl font-semibold">
-      </header>
+
+
+  return (<div className="h-screen w-full flex flex-col">
 
       <ResizablePanelGroup direction="horizontal" className="flex-1">
         <ResizablePanel defaultSize={30}>
@@ -36,6 +35,6 @@ function LoginPage() {
         </ResizablePanel>
       </ResizablePanelGroup>
     </div>
-  )
+  );
 }
 export default LoginPage
