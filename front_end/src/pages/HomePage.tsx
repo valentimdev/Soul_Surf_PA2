@@ -3,6 +3,7 @@ import { Avatar, Button } from '@/components/ui/application';
 import { PostCard } from '@/components/PostCard';
 import SideBar from '@/components/SideBar';
 import { BeachCard } from '@/components/BeachCard';
+import { HashtagCard } from '@/components/HashtagCard';
 function HomePage() {
   return (
     <div className="flex w-full min-h-screen gap-3">
@@ -23,7 +24,7 @@ function HomePage() {
           <div className="border border pink h-[50%]">
             <BeachCard></BeachCard>
             </div> 
-          <div className="border border ambar h-[50%]"></div>
+          <div className="border border ambar h-[50%]"><HashtagCard></HashtagCard></div>
         </div>
       </div>
     </div>
