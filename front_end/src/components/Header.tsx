@@ -9,6 +9,8 @@ function Header() {
           src={soulSurfIcon}
           alt="Soul Surf Logo"
           className="h-full w-auto"
+          onClick={() => { window.location.href = '/' }}
+          style={{ cursor: 'pointer' }}
         />
       </div>
 
