@@ -2,6 +2,8 @@ import React from 'react';
 import { Avatar, Button } from '@/components/ui/application';
 import { PostCard } from '@/components/PostCard';
 import SideBar from '@/components/SideBar';
+import { BeachCard } from '@/components/BeachCard';
+import { HashtagCard } from '@/components/HashtagCard';
 function HomePage() {
   return (
     <div className="flex w-full min-h-screen gap-3">
@@ -19,8 +21,10 @@ function HomePage() {
       </div>
       <div className="hidden md:block w-[20%]">
         <div className="fixed w-[20%] h-full border blue-400 ">
-          {/*Coluna da direita */}
-          <h1>Placeholder</h1>
+          <div className="border border pink h-[50%]">
+            <BeachCard></BeachCard>
+            </div> 
+          <div className="border border ambar h-[50%]"><HashtagCard></HashtagCard></div>
         </div>
       </div>
     </div>
