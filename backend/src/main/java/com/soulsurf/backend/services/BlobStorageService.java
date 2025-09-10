@@ -9,6 +9,8 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 public class BlobStorageService {
@@ -27,15 +29,26 @@ public class BlobStorageService {
     }
 
     public String uploadFile(MultipartFile file) throws IOException {
-        // Criar nome único
+
         String fileName = LocalDateTime.now()
                 .format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss")) + "-" + file.getOriginalFilename();
 
         BlobClient blobClient = containerClient.getBlobClient(fileName);
 
-        // Faz upload do arquivo
+
         blobClient.upload(file.getInputStream(), file.getSize(), true);
 
-        return blobClient.getBlobUrl(); // retorna a URL do arquivo
+        return blobClient.getBlobUrl();
     }
+    public List<String> listFiles() {
+        List<String> urls = new ArrayList<>();
+
+        for (BlobItem blobItem : containerClient.listBlobs()) {
+            String blobUrl = containerClient.getBlobClient(blobItem.getName()).getBlobUrl();
+            urls.add(blobUrl);
+        }
+
+        return urls;
+    }
+
 }

@@ -1,10 +1,13 @@
-package com.example.demo.controller;
+package com.soulsurf.backend.controllers;
 
-import com.example.demo.service.BlobStorageService;
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+
+import com.soulsurf.backend.services.BlobStorageService;
 
 @RestController
 @RequestMapping("/api/files")
@@ -21,5 +24,11 @@ public class FileController {
         } catch (Exception e) {
             return ResponseEntity.status(500).body("Erro no upload: " + e.getMessage());
         }
+    }
+
+    @GetMapping("/list")
+    public ResponseEntity<List<String>> listFiles() {
+        List<String> files = blobStorageService.listFiles();
+        return ResponseEntity.ok(files);
     }
 }
