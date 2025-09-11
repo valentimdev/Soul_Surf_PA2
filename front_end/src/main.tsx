@@ -9,7 +9,6 @@ import LoginPage from './pages/LoginPage';
 import LandingPage from './pages/LandingPage';
 import CadastroPage from './pages/CadastroPage';
 import HomePage from './pages/HomePage';
-import ForgotPasswordPage from './pages/ForgotPasswordPage'; // Sua página
 
 import './index.css'; // Seu CSS global
 
@@ -38,11 +37,6 @@ const router = createBrowserRouter([
       {
         path: 'home',
         element: <HomePage />,
-      },
-      {
-        // Sua rota integrada corretamente com as outras
-        path: 'esqueci-a-senha',
-        element: <ForgotPasswordPage />,
       },
     ],
   },
