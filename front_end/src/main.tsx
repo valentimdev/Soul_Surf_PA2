@@ -1,4 +1,3 @@
-// src/main.tsx
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
@@ -8,10 +7,11 @@ import RootLayout from './layouts/RootLayout';
 import App from './App';
 import LoginPage from './pages/LoginPage';
 import LandingPage from './pages/LandingPage';
-
-import './index.css'; // Seu CSS global
 import CadastroPage from './pages/CadastroPage';
 import HomePage from './pages/HomePage';
+import ForgotPasswordPage from './pages/ForgotPasswordPage'; // Sua página
+
+import './index.css'; // Seu CSS global
 
 // Crie a configuração das rotas
 const router = createBrowserRouter([
@@ -21,24 +21,28 @@ const router = createBrowserRouter([
     children: [
       {
         index: true,
-        element: <App />, // Rota '/' renderiza o App
+        element: <App />, 
       },
       {
         path: 'login',
-        element: <LoginPage />, // Rota '/login' renderiza a LoginPage
+        element: <LoginPage />,
       },
-
       {
         path: 'landing',
         element: <LandingPage />
       },
       {
         path: 'cadastro',
-        element: <CadastroPage />, // Rota '/cadastro' renderiza a CadastroPage
+        element: <CadastroPage />,
       },
       {
         path: 'home',
-        element: <HomePage />, // Rota '/cadastro' renderiza a CadastroPage
+        element: <HomePage />,
+      },
+      {
+        // Sua rota integrada corretamente com as outras
+        path: 'esqueci-a-senha',
+        element: <ForgotPasswordPage />,
       },
     ],
   },
@@ -49,3 +53,4 @@ createRoot(document.getElementById('root')!).render(
     <RouterProvider router={router} />
   </StrictMode>
 );
+
