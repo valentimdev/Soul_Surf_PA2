@@ -1,15 +1,9 @@
 import React from 'react';
 import { Avatar, AvatarFallback, AvatarImage, Button } from './ui/application';
 
-function SideBar() {
+function SideBarLeft() {
   return (
-    <div className="h-full flex flex-col gap-5 items-center border border-amber-400">
-      <div className="border border-purple-400 w-full h-[30%] flex justify-center items-center mt-3">
-        <div className="flex flex-col items-center gap-4">
-
-          <a href="#" className="text-sm">Kelly Slater</a>
-        </div>
-      </div>
+    <div className="justify-center h-full flex flex-col gap-5 items-center border border-amber-400">
       <Button variant="outline" className="text-sm px-2 py-1 w-60">
         Home
       </Button>
@@ -29,4 +23,4 @@ function SideBar() {
   );
 }
 
-export default SideBar;
+export default SideBarLeft;
