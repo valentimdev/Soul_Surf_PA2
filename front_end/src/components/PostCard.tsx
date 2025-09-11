@@ -10,7 +10,7 @@ import { Heart, MessageCircle, Send } from 'lucide-react';
 
 export function PostCard() {
   return (
-    <Card className="w-full max-w-2xl mx-auto">
+    <Card className="w-80% max-w-xl mx-auto">
       <CardHeader className="flex flex-row items-center gap-3 p-4">
         <Avatar>
           {/* Placeholder for user avatar */}
@@ -20,7 +20,7 @@ export function PostCard() {
       </CardHeader>
       <CardContent className="p-0">
         {/* Placeholder for post image */}
-        <div className="bg-gray-200 w-full aspect-video" />
+        <div className="bg-gray-200 w-80% aspect-[4/3]" />
       </CardContent>
       <CardFooter className="flex flex-col items-start p-4">
         <div className="flex gap-4">
