@@ -1,4 +1,4 @@
-import { Avatar } from '@/components/ui/avatar';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -8,19 +8,34 @@ import {
 } from '@/components/ui/card';
 import { Heart, MessageCircle, Send } from 'lucide-react';
 
-export function PostCard() {
+interface PostCardProps {
+  username: string;
+  userAvatarUrl: string;
+  imageUrl: string;
+  description: string;
+}
+
+export function PostCard({
+  username,
+  userAvatarUrl,
+  imageUrl,
+  description,
+}: PostCardProps) {
   return (
     <Card className="w-80% max-w-xl mx-auto">
       <CardHeader className="flex flex-row items-center gap-3 p-4">
         <Avatar>
-          {/* Placeholder for user avatar */}
-          <div className="bg-gray-300 rounded-full w-10 h-10" />
+          <AvatarImage src={userAvatarUrl} alt={username} />
+          <AvatarFallback>{username.charAt(0)}</AvatarFallback>
         </Avatar>
-        <span className="font-semibold">nome_do_usuario</span>
+        <span className="font-semibold">{username}</span>
       </CardHeader>
       <CardContent className="p-0">
-        {/* Placeholder for post image */}
-        <div className="bg-gray-200 w-80% aspect-[4/3]" />
+        <img
+          src={imageUrl}
+          alt="Post"
+          className="w-full aspect-[4/3] object-cover"
+        />
       </CardContent>
       <CardFooter className="flex flex-col items-start p-4">
         <div className="flex gap-4">
@@ -30,14 +45,10 @@ export function PostCard() {
           <Button variant="ghost" size="icon">
             <MessageCircle className="h-6 w-6" />
           </Button>
-          <Button variant="ghost" size="icon">
-            <Send className="h-6 w-6" />
-          </Button>
         </div>
         <div className="mt-2">
           <p className="text-sm">
-            <span className="font-semibold">nome_do_usuario</span> Descrição do
-            post aqui...
+            <span className="font-semibold">{username}</span> {description}
           </p>
         </div>
         <div className="mt-2 text-xs text-gray-500">
