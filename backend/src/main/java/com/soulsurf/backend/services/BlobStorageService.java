@@ -3,6 +3,7 @@ package com.soulsurf.backend.services;
 import com.azure.storage.blob.*;
 import com.azure.storage.blob.models.*;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -13,6 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Service
+@ConditionalOnProperty(name = "feature.blob.enabled", havingValue = "true")
 public class BlobStorageService {
 
     private final BlobContainerClient containerClient;
