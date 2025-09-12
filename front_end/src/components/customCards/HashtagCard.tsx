@@ -18,7 +18,7 @@ export function HashtagCard() {
   return (
     <Card className="w-full h-64 rounded-2xl shadow-sm">
       <CardHeader>
-        <CardTitle className="text-lg font-semibold">🤝 Comunidades</CardTitle>
+        <CardTitle className="text-lg font-semibold">Hashtags em alta</CardTitle>
       </CardHeader>
       <CardContent className="space-y-3 overflow-y-auto h-[180px] pr-2">
         {communities.map((community) => (

@@ -1,7 +1,12 @@
 import React from 'react';
-import { Avatar, AvatarFallback, AvatarImage, Button } from './ui/application';
-import { BeachCard } from './BeachCard';
-import { HashtagCard } from './HashtagCard';
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+  Button,
+} from '../components/ui/application';
+import { BeachCard } from '../components/customCards/BeachCard';
+import { HashtagCard } from '../components/customCards/HashtagCard';
 
 function SideBarRight() {
   return (

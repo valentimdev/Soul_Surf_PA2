@@ -5,8 +5,8 @@ import {
   ResizableHandle,
   ResizablePanel,
   ResizablePanelGroup,
-} from "@/components/ui/application"
-import LoginCard from "../components/LoginCard"
+} from "@/components/ui/resizable"
+import LoginCard from "../components/customCards/LoginCard"
 
 function LoginPage() {
 
