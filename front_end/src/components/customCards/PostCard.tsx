@@ -23,7 +23,7 @@ export function PostCard({
 }: PostCardProps) {
   return (
     <Card className="w-80% max-w-xl mx-auto">
-      <CardHeader className="flex flex-row items-center gap-3 p-4">
+      <CardHeader className="flex flex-row items-center gap-3 p-2">
         <Avatar>
           <AvatarImage src={userAvatarUrl} alt={username} />
           <AvatarFallback>{username.charAt(0)}</AvatarFallback>
@@ -37,7 +37,7 @@ export function PostCard({
           className="w-full aspect-[4/3] object-cover"
         />
       </CardContent>
-      <CardFooter className="flex flex-col items-start p-4">
+      <CardFooter className="flex flex-col items-start p-2">
         <div className="flex gap-4">
           <Button variant="ghost" size="icon">
             <Heart className="h-6 w-6" />
