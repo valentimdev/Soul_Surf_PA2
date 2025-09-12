@@ -1,7 +1,7 @@
 import { Avatar, AvatarFallback, AvatarImage } from '@radix-ui/react-avatar';
 import soulSurfIcon from '../assets/header/SoulSurfIcon.png';
 import { CloudRain, Wind, Waves, Moon, Search } from 'lucide-react';
-import { Input } from '@/components/ui/input'; // shadcn input
+import { Input } from '@/components/ui/input';
 
 function Header() {
   // Dados mockados
@@ -73,6 +73,10 @@ function Header() {
           <AvatarImage
             className="rounded-full border border-white"
             src="https://img.olympics.com/images/image/private/t_1-1_300/f_auto/primary/rousxeo5xvuqj3qvrxzq"
+            onClick={() => {
+              window.location.href = '/perfil';
+            }}
+            style={{ cursor: 'pointer' }}
           />
           <AvatarFallback>CN</AvatarFallback>
         </Avatar>
