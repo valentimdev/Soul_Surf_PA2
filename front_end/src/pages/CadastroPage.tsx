@@ -1,20 +1,11 @@
-import CadastroCard from '@/components/CadastroCard';
+import CadastroCard from '@/components/customCards/CadastroCard';
 import surf01 from '../assets/login_page/surf01.jpg';
 import surf02 from '../assets/login_page/surf02.jpg';
 
 import {
-  Button,
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-  Input,
-  Label,
   ResizablePanel,
   ResizablePanelGroup,
-} from '@/components/ui/application';
+} from '@/components/ui/resizable';
 
 function CadastroPage() {
   return (
