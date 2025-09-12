@@ -1,5 +1,5 @@
 import React from 'react';
-import { Avatar, AvatarFallback, AvatarImage, Button } from './ui/application';
+import { Button } from '../components/ui/button';
 
 function SideBarLeft() {
   return (

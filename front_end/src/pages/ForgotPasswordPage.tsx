@@ -5,9 +5,8 @@ import {
   ResizableHandle,
   ResizablePanel,
   ResizablePanelGroup,
-} from "@/components/ui/application"
-import ForgotPasswordCard from "../components/ForgotPasswordCard"
-
+} from "@/components/ui/resizable"
+import ForgotPasswordCard from "../components/customCards/ForgotPasswordCard"
 function ForgotPasswordPage() {
   return (
     <div className="h-screen w-full flex flex-col bg-background">
