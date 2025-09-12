@@ -6,7 +6,7 @@ import SideBarLeft from '@/layouts/SideBarLeft';
 import SideBarRight from '@/layouts/SideBarRight';
 const RootLayout: React.FC = () => {
   const location = useLocation();
-  const noSidebarRoutes = ['/', '/login', '/cadastro', '/forgot-password', '/landing'];
+  const noSidebarRoutes = ['/login', '/cadastro', '/forgot-password', '/landing'];
   const showSidebars = !noSidebarRoutes.includes(location.pathname);
 
   return (
