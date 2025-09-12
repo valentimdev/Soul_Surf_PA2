@@ -1,4 +1,3 @@
-// src/main.tsx
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
@@ -8,12 +7,12 @@ import RootLayout from './layouts/RootLayout';
 import App from './App';
 import LoginPage from './pages/LoginPage';
 import LandingPage from './pages/LandingPage';
-
-import './index.css'; // Seu CSS global
 import CadastroPage from './pages/CadastroPage';
 import HomePage from './pages/HomePage';
+import ProfilePage from './pages/ProfilePage';
 
-// Crie a configuração das rotas
+import './index.css'; // Seu CSS global
+
 const router = createBrowserRouter([
   {
     path: '/',
@@ -21,24 +20,23 @@ const router = createBrowserRouter([
     children: [
       {
         index: true,
-        element: <App />, // Rota '/' renderiza o App
+        element: <App />, 
       },
       {
         path: 'login',
-        element: <LoginPage />, // Rota '/login' renderiza a LoginPage
+        element: <LoginPage />,
       },
-
       {
         path: 'landing',
         element: <LandingPage />
       },
       {
         path: 'cadastro',
-        element: <CadastroPage />, // Rota '/cadastro' renderiza a CadastroPage
+        element: <CadastroPage />,
       },
       {
-        path: 'home',
-        element: <HomePage />, // Rota '/cadastro' renderiza a CadastroPage
+        path: 'perfil',
+        element: <ProfilePage />,
       },
     ],
   },
@@ -49,3 +47,4 @@ createRoot(document.getElementById('root')!).render(
     <RouterProvider router={router} />
   </StrictMode>
 );
+

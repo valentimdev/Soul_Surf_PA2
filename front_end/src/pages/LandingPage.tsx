@@ -1,8 +1,8 @@
 import {
   ResizablePanel,
   ResizablePanelGroup,
-} from "@/components/ui/application"
-import LandingCard from "../components/LandingCard"
+} from "@/components/ui/resizable"
+import LandingCard from "../components/customCards/LandingCard"
 
 
 function LandingPage() {

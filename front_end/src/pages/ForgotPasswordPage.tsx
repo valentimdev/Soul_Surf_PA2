@@ -6,35 +6,33 @@ import {
   ResizablePanel,
   ResizablePanelGroup,
 } from "@/components/ui/resizable"
-import LoginCard from "../components/customCards/LoginCard"
-
-function LoginPage() {
-
-
-  return (<div className="h-screen w-full flex flex-col">
-
+import ForgotPasswordCard from "../components/customCards/ForgotPasswordCard"
+function ForgotPasswordPage() {
+  return (
+    <div className="h-screen w-full flex flex-col bg-background">
       <ResizablePanelGroup direction="horizontal" className="flex-1">
         <ResizablePanel defaultSize={30}>
           <div className="h-full flex items-center justify-center">
-              <img src={surf01} alt="Foto Surf 1" className="w-full h-full object-cover" />
+            <img src={surf01} alt="Foto Surf 1" className="w-full h-full object-cover" />
           </div>
         </ResizablePanel>
 
         <ResizableHandle />
 
         <ResizablePanel defaultSize={40}>
-          <LoginCard/>
+          <ForgotPasswordCard />
         </ResizablePanel>
 
         <ResizableHandle />
 
         <ResizablePanel defaultSize={30}>
           <div className="h-full flex items-center justify-center">
-              <img src={surf02} alt="Foto Surf 2" className="w-full h-full object-cover" />
+            <img src={surf02} alt="Foto Surf 2" className="w-full h-full object-cover" />
           </div>
         </ResizablePanel>
       </ResizablePanelGroup>
     </div>
   );
 }
-export default LoginPage
+export default ForgotPasswordPage;
+
