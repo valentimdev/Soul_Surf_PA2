@@ -1,26 +1,19 @@
-import soulSurfIcon from "../assets/header/SoulSurfIcon.png"
-import {
-  Button,
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-  Input,
-  Label,
-} from "@/components/ui/application"
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
-function LandingCard() {
+function LoginCard() {
   return (
+
    <div className="h-full flex items-center justify-center">
+
             <Card className="w-full max-w-sm border">
               <CardHeader>
-                <img
-                    src={soulSurfIcon}
-                    alt="Soul Surf Logo"
-                    className="h-full w-auto"
-                />  
+                <CardTitle>Entre na sua conta</CardTitle>
+                <CardDescription>
+                  Insira seu email e senha para acessar sua conta.
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <form>
@@ -51,14 +44,17 @@ function LandingCard() {
               </CardContent>
               <CardFooter className="flex-col gap-2">
                 <Button type="submit" className="w-full">
-                  Entrar
+                  Login
                 </Button>
-            
+                <Button variant="outline" className="w-full">
+                  Login com o Google
+                </Button>
               </CardFooter>
             </Card>
           </div>
           
+
   )
 }
 
-export default LandingCard
+export default LoginCard
