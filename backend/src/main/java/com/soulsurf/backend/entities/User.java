@@ -6,6 +6,9 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.UuidGenerator;
+
+import java.util.UUID;
 
 @Entity
 @Table(name = "users")
@@ -15,8 +18,9 @@ import lombok.Setter;
 public class User {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(generator = "UUID")
+    @UuidGenerator
+    private UUID id;
 
     @NotBlank
     @Email
@@ -29,6 +33,30 @@ public class User {
     public User(String email, String password) {
         this.email = email;
         this.password = password;
+    }
+
+    public @NotBlank @Email String getEmail() {
+        return email;
+    }
+
+    public void setEmail(@NotBlank @Email String email) {
+        this.email = email;
+    }
+
+    public @NotBlank String getPassword() {
+        return password;
+    }
+
+    public void setPassword(@NotBlank String password) {
+        this.password = password;
+    }
+
+    public UUID getId() {
+        return id;
+    }
+
+    public void setId(UUID id) {
+        this.id = id;
     }
 
 }
