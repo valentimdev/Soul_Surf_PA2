@@ -18,6 +18,5 @@ public class ResetPasswordRequest {
     @Size(min = 6, max = 40, message = "A senha deve ter entre 6 e 40 caracteres.")
     private String newPassword;
 
-    public String getToken() {
-    }
+
 }

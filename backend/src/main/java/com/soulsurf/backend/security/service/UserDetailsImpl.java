@@ -8,16 +8,18 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.UUID; // Importação adicionada para UUID
 
 @Getter
 public class UserDetailsImpl implements UserDetails {
 
-    private final Long id;
+    private final UUID id; // Tipo alterado para UUID
     private final String email;
     @JsonIgnore
     private final String password;
 
-    public UserDetailsImpl(Long id, String email, String password) {
+    // Construtor atualizado para receber um UUID
+    public UserDetailsImpl(UUID id, String email, String password) {
         this.id = id;
         this.email = email;
         this.password = password;
@@ -25,7 +27,7 @@ public class UserDetailsImpl implements UserDetails {
 
     public static UserDetailsImpl build(User user) {
         return new UserDetailsImpl(
-                user.getId(),
+                user.getId(), // Agora retorna um UUID
                 user.getEmail(),
                 user.getPassword());
     }
@@ -64,4 +66,7 @@ public class UserDetailsImpl implements UserDetails {
     public boolean isEnabled() {
         return true;
     }
+
+    // O Lombok gera o getter para o id, agora do tipo UUID
+    // public UUID getId() { return id; }
 }
