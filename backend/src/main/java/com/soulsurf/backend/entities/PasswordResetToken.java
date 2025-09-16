@@ -1,10 +1,13 @@
 package com.soulsurf.backend.entities;
-import com.soulsurf.backend.entities.User;
+
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import java.util.Date;
+import org.hibernate.annotations.UuidGenerator;
+
+import java.time.Instant;
+import java.util.UUID;
 
 @Entity
 @Table(name = "password_reset_tokens")
@@ -25,13 +28,11 @@ public class PasswordResetToken {
     private User user;
 
     @Column(nullable = false)
-    private Date expiryDate;
+    private Instant expiryDate; // Alterado para Instant, a classe mais moderna para datas
 
-
-    public PasswordResetToken(String token, User user, Date expiryDate) {
+    public PasswordResetToken(String token, User user, Instant expiryDate) {
         this.token = token;
         this.user = user;
         this.expiryDate = expiryDate;
     }
-
 }
