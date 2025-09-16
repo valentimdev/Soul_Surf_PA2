@@ -13,13 +13,12 @@ import java.util.UUID; // Importação adicionada para UUID
 @Getter
 public class UserDetailsImpl implements UserDetails {
 
-    private final UUID id; // Tipo alterado para UUID
+    private final Long id;
     private final String email;
     @JsonIgnore
     private final String password;
 
-    // Construtor atualizado para receber um UUID
-    public UserDetailsImpl(UUID id, String email, String password) {
+    public UserDetailsImpl(Long id, String email, String password) {
         this.id = id;
         this.email = email;
         this.password = password;
@@ -27,7 +26,7 @@ public class UserDetailsImpl implements UserDetails {
 
     public static UserDetailsImpl build(User user) {
         return new UserDetailsImpl(
-                user.getId(), // Agora retorna um UUID
+                user.getId(),
                 user.getEmail(),
                 user.getPassword());
     }
@@ -66,7 +65,4 @@ public class UserDetailsImpl implements UserDetails {
     public boolean isEnabled() {
         return true;
     }
-
-    // O Lombok gera o getter para o id, agora do tipo UUID
-    // public UUID getId() { return id; }
 }
