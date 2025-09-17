@@ -30,6 +30,11 @@ public class User {
     @NotBlank
     private String password;
 
+
+    private String fotoPerfil;
+
+    private String fotoCapa;
+    
     @NotBlank
     @Column(unique = true)
     private String username;

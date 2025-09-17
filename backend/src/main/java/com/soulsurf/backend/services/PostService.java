@@ -65,7 +65,10 @@ public class PostService {
         postDTO.setCaminhoFoto(post.getCaminhoFoto());
         postDTO.setData(post.getData());
 
-        UserDTO userDTO = new UserDTO(post.getUsuario().getId(), post.getUsuario().getEmail());
+        UserDTO userDTO = new UserDTO();
+        userDTO.setId(post.getUsuario().getId());
+        userDTO.setUsername(post.getUsuario().getUsername());
+        userDTO.setEmail(post.getUsuario().getEmail());
         postDTO.setUsuario(userDTO);
 
         return postDTO;

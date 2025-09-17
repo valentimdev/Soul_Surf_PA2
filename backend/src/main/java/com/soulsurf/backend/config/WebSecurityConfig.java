@@ -31,11 +31,12 @@ public class WebSecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth ->
                         // Nossos endpoints de autenticação serão públicos
-                        auth.requestMatchers("/api/auth/**").permitAll()
+                        auth.requestMatchers("/api/auth/**","/api/users/**").permitAll()
                                 // Todas as outras requisições precisarão de autenticação
                                 .anyRequest().authenticated()
                 );
 
+                
         return http.build();
     }
 }
