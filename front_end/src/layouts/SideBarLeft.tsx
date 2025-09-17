@@ -26,7 +26,7 @@ const navItems: NavItemProps[] = [
   { href: '/', icon: Home, label: 'Início', isActive: true },
   { href: '/perfil', icon: User, label: 'Perfil' },
   { href: '/', icon: Compass, label: 'Explorar' },
-  { href: '/', icon: Waves, label: 'Praias' },
+  { href: '/praias', icon: Waves, label: 'Praias' },
   { href: '/', icon: Users, label: 'Grupos' },
   { href: '/', icon: MessageSquare, label: 'Mensagens' },
   { href: '/', icon: Bell, label: 'Notificações' },
