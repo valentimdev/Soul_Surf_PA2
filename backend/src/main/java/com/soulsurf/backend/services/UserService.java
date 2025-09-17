@@ -21,10 +21,18 @@ public class UserService {
         return userRepository.findByEmail(email).isPresent();
     }
 
+
+    
+    public boolean existsByUsername(String username) {
+        return userRepository.findByUsername(username).isPresent();
+    }
+
     public void registerUser(SignupRequest signupRequest) {
         User user = new User();
         user.setEmail(signupRequest.getEmail());
         user.setPassword(passwordEncoder.encode(signupRequest.getPassword()));
+        user.setUsername(signupRequest.getUsername());
         userRepository.save(user);
     }
+    
 }

@@ -8,6 +8,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.UUID; // Importação adicionada para UUID
 
 @Getter
 public class UserDetailsImpl implements UserDetails {

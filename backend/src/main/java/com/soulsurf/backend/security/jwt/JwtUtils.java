@@ -30,6 +30,7 @@ public class JwtUtils {
     // 1. Método para gerar o token JWT
     public String generateJwtToken(Authentication authentication) {
         // Pega o nome de usuário (geralmente o email) do objeto de autenticação
+
         String username = authentication.getName();
 
         return Jwts.builder()
@@ -42,8 +43,9 @@ public class JwtUtils {
 
     // 2. Método para gerar a chave de assinatura
     private Key key() {
-        return Keys.hmacShaKeyFor(Decoders.BASE64.decode(jwtSecret));
+        return Keys.hmacShaKeyFor(jwtSecret.getBytes());
     }
+
 
     // 3. Método para extrair o nome de usuário do token
     public String getUserNameFromJwtToken(String token) {

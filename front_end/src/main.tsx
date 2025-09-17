@@ -48,7 +48,7 @@ const router = createBrowserRouter([
       },
       // Adicionando a nova rota aqui
       {
-        path: 'registros/novo',
+        path: 'registros',
         element: <NovoRegistroPage />,
       },
       {

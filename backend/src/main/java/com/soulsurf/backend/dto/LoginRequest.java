@@ -13,21 +13,21 @@ public class LoginRequest {
     private String email;
 
     @NotBlank
-    private String senha;
+    private String password;
 
-    public String getEmail() {
+    public @NotBlank @Email String getEmail() {
         return email;
     }
 
-    public void setEmail(String email) {
+    public void setEmail(@NotBlank @Email String email) {
         this.email = email;
     }
 
-    public String getSenha() {
-        return senha;
+    public @NotBlank String getPassword() {
+        return password;
     }
 
-    public void setSenha(String senha) {
-        this.senha = senha;
+    public void setPassword(@NotBlank String password) {
+        this.password = password;
     }
 }

@@ -8,7 +8,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.Date;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -20,7 +21,7 @@ public class PasswordResetService {
     private final UserRepository userRepository;
     private final PasswordResetTokenRepository tokenRepository;
     private final EmailService emailService;
-    private final PasswordEncoder passwordEncoder; // Injeção do PasswordEncoder
+    private final PasswordEncoder passwordEncoder;
 
     @Autowired
     public PasswordResetService(UserRepository userRepository, PasswordResetTokenRepository tokenRepository, EmailService emailService, PasswordEncoder passwordEncoder) {
@@ -36,7 +37,9 @@ public class PasswordResetService {
         if (userOptional.isPresent()) {
             User user = userOptional.get();
             String token = UUID.randomUUID().toString();
-            Date expiryDate = new Date(System.currentTimeMillis() + EXPIRATION_TIME);
+
+            // CORREÇÃO: Usar Instant.now() para criar a data de expiração
+            Instant expiryDate = Instant.now().plus(EXPIRATION_TIME, ChronoUnit.MILLIS);
 
             tokenRepository.findByUser(user).ifPresent(tokenRepository::delete);
 
@@ -48,7 +51,6 @@ public class PasswordResetService {
     }
 
     public void resetPassword(String token, String newPassword) {
-        // 1. Busca o token no banco de dados
         Optional<PasswordResetToken> tokenOptional = tokenRepository.findByToken(token);
 
         if (tokenOptional.isEmpty()) {
@@ -57,19 +59,16 @@ public class PasswordResetService {
 
         PasswordResetToken passwordResetToken = tokenOptional.get();
 
-        // 2. Valida se o token expirou
-        if (passwordResetToken.getExpiryDate().before(new Date())) {
-            // Se o token estiver expirado, ele é removido do banco de dados
+        // CORREÇÃO: Comparar com Instant.now() em vez de new Date()
+        if (passwordResetToken.getExpiryDate().isBefore(Instant.now())) {
             tokenRepository.delete(passwordResetToken);
             throw new IllegalArgumentException("Token de redefinição expirado.");
         }
 
-        // 3. Atualiza a senha do usuário
         User user = passwordResetToken.getUser();
         user.setPassword(passwordEncoder.encode(newPassword));
         userRepository.save(user);
 
-        // 4. Invalida o token
         tokenRepository.delete(passwordResetToken);
     }
 }
