@@ -7,6 +7,10 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 @Entity
 @Table(name = "users")
 @Getter
@@ -26,9 +30,28 @@ public class User {
     @NotBlank
     private String password;
 
-    public User(String email, String password) {
+    @NotBlank
+    @Column(unique = true)
+    private String username;
+
+    @ManyToMany
+    @JoinTable(
+        name = "user_seguindo",
+        joinColumns = @JoinColumn(name = "user_id"),
+        inverseJoinColumns = @JoinColumn(name = "seguindo_id")
+    )
+    private Set<User> seguindo = new HashSet<>();
+
+    @ManyToMany(mappedBy = "seguindo")
+    private Set<User> seguidores = new HashSet<>();
+
+    @OneToMany(mappedBy = "usuario", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Post> posts;
+
+    public User(String email, String password, String username) {
         this.email = email;
         this.password = password;
+        this.username = username;   
     }
 
 }
