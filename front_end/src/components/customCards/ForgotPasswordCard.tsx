@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-
+import { AuthService } from "@/api/services/authService";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -10,11 +10,15 @@ function ForgotPasswordCard() {
   const [email, setEmail] = useState("");
   const [isSubmitted, setIsSubmitted] = useState(false);
 
-  const handleSubmit = (event: React.FormEvent) => {
+  const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
-    // No futuro, aqui será a chamada para a API do backend
-    console.log("Solicitando redefinição para o e-mail:", email);
-    setIsSubmitted(true);
+    try {
+      const response = await AuthService.forgotPassword({ email });
+      console.log(response.message); // pode mostrar no UI
+      setIsSubmitted(true);
+    } catch (err: unknown) {
+      console.error(err);
+    }
   };
 
   // Se o formulário foi enviado, mostra a mensagem de confirmação
