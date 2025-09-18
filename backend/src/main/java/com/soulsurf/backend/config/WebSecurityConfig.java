@@ -37,11 +37,15 @@ public class WebSecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth ->
                         auth.requestMatchers("/api/auth/**", "/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**").permitAll()
+                                .requestMatchers("/api/users/**").authenticated()  // provavelmente no futuro vamos ter que adicionar alguma camada de segurança maior
+                                .requestMatchers("/api/posts/**").authenticated()
                                 .anyRequest().authenticated()
                 );
 
         return http.build();
     }
+    
+    
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
@@ -56,3 +60,4 @@ public class WebSecurityConfig {
         return source;
     }
 }
+
