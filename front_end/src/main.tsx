@@ -14,6 +14,8 @@ import ForgotPasswordPage from './pages/ForgotPasswordPage.tsx';
 import NovoRegistroPage from './pages/NovoRegistroPage.tsx';
 
 import './index.css'; // O seu CSS global
+import { BeachCard } from './components/customCards/BeachCard.tsx';
+import BeachsPage from './pages/BeachsPage.tsx';
 
 const router = createBrowserRouter([
   {
@@ -49,6 +51,10 @@ const router = createBrowserRouter([
         path: 'registros',
         element: <NovoRegistroPage />,
       },
+      {
+        path: 'praias',
+        element: <BeachsPage/>
+      }
     ],
   },
 ]);
