@@ -1,16 +1,18 @@
 // src/api/services/authService.ts
+
 import api from "../axios";
 import { authRoutes } from "../routes/auth";
 
-// DTOs do backend
+// Tipos de DTO (padrão com base no seu backend)
 export type LoginRequest = {
   email: string;
-  password: string;
+  senha: string;
 };
 
 export type SignupRequest = {
   email: string;
-  password: string;
+  senha: string;
+  nome: string;
 };
 
 export type ForgotPasswordRequest = {
@@ -32,31 +34,31 @@ export type MessageResponse = {
 };
 
 export const AuthService = {
-  login: async (payload: LoginRequest): Promise<JwtResponse> => {
-    const { data } = await api.post<JwtResponse>(authRoutes.login(), payload);
-    // Armazenar token no localStorage se necessário
+  login: async (payload: LoginRequest) => {
+    const { data } = await api.post(authRoutes.login(), payload);
+    // backend retorna { token }
     if (data.token) {
       localStorage.setItem("token", data.token);
     }
     return data;
   },
 
-  signup: async (payload: SignupRequest): Promise<MessageResponse> => {
-    const { data } = await api.post<MessageResponse>(authRoutes.signup(), payload);
+  signup: async (payload: SignupRequest) => {
+    const { data } = await api.post(authRoutes.signup(), payload);
     return data;
   },
 
-  forgotPassword: async (payload: ForgotPasswordRequest): Promise<MessageResponse> => {
-    const { data } = await api.post<MessageResponse>(authRoutes.forgotPassword(), payload);
+  forgotPassword: async (payload: ForgotPasswordRequest) => {
+    const { data } = await api.post(authRoutes.forgotPassword(), payload);
     return data;
   },
 
-  resetPassword: async (payload: ResetPasswordRequest): Promise<MessageResponse> => {
-    const { data } = await api.post<MessageResponse>(authRoutes.resetPassword(), payload);
+  resetPassword: async (payload: ResetPasswordRequest) => {
+    const { data } = await api.post(authRoutes.resetPassword(), payload);
     return data;
   },
 
-  logout: (): void => {
+  logout: () => {
     localStorage.removeItem("token");
   },
 };

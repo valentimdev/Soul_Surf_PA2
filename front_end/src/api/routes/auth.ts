@@ -1,4 +1,3 @@
-// src/api/routes/auth.ts
 export const authRoutes = {
   base: "/auth",
 
