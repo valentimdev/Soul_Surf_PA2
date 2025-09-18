@@ -31,10 +31,13 @@ public class UserService {
         user.setPassword(passwordEncoder.encode(signupRequest.getPassword()));
         userRepository.save(user);
     }
-        public Optional<UserDTO> getUserProfile(String username) {
-        return userRepository.findByUsername(username)
+
+    public Optional<UserDTO> getUserProfile(Long id) {
+        return userRepository.findById(id)
                 .map(this::convertToDto);
     }
+
+    
 
     private UserDTO convertToDto(User user) {
         UserDTO userDTO = new UserDTO();
