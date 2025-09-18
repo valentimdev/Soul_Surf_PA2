@@ -31,7 +31,13 @@ public class WebSecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth ->
                         // Nossos endpoints de autenticação serão públicos
-                        auth.requestMatchers("/api/auth/**").permitAll()
+                        auth.requestMatchers("/api/auth/**",
+                                            "/v3/api-docs/**",
+                                            "/swagger-ui/**",
+                                            "/swagger-ui.html",     // <-- ADICIONE ISTO se você quer acessar /swagger-ui.html
+                                            "/error"   ).permitAll()
+                                // ADICIONADO: Permitir acesso público aos endpoints do Swagger
+                                .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
                                 // Todas as outras requisições precisarão de autenticação
                                 .anyRequest().authenticated()
                 );
