@@ -76,6 +76,7 @@ public class AuthController {
         return ResponseEntity.ok(new MessageResponse("Se um e-mail válido for encontrado, um link de redefinição será enviado."));
     }
 
+    
     @PostMapping("/reset-password")
     public ResponseEntity<?> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
         try {

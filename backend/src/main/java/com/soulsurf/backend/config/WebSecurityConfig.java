@@ -37,7 +37,8 @@ public class WebSecurityConfig {
         http.csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth ->
-                        auth.requestMatchers("/api/auth/**").permitAll()
+                        auth.requestMatchers("/api/auth/**","/api/users/**").permitAll()
+                                .requestMatchers("/api/users/**").authenticated()  // provavelmente no futuro vamos ter que adicionar alguma camada de segurança maior
                                 .requestMatchers("/api/posts/**").authenticated() // LINHA ADICIONADA AQUI
                                 .anyRequest().authenticated()
                 );
