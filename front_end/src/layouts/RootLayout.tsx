@@ -32,7 +32,7 @@ const RootLayout: React.FC = () => {
               <Outlet />
             </div>
             <div className="hidden md:block w-[20%]">
-              <SideBarRight />
+              {/* <SideBarRight /> */}
             </div>
           </div>
         </>

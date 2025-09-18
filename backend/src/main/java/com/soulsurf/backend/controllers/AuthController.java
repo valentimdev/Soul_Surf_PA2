@@ -39,9 +39,10 @@ public class AuthController {
     public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest) {
         try {
             Authentication authentication = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getSenha()));
+                    new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword()));
 
             SecurityContextHolder.getContext().setAuthentication(authentication);
+            System.out.println("AUTENTICADO: " + authentication.getName());
             String jwt = jwtUtils.generateJwtToken(authentication);
 
             return ResponseEntity.ok(new JwtResponse(jwt));
@@ -68,25 +69,24 @@ public class AuthController {
                 .body(new MessageResponse("Usuário registrado com sucesso!"));
     }
 
-    @PostMapping("/forgot-password")
-    public ResponseEntity<?> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
-        passwordResetService.createPasswordResetToken(request.getEmail());
+        @PostMapping("/forgot-password")
+        public ResponseEntity<?> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+            passwordResetService.createPasswordResetToken(request.getEmail());
 
-        // Mensagem genérica por segurança, mesmo se o e-mail não existir
-        return ResponseEntity.ok(new MessageResponse("Se um e-mail válido for encontrado, um link de redefinição será enviado."));
-    }
-
-    
-    @PostMapping("/reset-password")
-    public ResponseEntity<?> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
-        try {
-            passwordResetService.resetPassword(request.getToken(), request.getNewPassword());
-            return ResponseEntity.ok(new MessageResponse("Senha atualizada com sucesso!"));
-        } catch (Exception e) {
-            // Captura erros de token inválido, expirado, etc.
-            return ResponseEntity
-                    .badRequest()
-                    .body(new MessageResponse(e.getMessage()));
+            // Mensagem genérica por segurança, mesmo se o e-mail não existir
+            return ResponseEntity.ok(new MessageResponse("Se um e-mail válido for encontrado, um link de redefinição será enviado."));
         }
-    }
+
+        @PostMapping("/reset-password")
+        public ResponseEntity<?> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+            try {
+                passwordResetService.resetPassword(request.getToken(), request.getNewPassword());
+                return ResponseEntity.ok(new MessageResponse("Senha atualizada com sucesso!"));
+            } catch (Exception e) {
+                // Captura erros de token inválido, expirado, etc.
+                return ResponseEntity
+                        .badRequest()
+                        .body(new MessageResponse(e.getMessage()));
+            }
+        }
 }
