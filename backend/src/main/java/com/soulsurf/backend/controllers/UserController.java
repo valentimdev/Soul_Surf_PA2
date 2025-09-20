@@ -42,9 +42,18 @@ public class UserController {
     //rota do follow
     @PostMapping("/{id}/follow")
     public ResponseEntity<?> followUser(@PathVariable Long id, @AuthenticationPrincipal UserDetails userDetails) {
+        System.out.println("=== DEBUG CONTROLLER: userDetails = " + userDetails);
+    
+        if (userDetails == null) {
+            System.out.println("=== DEBUG: UserDetails é nulo! Problema de autenticação.");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new MessageResponse("Usuário não autenticado"));
+        }
+    
+        System.out.println("=== DEBUG: Username = " + userDetails.getUsername());
+    
         userService.followUser(userDetails.getUsername(), id);
         return ResponseEntity.ok(new MessageResponse("Você agora está seguindo o usuário com ID " + id));
-    }
+}
 
     //rota para dar unfollow 
     @DeleteMapping("/{id}/follow")
@@ -53,40 +62,40 @@ public class UserController {
         return ResponseEntity.ok(new MessageResponse("Você deixou de seguir o usuário com ID " + id));
     }
 
-    //rota para ver o proprio perfil
-    @GetMapping("/me")
-    public ResponseEntity<UserDTO> getMyProfile(@AuthenticationPrincipal UserDetails userDetails) {
-        return userService.getUserProfileByEmail(userDetails.getUsername())
-            .map(ResponseEntity::ok)
-            .orElse(ResponseEntity.notFound().build());
-    }
+    // //rota para ver o proprio perfil
+    // @GetMapping("/me")
+    // public ResponseEntity<UserDTO> getMyProfile(@AuthenticationPrincipal UserDetails userDetails) {
+    //     return userService.getUserProfileByEmail(userDetails.getUsername())
+    //         .map(ResponseEntity::ok)
+    //         .orElse(ResponseEntity.notFound().build());
+    // }
 
-    //rota para trocar foto de capa e de perfil
-    @PutMapping("/me/profile")
-    public ResponseEntity<?> updateProfile(
-            @RequestParam(value = "fotoPerfil", required = false) MultipartFile fotoPerfil,
-            @RequestParam(value = "fotoCapa", required = false) MultipartFile fotoCapa,
-            @AuthenticationPrincipal UserDetails userDetails) {
-        try {
-            userService.updateProfilePictures(userDetails.getUsername(), fotoPerfil, fotoCapa);
-            return ResponseEntity.ok(new MessageResponse("Perfil atualizado com sucesso!"));
-        } catch (IOException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new MessageResponse("Erro ao atualizar o perfil."));
-        }
-    }
+    // //rota para trocar foto de capa e de perfil
+    // @PutMapping("/me/profile")
+    // public ResponseEntity<?> updateProfile(
+    //         @RequestParam(value = "fotoPerfil", required = false) MultipartFile fotoPerfil,
+    //         @RequestParam(value = "fotoCapa", required = false) MultipartFile fotoCapa,
+    //         @AuthenticationPrincipal UserDetails userDetails) {
+    //     try {
+    //         userService.updateProfilePictures(userDetails.getUsername(), fotoPerfil, fotoCapa);
+    //         return ResponseEntity.ok(new MessageResponse("Perfil atualizado com sucesso!"));
+    //     } catch (IOException e) {
+    //         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new MessageResponse("Erro ao atualizar o perfil."));
+    //     }
+    // }
 
-    //rota que retorna uma lista dos seguidores do usuario
-    @GetMapping("/{username}/followers")
-    public ResponseEntity<List<UserDTO>> getFollowers(@PathVariable String username) {
-        List<UserDTO> followers = userService.getFollowers(username);
-        return ResponseEntity.ok(followers);
-    }
-    //rota que retorna uma lista dos seguindo do usuario
-    @GetMapping("/{username}/following")
-    public ResponseEntity<List<UserDTO>> getFollowing(@PathVariable String username) {
-        List<UserDTO> following = userService.getFollowing(username);
-        return ResponseEntity.ok(following);
-    }
+    // //rota que retorna uma lista dos seguidores do usuario
+    // @GetMapping("/{username}/followers")
+    // public ResponseEntity<List<UserDTO>> getFollowers(@PathVariable String username) {
+    //     List<UserDTO> followers = userService.getFollowers(username);
+    //     return ResponseEntity.ok(followers);
+    // }
+    // //rota que retorna uma lista dos seguindo do usuario
+    // @GetMapping("/{username}/following")
+    // public ResponseEntity<List<UserDTO>> getFollowing(@PathVariable String username) {
+    //     List<UserDTO> following = userService.getFollowing(username);
+    //     return ResponseEntity.ok(following);
+    // }
 
     @GetMapping("/hello")
     public String helloWorld() {
