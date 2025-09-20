@@ -7,7 +7,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-
 @Entity
 @Table(name = "users")
 @Getter
@@ -19,7 +18,6 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-
     @NotBlank
     @Email
     @Column(unique = true)
@@ -28,33 +26,33 @@ public class User {
     @NotBlank
     private String password;
 
+    // Novo campo username
+    @Column(unique = true)
+    private String username;
+
+    // Foto de capa do perfil
+    private String fotoCapa;
+
+    // Relacionamento - seguidores
+    @ManyToMany
+    @JoinTable(
+            name = "user_seguidores",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "seguidor_id")
+    )
+    private java.util.List<User> seguidores = new java.util.ArrayList<>();
+
+    // Relacionamento - seguindo
+    @ManyToMany
+    @JoinTable(
+            name = "user_seguindo",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "seguindo_id")
+    )
+    private java.util.List<User> seguindo = new java.util.ArrayList<>();
+
     public User(String email, String password) {
         this.email = email;
         this.password = password;
     }
-
-    public @NotBlank @Email String getEmail() {
-        return email;
-    }
-
-    public void setEmail(@NotBlank @Email String email) {
-        this.email = email;
-    }
-
-    public @NotBlank String getPassword() {
-        return password;
-    }
-
-    public void setPassword(@NotBlank String password) {
-        this.password = password;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
 }
