@@ -1,14 +1,17 @@
 package com.soulsurf.backend.controllers;
 
 import com.soulsurf.backend.dto.MessageResponse;
-import com.soulsurf.backend.dto.PostDTO; // Importação adicionada
+import com.soulsurf.backend.dto.PostDTO;
 import com.soulsurf.backend.services.PostService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
@@ -44,5 +47,15 @@ public class PostController {
         return postService.getPostById(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/user/{userEmail}")
+    public ResponseEntity<List<PostDTO>> getPostsByUser(@PathVariable String userEmail) {
+        try {
+            List<PostDTO> posts = postService.getPostsByUserEmail(userEmail);
+            return ResponseEntity.ok(posts);
+        } catch (UsernameNotFoundException e) {
+            return ResponseEntity.notFound().build();
+        }
     }
 }
