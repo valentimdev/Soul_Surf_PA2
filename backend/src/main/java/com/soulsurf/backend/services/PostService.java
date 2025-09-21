@@ -57,6 +57,12 @@ public class PostService {
                 .collect(Collectors.toList());
     }
 
+    // NOVO MÉTODO ADICIONADO AQUI
+    public Optional<PostDTO> getPostById(Long id) {
+        return postRepository.findById(id)
+                .map(this::convertToDto);
+    }
+
     private PostDTO convertToDto(Post post) {
         PostDTO postDTO = new PostDTO();
         postDTO.setId(post.getId());
