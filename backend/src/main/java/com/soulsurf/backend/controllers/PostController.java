@@ -1,6 +1,7 @@
 package com.soulsurf.backend.controllers;
 
 import com.soulsurf.backend.dto.MessageResponse;
+import com.soulsurf.backend.dto.PostDTO; // Importação adicionada
 import com.soulsurf.backend.services.PostService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -36,5 +37,12 @@ public class PostController {
                     .badRequest()
                     .body(new MessageResponse("Erro ao criar o post: " + e.getMessage()));
         }
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<PostDTO> getPostById(@PathVariable Long id) {
+        return postService.getPostById(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 }
