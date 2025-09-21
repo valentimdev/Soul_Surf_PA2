@@ -1,104 +1,59 @@
 package com.soulsurf.backend.controllers;
 
-import java.util.List;
-
+import com.soulsurf.backend.dto.MessageResponse;
+import com.soulsurf.backend.dto.UserDTO;
+import com.soulsurf.backend.services.UserService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.multipart.MultipartFile;
-
-import com.soulsurf.backend.dto.MessageResponse;
-import com.soulsurf.backend.dto.UserDTO;
-import com.soulsurf.backend.services.UserService;
-
-import io.jsonwebtoken.io.IOException;
+import org.springframework.web.bind.annotation.*;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
 @RequestMapping("/api/users")
+@Tag(name = "3. Usuários", description = "Endpoints para gerenciamento de perfis e interações de usuários.")
 public class UserController {
     private final UserService userService;
     public UserController(UserService userService) {
         this.userService = userService;
     }
 
-    //rota para pegar o perfil de um usuario pelo id
+    @Operation(summary = "Busca o perfil de um usuário", description = "Retorna os detalhes do perfil de um usuário pelo seu ID.")
+    @ApiResponse(responseCode = "200", description = "Perfil do usuário encontrado")
+    @ApiResponse(responseCode = "404", description = "Usuário não encontrado")
     @GetMapping("/{id}")
-    public ResponseEntity<UserDTO> getUserProfile(@PathVariable Long id) {
+    public ResponseEntity<UserDTO> getUserProfile(@Parameter(description = "ID do usuário") @PathVariable Long id) {
         return userService.getUserProfile(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
-    //rota do follow
+
+    @Operation(summary = "Seguir um usuário", description = "Permite que o usuário autenticado siga outro usuário. Requer autenticação JWT.", security = @SecurityRequirement(name = "bearerAuth"))
+    @ApiResponse(responseCode = "200", description = "Usuário seguido com sucesso")
+    @ApiResponse(responseCode = "401", description = "Não autenticado")
+    @ApiResponse(responseCode = "404", description = "Usuário a ser seguido não encontrado")
     @PostMapping("/{id}/follow")
-    public ResponseEntity<?> followUser(@PathVariable Long id, @AuthenticationPrincipal UserDetails userDetails) {
-        System.out.println("=== DEBUG CONTROLLER: userDetails = " + userDetails);
-    
+    public ResponseEntity<?> followUser(@Parameter(description = "ID do usuário a ser seguido") @PathVariable Long id, @AuthenticationPrincipal UserDetails userDetails) {
         if (userDetails == null) {
-            System.out.println("=== DEBUG: UserDetails é nulo! Problema de autenticação.");
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new MessageResponse("Usuário não autenticado"));
         }
-    
-        System.out.println("=== DEBUG: Username = " + userDetails.getUsername());
-    
         userService.followUser(userDetails.getUsername(), id);
         return ResponseEntity.ok(new MessageResponse("Você agora está seguindo o usuário com ID " + id));
-}
-
-    //rota para dar unfollow 
-    @DeleteMapping("/{id}/follow")
-    public ResponseEntity<?> unfollowUser(@PathVariable Long id, @AuthenticationPrincipal UserDetails userDetails) {
-        userService.unfollowUser(userDetails.getUsername(), id);
-        return ResponseEntity.ok(new MessageResponse("Você deixou de seguir o usuário com ID " + id));
     }
 
-    // //rota para ver o proprio perfil
-    // @GetMapping("/me")
-    // public ResponseEntity<UserDTO> getMyProfile(@AuthenticationPrincipal UserDetails userDetails) {
-    //     return userService.getUserProfileByEmail(userDetails.getUsername())
-    //         .map(ResponseEntity::ok)
-    //         .orElse(ResponseEntity.notFound().build());
-    // }
-
-    // //rota para trocar foto de capa e de perfil
-    // @PutMapping("/me/profile")
-    // public ResponseEntity<?> updateProfile(
-    //         @RequestParam(value = "fotoPerfil", required = false) MultipartFile fotoPerfil,
-    //         @RequestParam(value = "fotoCapa", required = false) MultipartFile fotoCapa,
-    //         @AuthenticationPrincipal UserDetails userDetails) {
-    //     try {
-    //         userService.updateProfilePictures(userDetails.getUsername(), fotoPerfil, fotoCapa);
-    //         return ResponseEntity.ok(new MessageResponse("Perfil atualizado com sucesso!"));
-    //     } catch (IOException e) {
-    //         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new MessageResponse("Erro ao atualizar o perfil."));
-    //     }
-    // }
-
-    // //rota que retorna uma lista dos seguidores do usuario
-    // @GetMapping("/{username}/followers")
-    // public ResponseEntity<List<UserDTO>> getFollowers(@PathVariable String username) {
-    //     List<UserDTO> followers = userService.getFollowers(username);
-    //     return ResponseEntity.ok(followers);
-    // }
-    // //rota que retorna uma lista dos seguindo do usuario
-    // @GetMapping("/{username}/following")
-    // public ResponseEntity<List<UserDTO>> getFollowing(@PathVariable String username) {
-    //     List<UserDTO> following = userService.getFollowing(username);
-    //     return ResponseEntity.ok(following);
-    // }
-
-    @GetMapping("/hello")
-    public String helloWorld() {
-        return "teste";
+    @Operation(summary = "Deixar de seguir um usuário", description = "Permite que o usuário autenticado deixe de seguir outro usuário. Requer autenticação JWT.", security = @SecurityRequirement(name = "bearerAuth"))
+    @ApiResponse(responseCode = "200", description = "Deixou de seguir o usuário com sucesso")
+    @ApiResponse(responseCode = "401", description = "Não autenticado")
+    @ApiResponse(responseCode = "404", description = "Usuário a ser deixado de seguir não encontrado")
+    @DeleteMapping("/{id}/follow")
+    public ResponseEntity<?> unfollowUser(@Parameter(description = "ID do usuário a ser deixado de seguir") @PathVariable Long id, @AuthenticationPrincipal UserDetails userDetails) {
+        userService.unfollowUser(userDetails.getUsername(), id);
+        return ResponseEntity.ok(new MessageResponse("Você deixou de seguir o usuário com ID " + id));
     }
 }
