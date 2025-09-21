@@ -23,7 +23,7 @@ public class UserDTO {
     public UserDTO() {
     }
     public UserDTO(Long id, String email) {
-    this.id = id;
-    this.email = email;
+        this.id = id;
+        this.email = email;
     }
 }
