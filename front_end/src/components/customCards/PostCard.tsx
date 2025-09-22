@@ -6,7 +6,7 @@ import {
   CardFooter,
   CardHeader,
 } from '@/components/ui/card';
-import { Heart, MessageCircle, Send } from 'lucide-react';
+import { Heart, MessageCircle } from 'lucide-react';
 
 interface PostCardProps {
   username: string;
