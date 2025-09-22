@@ -1,16 +1,15 @@
-
 import api from "../axios";
 import { authRoutes } from "../routes/auth";
 
 // Tipos de DTO (padrão com base no seu backend)
 export type LoginRequest = {
   email: string;
-  senha: string;
+  password: string;
 };
 
 export type SignupRequest = {
   email: string;
-  senha: string;
+  password: string;
   nome: string;
 };
 
@@ -33,10 +32,13 @@ export const AuthService = {
     return data;
   },
 
-  signup: async (payload: SignupRequest) => {
-    const { data } = await api.post(authRoutes.signup(), payload);
-    return data;
-  },
+    signup: async (payload: { email: string; password: any }) => {
+        const { data } = await api.post(authRoutes.signup(), payload);
+        if (data.token) {
+            localStorage.setItem("token", data.token); // salva token após cadastro
+        }
+        return data;
+    },
 
   forgotPassword: async (payload: ForgotPasswordRequest) => {
     const { data } = await api.post(authRoutes.forgotPassword(), payload);
