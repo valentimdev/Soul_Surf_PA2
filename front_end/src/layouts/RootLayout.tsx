@@ -3,10 +3,10 @@ import Header from '@/layouts/Header';
 import React from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import SideBarLeft from '@/layouts/SideBarLeft';
-import SideBarRight from '@/layouts/SideBarRight';
 const RootLayout: React.FC = () => {
   const location = useLocation();
   const noSidebarRoutes = [
+    '/',
     '/login',
     '/cadastro',
     '/forgot-password',
