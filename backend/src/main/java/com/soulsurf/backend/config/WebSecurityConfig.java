@@ -10,6 +10,11 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.List;
 
 @Configuration
 @EnableWebSecurity
@@ -28,20 +33,35 @@ public class WebSecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.csrf(csrf -> csrf.disable())
+                .cors(cors -> cors.configurationSource(corsConfigurationSource())) // habilita CORS
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth ->
-                        // Nossos endpoints de autenticação serão públicos
+                        // Nossos endpoints de autenticação e Swagger serão públicos
                         auth.requestMatchers("/api/auth/**",
-                                            "/v3/api-docs/**",
-                                            "/swagger-ui/**",
-                                            "/swagger-ui.html",     // <-- ADICIONE ISTO se você quer acessar /swagger-ui.html
-                                            "/error"   ).permitAll()
-                                // ADICIONADO: Permitir acesso público aos endpoints do Swagger
-                                .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
+                                "/v3/api-docs/**",
+                                "/swagger-ui/**",
+                                "/swagger-ui.html",
+                                "/error" ).permitAll()
+                                // Rotas específicas que precisam de autenticação (adicionado do seu colega)
+                                .requestMatchers("/api/users/**").authenticated()
+                                .requestMatchers("/api/posts/**").authenticated()
                                 // Todas as outras requisições precisarão de autenticação
                                 .anyRequest().authenticated()
                 );
 
         return http.build();
+    }
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration config = new CorsConfiguration();
+        config.setAllowedOriginPatterns(List.of("*")); // libera qualquer origem (ajuste em produção!)
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        config.setAllowedHeaders(List.of("*"));
+        config.setAllowCredentials(true);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", config);
+        return source;
     }
 }

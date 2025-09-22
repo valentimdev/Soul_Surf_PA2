@@ -1,37 +1,47 @@
-import React from 'react';
-import { Avatar, Button } from '@/components/ui/application';
-import { PostCard } from '@/components/customCards/PostCard';
-import SideBarLeft from '@/layouts/SideBarLeft';
-import { BeachCard } from '@/components/customCards/BeachCard';
-import { HashtagCard } from '@/components/customCards/HashtagCard';
-import SideBarRight from '@/layouts/SideBarRight';
+import { useEffect, useState } from "react";
+import { PostService, type PostDTO } from "@/api/services/postService";
+import { PostCard } from "@/components/customCards/PostCard";
+
 function HomePage() {
-  return (
-    <div className="flex w-full min-h-screen gap-3">
-      <div className="hidden md:block w-[20%]"></div>
-      <div className="w-full md:w-[60%] border-green-400 py-4 space-y-4">
-        {/*Coluna do meio (feed) */}
-        <PostCard
-          username="Thiago Surfista"
-          userAvatarUrl=""
-          imageUrl="src/assets/soul_surfer_2.jpeg"
-          description="Tava paia o mar mas fiz acontecer"
-        />
-          <PostCard
-            username="Gabriel Medina"
-            userAvatarUrl="https://img.olympics.com/images/image/private/t_1-1_300/f_auto/v1707814715/primary/rfokftspfqn6yomtoisa"
-            imageUrl="https://img.olympics.com/images/image/private//t_s_w960/f_auto/primary/ckfbhcgmmpqmx9pxdkfl"
-            description="Mãe, consegui a medalha bronze!."
-          />
-        <PostCard
-          username="Thiago Surfista"
-          userAvatarUrl=""
-          imageUrl="src/assets/soul_surfer_1.jpeg"
-          description="Hoje prestou aleluia."
-        />
-      </div>
-    </div>
-  );
+    const [posts, setPosts] = useState<PostDTO[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchPosts = async () => {
+            try {
+                const data = await PostService.list(); // lista todos os posts
+                setPosts(data);
+            } catch (error) {
+                console.error("Erro ao buscar posts:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchPosts();
+    }, []);
+
+    if (loading) {
+        return <div className="w-full text-center py-10">Carregando posts...</div>;
+    }
+
+    return (
+        <div className="flex w-full min-h-screen gap-3">
+            <div className="hidden md:block w-[20%]"></div>
+            <div className="w-full md:w-[60%] border-green-400 py-4 space-y-4">
+                {posts.map((post) => (
+                    <PostCard
+                        key={post.id}
+                        username={post.usuario.username}
+                        userAvatarUrl={post.usuario.fotoPerfil || ""}
+                        imageUrl={post.caminhoFoto || ""}
+                        description={post.descricao}
+                    />
+                ))}
+            </div>
+            <div className="hidden md:block w-[20%]"></div>
+        </div>
+    );
 }
 
 export default HomePage;

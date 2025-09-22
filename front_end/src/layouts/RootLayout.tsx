@@ -3,10 +3,10 @@ import Header from '@/layouts/Header';
 import React from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import SideBarLeft from '@/layouts/SideBarLeft';
-import SideBarRight from '@/layouts/SideBarRight';
 const RootLayout: React.FC = () => {
   const location = useLocation();
   const noSidebarRoutes = [
+    '/',
     '/login',
     '/cadastro',
     '/forgot-password',
@@ -32,7 +32,7 @@ const RootLayout: React.FC = () => {
               <Outlet />
             </div>
             <div className="hidden md:block w-[20%]">
-              <SideBarRight />
+              {/* <SideBarRight /> */}
             </div>
           </div>
         </>
