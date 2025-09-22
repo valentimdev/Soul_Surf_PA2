@@ -27,9 +27,8 @@ public class User {
     private String password;
 
     // Novo campo username
-    @Column(unique = true)
+    @Column(unique = true, nullable = false)
     private String username;
-
     // Foto de capa do perfil
     private String fotoCapa;
 
