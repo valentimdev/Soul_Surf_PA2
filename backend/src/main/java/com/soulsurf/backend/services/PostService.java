@@ -28,7 +28,7 @@ public class PostService {
         this.blobStorageService = blobStorageService;
     }
 
-    public Post createPost(String titulo, String descricao, MultipartFile foto, String userEmail) throws IOException {
+    public void createPost(String titulo, String descricao, MultipartFile foto, String userEmail) throws IOException {
         User usuario = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado com o e-mail: " + userEmail));
 
@@ -43,7 +43,7 @@ public class PostService {
         novoPost.setUsuario(usuario);
         novoPost.setCaminhoFoto(urlDaFoto);
 
-        return postRepository.save(novoPost);
+        postRepository.save(novoPost);
     }
 
     public List<PostDTO> getPostsByUserEmail(String userEmail) {
@@ -55,6 +55,11 @@ public class PostService {
         return posts.stream()
                 .map(this::convertToDto)
                 .collect(Collectors.toList());
+    }
+
+    public Optional<PostDTO> getPostById(Long id) {
+        return postRepository.findById(id)
+                .map(this::convertToDto);
     }
 
     private PostDTO convertToDto(Post post) {
