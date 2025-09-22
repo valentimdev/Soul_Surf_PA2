@@ -8,9 +8,10 @@ import java.time.LocalDateTime;
 @Setter
 public class PostDTO {
     private Long id;
-    private String titulo;
+    // private String titulo;
     private String descricao;
     private String caminhoFoto;
     private LocalDateTime data;
     private UserDTO usuario;
+    private boolean publico;
 }
