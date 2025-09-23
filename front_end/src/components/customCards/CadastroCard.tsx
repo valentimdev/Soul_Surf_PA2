@@ -107,7 +107,7 @@ function CadastroCard() {
                 </Button>
                 <div className="flex items-center">
                     <a
-                        href="/login"
+                        href="/home"
                         className="ml-auto inline-block underline-offset-4 hover:underline"
                     >
                         Já possui conta? Entre agora!
