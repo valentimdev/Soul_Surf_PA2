@@ -28,7 +28,7 @@ function LoginCard() {
         try {
             const response = await AuthService.login({ email, password });
             login(response.token);
-            navigate("/"); //
+            navigate("/home"); //
         } catch (err: any) {
             setError(err.response?.data?.message || "Erro ao fazer login");
         }

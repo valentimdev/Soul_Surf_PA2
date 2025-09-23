@@ -1,4 +1,3 @@
-// src/components/Sidebar.tsx
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import {
@@ -11,10 +10,8 @@ import {
   User,
   Settings,
 } from 'lucide-react';
-import { Button } from '@/components/ui/button'; // Ajuste o caminho se necessário
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'; // Ajuste o caminho
+import { Button } from '@/components/ui/button';
 
-// Tipagem para os itens de navegação
 interface NavItemProps {
   href: string;
   icon: React.ElementType;
@@ -22,7 +19,7 @@ interface NavItemProps {
 }
 
 const navItems: NavItemProps[] = [
-  { href: '/', icon: Home, label: 'Início' },
+  { href: '/home', icon: Home, label: 'Início' },
   { href: '/perfil', icon: User, label: 'Perfil' },
   { href: '/explorar', icon: Compass, label: 'Explorar' },
   { href: '/praias', icon: Waves, label: 'Praias' },
@@ -71,6 +68,16 @@ const SidebarLeft: React.FC = () => {
             Configurações
           </Button>
         </Link>
+          <Button
+              onClick={() => {
+                  localStorage.removeItem('token');
+                  window.location.href = '/';
+              }}
+              variant="ghost"
+              className="w-full justify-start text-md py-6 hover:cursor-pointer"
+          >
+              Sair
+          </Button>
       </div>
     </aside>
   );
