@@ -33,6 +33,8 @@ public class User {
     // Foto de capa do perfil
     private String fotoCapa;
 
+    private String fotoPerfil;
+
     // Relacionamento - seguidores
     @ManyToMany
     @JoinTable(
