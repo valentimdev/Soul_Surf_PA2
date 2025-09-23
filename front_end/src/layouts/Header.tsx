@@ -22,7 +22,7 @@ function Header() {
           alt="Soul Surf Logo"
           className="h-full w-auto"
           onClick={() => {
-            window.location.href = '/';
+            window.location.href = '/home';
           }}
           style={{ cursor: 'pointer' }}
         />
