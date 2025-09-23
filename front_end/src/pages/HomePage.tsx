@@ -36,6 +36,7 @@ function HomePage() {
                         userAvatarUrl={post.usuario.fotoPerfil || ""}
                         imageUrl={post.caminhoFoto || ""}
                         description={post.descricao}
+                        praia={"Praia do Futuro"}
                     />
                 ))}
             </div>

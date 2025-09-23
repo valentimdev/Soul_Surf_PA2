@@ -37,7 +37,7 @@ const router = createBrowserRouter([
             // outras rotas públicas
             { path: "login", element: <LoginPage /> },
             { path: "cadastro", element: <CadastroPage /> },
-            { path: "esqueci-a-senha", element: <ForgotPasswordPage /> },
+            { path: "forgot-password", element: <ForgotPasswordPage /> },
         ],
     },
 ]);
