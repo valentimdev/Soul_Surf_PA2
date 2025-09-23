@@ -2,6 +2,7 @@ package com.soulsurf.backend.controllers;
 
 import com.soulsurf.backend.dto.MessageResponse;
 import com.soulsurf.backend.dto.UserDTO;
+import com.soulsurf.backend.dto.UserUpdateRequestDTO;
 import com.soulsurf.backend.security.service.UserDetailsImpl;
 import com.soulsurf.backend.services.UserService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -70,5 +71,19 @@ public class UserController {
                 .map(ResponseEntity::ok) 
                 .orElse(ResponseEntity.notFound().build());
     }
-
+    @Operation(summary = "Atualiza o perfil do usuário autenticado", description = "Permite que o usuário autenticado atualize suas informações de perfil (nome, bio, fotos, etc).", security = @SecurityRequirement(name = "bearerAuth"))
+    @ApiResponse(responseCode = "200", description = "Perfil atualizado com sucesso")
+    @ApiResponse(responseCode = "401", description = "Não autenticado")
+    @ApiResponse(responseCode = "404", description = "Usuário a ser atualizado não encontrado")
+    @PutMapping("/me")
+    public ResponseEntity<UserDTO> updateUserProfile(
+            @AuthenticationPrincipal UserDetailsImpl userDetails,
+            @RequestBody UserUpdateRequestDTO updateRequest) {
+                
+        Long userId = userDetails.getId();
+            
+        UserDTO updatedUserDTO = userService.updateUserProfile(userId, updateRequest);
+            
+        return ResponseEntity.ok(updatedUserDTO);
+    }
 }

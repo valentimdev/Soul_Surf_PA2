@@ -2,6 +2,7 @@ package com.soulsurf.backend.services;
 
 import com.soulsurf.backend.dto.SignupRequest;
 import com.soulsurf.backend.dto.UserDTO;
+import com.soulsurf.backend.dto.UserUpdateRequestDTO;
 import com.soulsurf.backend.entities.User;
 import com.soulsurf.backend.repository.UserRepository;
 
@@ -74,6 +75,25 @@ public class UserService {
                 .map(this::convertToDto);
             };
 
+    @Transactional
+    public UserDTO updateUserProfile(Long userId, UserUpdateRequestDTO updateRequest) {
+    User userToUpdate = userRepository.findById(userId)
+            .orElseThrow(() -> new RuntimeException("Usuário não encontrado com o id: " + userId));
+
+    if (updateRequest.getUsername() != null) {
+        userToUpdate.setUsername(updateRequest.getUsername());
+    }
+
+    if (updateRequest.getFotoPerfil() != null) {
+        userToUpdate.setFotoPerfil(updateRequest.getFotoPerfil()); 
+    }
+    if (updateRequest.getFotoCapa() != null) {
+        userToUpdate.setFotoCapa(updateRequest.getFotoCapa());
+    }
+
+    User updatedUser = userRepository.save(userToUpdate);
+    return convertToDto(updatedUser);
+}
     private UserDTO convertToDto(User user) {
         UserDTO userDTO = new UserDTO();
         userDTO.setId(user.getId());
