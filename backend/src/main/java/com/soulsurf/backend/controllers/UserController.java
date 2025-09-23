@@ -2,6 +2,7 @@ package com.soulsurf.backend.controllers;
 
 import com.soulsurf.backend.dto.MessageResponse;
 import com.soulsurf.backend.dto.UserDTO;
+import com.soulsurf.backend.security.service.UserDetailsImpl;
 import com.soulsurf.backend.services.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -56,4 +57,18 @@ public class UserController {
         userService.unfollowUser(userDetails.getUsername(), id);
         return ResponseEntity.ok(new MessageResponse("Você deixou de seguir o usuário com ID " + id));
     }
+
+    
+    @Operation(summary = "Busca o perfil do usuário autenticado", description = "Retorna os detalhes do perfil do usuário que está logado. Requer autenticação JWT.", security = @SecurityRequirement(name = "bearerAuth"))
+    @ApiResponse(responseCode = "200", description = "Perfil do usuário encontrado")
+    @ApiResponse(responseCode = "404", description = "Usuário não encontrado ou erro na conversão")
+    @GetMapping("/me")
+    public ResponseEntity<UserDTO> getMyProfile(@AuthenticationPrincipal UserDetailsImpl userDetails) {
+        Long userId = userDetails.getId();
+        
+        return userService.getUserProfile(userId)
+                .map(ResponseEntity::ok) 
+                .orElse(ResponseEntity.notFound().build());
+    }
+
 }

@@ -68,6 +68,12 @@ public class UserService {
 
     
 
+    @Transactional
+    public Optional<UserDTO> getUserProfileByUsername(String username) {
+        return userRepository.findByUsername(username)
+                .map(this::convertToDto);
+            };
+
     private UserDTO convertToDto(User user) {
         UserDTO userDTO = new UserDTO();
         userDTO.setId(user.getId());
