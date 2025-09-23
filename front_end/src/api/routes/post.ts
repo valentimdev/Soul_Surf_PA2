@@ -1,8 +1,8 @@
-// src/api/routes/post.ts
 export const postRoutes = {
     base: "/posts",
 
-    create: () => `${postRoutes.base}`,         // POST /posts
-    getById: (id: number | string) => `${postRoutes.base}/${id}`, // futuro GET /posts/:id
-    list: () => `${postRoutes.base}`,           // futuro GET /posts
+    create: () => `${postRoutes.base}`,
+    getById: (id: number | string) => `${postRoutes.base}/${id}`,
+    list: () => `${postRoutes.base}/home`,
+    byUser: (email: string) => `${postRoutes.base}/${email}`,
 };
