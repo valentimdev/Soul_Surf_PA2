@@ -85,4 +85,28 @@ public class PostController {
             return ResponseEntity.notFound().build();
         }
     }
+
+    @Operation(summary = "Edita um post existente", description = "Atualiza um post existente. Apenas o dono do post pode editá-lo. Requer autenticação JWT.", security = @SecurityRequirement(name = "bearerAuth"))
+    @ApiResponse(responseCode = "200", description = "Post atualizado com sucesso")
+    @ApiResponse(responseCode = "403", description = "Acesso negado - usuário não é dono do post")
+    @ApiResponse(responseCode = "404", description = "Post não encontrado")
+    @PutMapping("/{id}")
+    public ResponseEntity<?> updatePost(@Parameter(description = "ID do post a ser editado") @PathVariable Long id,
+                                      @Parameter(description = "Visibilidade do post") @RequestParam("publico") boolean publico,
+                                      @Parameter(description = "Descrição do post") @RequestParam("descricao") String descricao,
+                                      @AuthenticationPrincipal UserDetails userDetails) {
+        try {
+            String userEmail = userDetails.getUsername();
+            postService.updatePost(id, publico, descricao, userEmail);
+            return ResponseEntity.ok(new MessageResponse("Post atualizado com sucesso!"));
+        } catch (SecurityException e) {
+            return ResponseEntity
+                    .status(HttpStatus.FORBIDDEN)
+                    .body(new MessageResponse("Você não tem permissão para editar este post"));
+        } catch (Exception e) {
+            return ResponseEntity
+                    .badRequest()
+                    .body(new MessageResponse("Erro ao atualizar o post: " + e.getMessage()));
+        }
+    }
 }
