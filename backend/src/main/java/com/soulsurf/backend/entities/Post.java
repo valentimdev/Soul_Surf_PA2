@@ -18,11 +18,15 @@ public class Post {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
-    private String titulo;
+    // @Column(nullable = false)
+    // private String titulo;
 
     @Column(nullable = false)
     private String descricao;
+
+
+    @Column(nullable = false, columnDefinition = "BOOLEAN DEFAULT TRUE")
+    private boolean publico = true;
 
     @Column(name = "caminho_foto")
     private String caminhoFoto;

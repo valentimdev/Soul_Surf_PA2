@@ -13,12 +13,12 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
+import { Textarea } from "@/components/ui/textarea"; // Manter o Textarea
 
 function NovoRegistroCard() {
   // Estados para guardar os dados do formulário
-  const [titulo, setTitulo] = useState("");
-  const [descricao, setDescricao] = useState("");
+  // Removendo apenas o estado de 'titulo'
+  const [descricao, setDescricao] = useState(""); // Manter estado da descrição
   const [foto, setFoto] = useState<File | null>(null);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -30,7 +30,7 @@ function NovoRegistroCard() {
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
     // A integração com a API virá na próxima issue
-    console.log({ titulo, descricao, foto });
+    console.log({ descricao, foto }); // Ajustado para não incluir 'titulo'
     alert("Registo salvo (simulação)!");
   };
 
@@ -44,7 +44,8 @@ function NovoRegistroCard() {
       </CardHeader>
       <form onSubmit={handleSubmit}>
         <CardContent className="space-y-6">
-          <div className="space-y-2">
+          {/* O bloco do Título foi removido daqui */}
+          {/* <div className="space-y-2">
             <Label htmlFor="titulo">Título</Label>
             <Input
               id="titulo"
@@ -53,7 +54,9 @@ function NovoRegistroCard() {
               onChange={(e) => setTitulo(e.target.value)}
               required
             />
-          </div>
+          </div> */}
+          
+          {/* Bloco da Descrição - MANTIDO */}
           <div className="space-y-2">
             <Label htmlFor="descricao">Descrição</Label>
             <Textarea
@@ -64,7 +67,9 @@ function NovoRegistroCard() {
               className="min-h-[120px]"
             />
           </div>
-           <div className="space-y-2">
+          
+          {/* Bloco da Foto - MANTIDO */}
+          <div className="space-y-2">
             <Label htmlFor="foto">Foto</Label>
             <Input
               id="foto"

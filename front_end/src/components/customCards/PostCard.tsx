@@ -6,13 +6,14 @@ import {
   CardFooter,
   CardHeader,
 } from '@/components/ui/card';
-import { Heart, MessageCircle, Send } from 'lucide-react';
+import { Heart, MessageCircle } from 'lucide-react';
 
 interface PostCardProps {
   username: string;
   userAvatarUrl: string;
   imageUrl: string;
   description: string;
+  praia: string;
 }
 
 export function PostCard({
@@ -20,6 +21,7 @@ export function PostCard({
   userAvatarUrl,
   imageUrl,
   description,
+  praia
 }: PostCardProps) {
   return (
     <Card className="w-80% max-w-xl mx-auto">
@@ -28,7 +30,10 @@ export function PostCard({
           <AvatarImage src={userAvatarUrl} alt={username} />
           <AvatarFallback>{username.charAt(0)}</AvatarFallback>
         </Avatar>
-        <span className="font-semibold">{username}</span>
+          <div className="flex flex-col">
+              <span className="font-semibold">{username}</span>
+              <span className="text-sm text-muted-foreground">{praia}</span>
+          </div>
       </CardHeader>
       <CardContent className="p-0">
         <img
