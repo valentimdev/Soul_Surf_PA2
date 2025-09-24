@@ -35,12 +35,13 @@ public class PostController {
     @ApiResponse(responseCode = "400", description = "Erro ao criar o post")
     @PostMapping("/")
     public ResponseEntity<?> createPost(@Parameter(description = "Visibilidade do post") @RequestParam("publico") boolean publico,
-                                        @Parameter(description = "Descrição do post") @RequestParam("descricao") String descricao,
-                                        @Parameter(description = "Arquivo de imagem para o post (opcional)") @RequestParam(value = "foto", required = false) MultipartFile foto,
-                                        @AuthenticationPrincipal UserDetails userDetails) {
+                                      @Parameter(description = "Descrição do post") @RequestParam("descricao") String descricao,
+                                      @Parameter(description = "Arquivo de imagem para o post (opcional)") @RequestParam(value = "foto", required = false) MultipartFile foto,
+                                      @Parameter(description = "ID da praia (opcional)") @RequestParam(value = "beachId", required = false) Long beachId,
+                                      @AuthenticationPrincipal UserDetails userDetails) {
         try {
             String userEmail = userDetails.getUsername();
-            postService.createPost(publico, descricao, foto, userEmail);
+            postService.createPost(publico, descricao, foto, userEmail, beachId);
             return ResponseEntity
                     .status(HttpStatus.CREATED)
                     .body(new MessageResponse("Post criado com sucesso!"));
@@ -86,18 +87,17 @@ public class PostController {
         }
     }
 
-    @Operation(summary = "Edita um post existente", description = "Atualiza um post existente. Apenas o dono do post pode editá-lo. Requer autenticação JWT.", security = @SecurityRequirement(name = "bearerAuth"))
+    @Operation(summary = "Edita um post existente", description = "Atualiza a descrição de um post existente. Apenas o dono do post pode editá-lo. Requer autenticação JWT.", security = @SecurityRequirement(name = "bearerAuth"))
     @ApiResponse(responseCode = "200", description = "Post atualizado com sucesso")
     @ApiResponse(responseCode = "403", description = "Acesso negado - usuário não é dono do post")
     @ApiResponse(responseCode = "404", description = "Post não encontrado")
     @PutMapping("/{id}")
     public ResponseEntity<?> updatePost(@Parameter(description = "ID do post a ser editado") @PathVariable Long id,
-                                      @Parameter(description = "Visibilidade do post") @RequestParam("publico") boolean publico,
-                                      @Parameter(description = "Descrição do post") @RequestParam("descricao") String descricao,
+                                      @Parameter(description = "Nova descrição do post") @RequestParam("descricao") String descricao,
                                       @AuthenticationPrincipal UserDetails userDetails) {
         try {
             String userEmail = userDetails.getUsername();
-            postService.updatePost(id, publico, descricao, userEmail);
+            postService.updatePost(id, descricao, userEmail);
             return ResponseEntity.ok(new MessageResponse("Post atualizado com sucesso!"));
         } catch (SecurityException e) {
             return ResponseEntity
