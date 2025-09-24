@@ -56,4 +56,18 @@ public class UserController {
         userService.unfollowUser(userDetails.getUsername(), id);
         return ResponseEntity.ok(new MessageResponse("Você deixou de seguir o usuário com ID " + id));
     }
+
+    @Operation(summary = "Busca o perfil do usuário autenticado", description = "Retorna os detalhes do perfil do usuário logado. Requer autenticação JWT.", security = @SecurityRequirement(name = "bearerAuth"))
+    @ApiResponse(responseCode = "200", description = "Perfil do usuário autenticado encontrado")
+    @ApiResponse(responseCode = "401", description = "Não autenticado")
+    @GetMapping("/me")
+    public ResponseEntity<UserDTO> getMyProfile(@AuthenticationPrincipal UserDetails userDetails) {
+        if (userDetails == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        return userService.getUserByEmail(userDetails.getUsername())
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
 }
