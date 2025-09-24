@@ -82,6 +82,18 @@ public class PostService {
         return Optional.empty();
     }
 
+    public void updatePost(Long id, boolean publico, String descricao, String userEmail) {
+        Post post = postRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Post não encontrado"));
+        if (!post.getUsuario().getEmail().equals(userEmail)) {
+            throw new SecurityException("Usuário não tem permissão para editar este post");
+        }
+        post.setPublico(publico);
+        post.setDescricao(descricao);
+
+        postRepository.save(post);
+    }
+
     private PostDTO convertToDto(Post post) {
         PostDTO postDTO = new PostDTO();
         postDTO.setId(post.getId());
