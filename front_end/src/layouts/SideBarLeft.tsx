@@ -43,7 +43,7 @@ const SidebarLeft: React.FC = () => {
                 <Link to={item.href}>
                   <Button
                     variant={isActive ? 'secondary' : 'ghost'}
-                    className="w-full justify-start text-md py-5"
+                    className="w-full justify-start text-md py-5 hover:cursor-pointer"
                   >
                     <item.icon className="mr-3 h-5 w-5" />
                     {item.label}
@@ -62,7 +62,7 @@ const SidebarLeft: React.FC = () => {
             variant={
               location.pathname === '/configuracoes' ? 'secondary' : 'ghost'
             }
-            className="w-full justify-start text-md py-6 mb-2"
+            className="w-full justify-start text-md py-6 mb-2 hover:cursor-pointer"
           >
             <Settings className="mr-3 h-5 w-5" />
             Configurações
