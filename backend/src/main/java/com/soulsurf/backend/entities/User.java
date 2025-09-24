@@ -33,6 +33,7 @@ public class User {
     private String fotoCapa;
 
     private String fotoPerfil;
+    private String bio; 
 
     // Relacionamento - seguidores
     @ManyToMany
