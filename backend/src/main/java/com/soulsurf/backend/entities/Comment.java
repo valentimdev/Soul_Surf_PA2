@@ -6,32 +6,20 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 
 @Entity
-@Table(name = "posts")
+@Table(name = "comments")
 @Getter
 @Setter
 @NoArgsConstructor
-public class Post {
+public class Comment {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // @Column(nullable = false)
-    // private String titulo;
-
     @Column(nullable = false)
-    private String descricao;
-
-
-    @Column(nullable = false, columnDefinition = "BOOLEAN DEFAULT TRUE")
-    private boolean publico = true;
-
-    @Column(name = "caminho_foto")
-    private String caminhoFoto;
+    private String texto;
 
     @Column(nullable = false, updatable = false)
     private LocalDateTime data;
@@ -41,11 +29,8 @@ public class Post {
     private User usuario;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "beach_id")
-    private Beach beach;
-
-    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Comment> comments = new ArrayList<>();
+    @JoinColumn(name = "post_id", nullable = false)
+    private Post post;
 
     @PrePersist
     protected void onCreate() {
