@@ -27,7 +27,4 @@ public class UserDTO {
         this.email = email;
     }
 
-    public String getUsername() {
-        return (username == null || username.isBlank()) ? "Surfista" : username;
-    }
 }
