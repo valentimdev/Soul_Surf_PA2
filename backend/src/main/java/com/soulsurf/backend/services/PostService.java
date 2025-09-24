@@ -28,7 +28,7 @@ public class PostService {
         this.blobStorageService = blobStorageService;
     }
 
-    public void createPost(String titulo, String descricao, MultipartFile foto, String userEmail) throws IOException {
+    public void createPost(boolean publico, String descricao, MultipartFile foto, String userEmail) throws IOException {
         User usuario = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado com o e-mail: " + userEmail));
 
@@ -38,13 +38,21 @@ public class PostService {
         }
 
         Post novoPost = new Post();
-        novoPost.setTitulo(titulo);
         novoPost.setDescricao(descricao);
         novoPost.setUsuario(usuario);
         novoPost.setCaminhoFoto(urlDaFoto);
+        novoPost.setPublico(publico);
 
         postRepository.save(novoPost);
     }
+
+    // 
+    public List<PostDTO> getPublicFeed() {
+        return postRepository.findByPublicoIsTrueOrderByDataDesc().stream()
+                .map(this::convertToDto)
+                .collect(Collectors.toList());
+    }
+
 
     public List<PostDTO> getPostsByUserEmail(String userEmail) {
         User usuario = userRepository.findByEmail(userEmail)
@@ -57,15 +65,27 @@ public class PostService {
                 .collect(Collectors.toList());
     }
 
-    public Optional<PostDTO> getPostById(Long id) {
-        return postRepository.findById(id)
-                .map(this::convertToDto);
+    public Optional<PostDTO> getPostById(Long id, String requesterEmail) {
+        Optional<Post> postOptional = postRepository.findById(id);
+        
+        if (postOptional.isEmpty()) {
+            return Optional.empty();
+        }
+
+        Post post = postOptional.get();
+        // verifica se é dono do post ou o post é publico
+        if (post.isPublico() || post.getUsuario().getEmail().equals(requesterEmail)) {
+            return Optional.of(convertToDto(post));
+        }
+
+        // se o nao for o dono do post e o post for privado retorna null
+        return Optional.empty();
     }
 
     private PostDTO convertToDto(Post post) {
         PostDTO postDTO = new PostDTO();
         postDTO.setId(post.getId());
-        postDTO.setTitulo(post.getTitulo());
+        postDTO.setPublico(post.isPublico());
         postDTO.setDescricao(post.getDescricao());
         postDTO.setCaminhoFoto(post.getCaminhoFoto());
         postDTO.setData(post.getData());
@@ -74,7 +94,8 @@ public class PostService {
         userDTO.setId(post.getUsuario().getId());
         userDTO.setUsername(post.getUsuario().getUsername());
         userDTO.setEmail(post.getUsuario().getEmail());
-        postDTO.setUsuario(userDTO);
+
+        postDTO.setUsuario(userDTO); 
 
         return postDTO;
     }

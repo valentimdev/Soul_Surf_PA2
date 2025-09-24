@@ -1,24 +1,41 @@
-// src/layouts/RootLayout.tsx
-import Header from '@/layouts/Header';
-import React from 'react';
+import React, { useState } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
+import { Plus } from 'lucide-react';
+
+// Componentes existentes
+import Header from '@/layouts/Header';
 import SideBarLeft from '@/layouts/SideBarLeft';
-import SideBarRight from '@/layouts/SideBarRight';
+import NovoRegistroCard from '@/components/customCards/NovoRegistroCard'; // Importa o seu card
+
+// Componentes de UI da Shadcn
+import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+
 const RootLayout: React.FC = () => {
   const location = useLocation();
-  const noSidebarRoutes = [
+  // Estado para controlar a abertura/fecho do modal
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // Rotas onde o layout principal (com sidebars e botão) não deve aparecer
+  const noLayoutRoutes = [
+    '/',
     '/login',
     '/cadastro',
-    '/forgot-password',
+    '/esqueci-a-senha',
     '/landing',
   ];
-  const showSidebars = !noSidebarRoutes.includes(location.pathname);
+  const showLayout = !noLayoutRoutes.includes(location.pathname);
 
   return (
     <main>
-      {showSidebars ? (
+      {showLayout ? (
+        // Layout principal da aplicação (para utilizadores logados)
         <>
-          <div className="fixed top-0 left-0 right-0 z-50">
+          <div className="fixed top-0 left-0 right-0 z-40"> {/* z-index ajustado */}
             <Header />
           </div>
           <div className="flex pt-20">
@@ -29,14 +46,32 @@ const RootLayout: React.FC = () => {
             </div>
 
             <div className="w-full md:w-[60%]">
-              <Outlet />
+              <Outlet /> {/* As páginas como HomePage, ProfilePage, etc., serão renderizadas aqui */}
             </div>
+            
             <div className="hidden md:block w-[20%]">
               {/* <SideBarRight /> */}
             </div>
           </div>
+
+          {/* DIALOG E BOTÃO FLUTUANTE (FAB) */}
+          <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+            <DialogTrigger asChild>
+              <Button
+                className="fixed bottom-8 right-8 h-16 w-16 rounded-full shadow-lg z-50"
+                size="icon"
+              >
+                <Plus className="h-8 w-8" />
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[650px] p-0">
+              {/* O seu formulário é renderizado aqui dentro do modal */}
+              <NovoRegistroCard />
+            </DialogContent>
+          </Dialog>
         </>
       ) : (
+        // Layout para páginas públicas (login, cadastro, etc.)
         <div className="w-full">
           <Outlet />
         </div>
