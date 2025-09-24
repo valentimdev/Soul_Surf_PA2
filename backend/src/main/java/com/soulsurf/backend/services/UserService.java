@@ -1,20 +1,13 @@
 package com.soulsurf.backend.services;
 
-import com.soulsurf.backend.dto.PostDTO;
 import com.soulsurf.backend.dto.SignupRequest;
 import com.soulsurf.backend.dto.UserDTO;
-import com.soulsurf.backend.entities.Post;
+import com.soulsurf.backend.dto.UserUpdateRequestDTO;
 import com.soulsurf.backend.entities.User;
 import com.soulsurf.backend.repository.PostRepository;
 import com.soulsurf.backend.repository.UserRepository;
-
 import jakarta.transaction.Transactional;
-
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
-
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -23,13 +16,11 @@ import org.springframework.stereotype.Service;
 public class UserService {
 
     private final UserRepository userRepository;
-    private final PostRepository postRepository;
     private final PasswordEncoder passwordEncoder;
     private final PostService postService;
 
-    public UserService(UserRepository userRepository, PostRepository postRepository, PasswordEncoder passwordEncoder, PostService postService) {
+    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder, PostService postService) {
         this.userRepository = userRepository;
-        this.postRepository = postRepository;
         this.passwordEncoder = passwordEncoder;
         this.postService = postService;
     }
@@ -82,6 +73,31 @@ public class UserService {
         userRepository.save(follower);
     }
 
+    @Transactional
+    public Optional<UserDTO> getUserProfileByUsername(String username) {
+        return userRepository.findByUsername(username)
+                .map(this::convertToDto);
+            };
+
+    @Transactional
+    public UserDTO updateUserProfile(Long userId, UserUpdateRequestDTO updateRequest) {
+    User userToUpdate = userRepository.findById(userId)
+            .orElseThrow(() -> new RuntimeException("Usuário não encontrado com o id: " + userId));
+
+    if (updateRequest.getUsername() != null) {
+        userToUpdate.setUsername(updateRequest.getUsername());
+    }
+
+    if (updateRequest.getFotoPerfil() != null) {
+        userToUpdate.setFotoPerfil(updateRequest.getFotoPerfil());
+    }
+    if (updateRequest.getFotoCapa() != null) {
+        userToUpdate.setFotoCapa(updateRequest.getFotoCapa());
+    }
+
+    User updatedUser = userRepository.save(userToUpdate);
+    return convertToDto(updatedUser);
+}
     private UserDTO convertToDto(User user) {
         UserDTO userDTO = new UserDTO();
         userDTO.setId(user.getId());
