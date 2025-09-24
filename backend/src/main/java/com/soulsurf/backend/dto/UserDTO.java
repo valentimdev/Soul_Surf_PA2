@@ -16,6 +16,7 @@ public class UserDTO {
     private String email;
     private String fotoPerfil;
     private String fotoCapa;
+    public String bio;
     private int seguidoresCount;
     private int seguindoCount;
     private List<PostDTO> posts;
