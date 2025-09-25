@@ -1,4 +1,4 @@
-import { useState, type ChangeEvent, type FormEvent } from "react";
+import { useState, type ChangeEvent, type FormEvent, useEffect } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card } from "@/components/ui/card";
 import { Pencil } from "lucide-react";
@@ -12,7 +12,9 @@ import {
     DialogClose,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { type UserDTO, type UpdateProfileRequest, UserService } from "@/api/services/userService";
+import { type UserDTO, UserService } from "@/api/services/userService";
+import { toast } from "sonner";
+import {PostCard} from "@/components/customCards/PostCard.tsx";
 
 type UserProfileCardProps = {
     user: UserDTO;
@@ -20,10 +22,23 @@ type UserProfileCardProps = {
 
 export function UserProfileCard({ user }: UserProfileCardProps) {
     const [username, setUsername] = useState(user.username);
+    const [bio, setBio] = useState(user.bio || "");
     const [fotoPerfil, setFotoPerfil] = useState<File | null>(null);
     const [fotoCapa, setFotoCapa] = useState<File | null>(null);
     const [previewPerfil, setPreviewPerfil] = useState(user.fotoPerfil);
     const [previewCapa, setPreviewCapa] = useState(user.fotoCapa);
+    const [isDialogOpen, setIsDialogOpen] = useState(false);
+    const [me, setMe] = useState<UserDTO | null>(null);
+
+    // Para mostrar lista de seguidores/seguindo
+    const [showFollowers, setShowFollowers] = useState(false);
+    const [showFollowing, setShowFollowing] = useState(false);
+    const [followersList, setFollowersList] = useState<UserDTO[]>([]);
+    const [followingList, setFollowingList] = useState<UserDTO[]>([]);
+
+    useEffect(() => {
+        UserService.getMe().then(setMe);
+    }, []);
 
     const handleFotoPerfilChange = (e: ChangeEvent<HTMLInputElement>) => {
         if (e.target.files?.[0]) {
@@ -41,24 +56,41 @@ export function UserProfileCard({ user }: UserProfileCardProps) {
 
     const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();
-
-        const payload: UpdateProfileRequest = {
-            fotoPerfil: fotoPerfil || undefined,
-            fotoCapa: fotoCapa || undefined,
-        };
+        const formData = new FormData();
+        formData.append("username", username);
+        formData.append("bio", bio);
+        if (fotoPerfil) formData.append("fotoPerfil", fotoPerfil);
+        if (fotoCapa) formData.append("fotoCapa", fotoCapa);
 
         try {
-            await UserService.updateProfile(payload);
-            alert("Perfil atualizado com sucesso!");
-            // opcional: atualizar o estado local do usuário
+            const updatedUser = await UserService.updateProfile(formData);
+            setUsername(updatedUser.username);
+            setBio(updatedUser.bio || "");
+            setPreviewPerfil(updatedUser.fotoPerfil);
+            setPreviewCapa(updatedUser.fotoCapa);
+            setIsDialogOpen(false);
+            toast.success("Perfil atualizado com sucesso!");
         } catch (error) {
             console.error("Erro ao atualizar perfil:", error);
-            alert("Erro ao atualizar perfil");
+            toast.error("Erro ao atualizar perfil. Tente novamente.");
         }
+    };
+
+    const openFollowers = async () => {
+        const list = await UserService.getFollowers(user.username);
+        setFollowersList(list);
+        setShowFollowers(true);
+    };
+
+    const openFollowing = async () => {
+        const list = await UserService.getFollowing(user.username);
+        setFollowingList(list);
+        setShowFollowing(true);
     };
 
     return (
         <Card className="pt-0 w-full bg-white rounded-lg shadow-sm overflow-hidden border border-gray-200">
+            {/* Foto de capa */}
             <div
                 className="w-full h-50 bg-cover bg-center"
                 style={{
@@ -68,35 +100,47 @@ export function UserProfileCard({ user }: UserProfileCardProps) {
 
             <div className="p-4">
                 <div className="flex items-center -mt-16 ml-4 justify-between">
-                    <div className="flex items-center gap-4">
-                        <Avatar className="h-24 w-24 border-4 border-white shadow-md">
-                            {previewPerfil ? (
-                                <AvatarImage src={previewPerfil} alt={`${username}'s avatar`} />
-                            ) : (
-                                <AvatarFallback>{username ? username.charAt(0) : "U"}</AvatarFallback>
-                            )}
-                        </Avatar>
-
-                        <div className="mt-12">
-                            <h2 className="text-2xl font-bold text-gray-800">{username}</h2>
-                            {/* <p className="text-gray-600 text-sm mt-1">{user.bio}</p> */} {/* futuro campo bio */}
+                    <div className="flex items-start gap-6">
+                        <div className="flex flex-col items-center">
+                            <Avatar className="h-24 w-24 border-4 border-white shadow-md">
+                                {previewPerfil ? (
+                                    <AvatarImage src={previewPerfil} alt={`${username}'s avatar`} />
+                                ) : (
+                                    <AvatarFallback>{username ? username.charAt(0) : "U"}</AvatarFallback>
+                                )}
+                            </Avatar>
+                            <div className="flex gap-6 mt-4 mr-2">
+                                <button onClick={openFollowers} className="flex flex-col items-center">
+                                    <span className="font-bold">{user.seguidoresCount}</span>
+                                    <span className="text-xs text-gray-500">Seguidores</span>
+                                </button>
+                                <button onClick={openFollowing} className="flex flex-col items-center">
+                                    <span className="font-bold">{user.seguindoCount}</span>
+                                    <span className="text-xs text-gray-500">Seguindo</span>
+                                </button>
+                            </div>
+                        </div>
+                        <div className="mt-8 flex flex-col justify-center">
+                            <h2 className="text-2xl font-bold text-gray-800 ">{username}</h2>
+                            <p className="text-gray-600 text-sm mt-1">{bio}</p>
                         </div>
                     </div>
 
-                    {/* Botão de editar perfil */}
-                    <Dialog>
-                        <DialogTrigger asChild>
-                            <button className="mt-12 mr-4 p-2 rounded-full hover:bg-gray-100 transition">
-                                <Pencil size={20} />
-                            </button>
-                        </DialogTrigger>
+                    {/* Botão de editar */}
+                    <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                        {me?.id === user.id && (
+                            <DialogTrigger asChild>
+                                <button className="mr-4 p-2 rounded-full hover:bg-gray-100 transition">
+                                    <Pencil size={20} />
+                                </button>
+                            </DialogTrigger>
+                        )}
                         <DialogContent>
                             <DialogHeader>
                                 <DialogTitle>Editar Perfil</DialogTitle>
                             </DialogHeader>
 
                             <form onSubmit={handleSubmit} className="mt-4 space-y-4">
-                                {/* Username */}
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700">Nome de usuário</label>
                                     <Input
@@ -127,15 +171,15 @@ export function UserProfileCard({ user }: UserProfileCardProps) {
                                     />
                                 </div>
 
-                                {/* <div>
-                                  <label className="block text-sm font-medium text-gray-700">Bio</label>
-                                  <textarea
-                                    placeholder="Escreva sobre você..."
-                                    value={bio}
-                                    onChange={(e) => setBio(e.target.value)}
-                                    className="w-full border border-gray-300 rounded p-2"
-                                  />
-                                </div> */}
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700">Bio</label>
+                                    <textarea
+                                        placeholder="Escreva sobre você..."
+                                        value={bio}
+                                        onChange={(e) => setBio(e.target.value)}
+                                        className="w-full border border-gray-300 rounded p-2"
+                                    />
+                                </div>
 
                                 <div className="flex justify-end gap-2">
                                     <DialogClose className="px-4 py-2 bg-gray-300 text-black rounded hover:bg-gray-400">
@@ -153,23 +197,112 @@ export function UserProfileCard({ user }: UserProfileCardProps) {
                     </Dialog>
                 </div>
 
+                {/* Tabs - Posts / Comentários / etc */}
                 <div className="mt-6 border-b border-gray-200">
                     <Tabs defaultValue="overview">
-                        <TabsList className="grid w-full grid-cols-5 h-auto">
+                        <TabsList className="grid w-full grid-cols-3 h-auto">
                             <TabsTrigger value="overview">Visão Geral</TabsTrigger>
-                            <TabsTrigger value="posts">Registros</TabsTrigger>
-                            <TabsTrigger value="comments">Comentários</TabsTrigger>
-                            <TabsTrigger value="likes">Curtidas</TabsTrigger>
-                            <TabsTrigger value="followers">Marcado</TabsTrigger>
+                            <TabsTrigger value="followers">Seguidores</TabsTrigger>
+                            <TabsTrigger value="following">Seguindo</TabsTrigger>
                         </TabsList>
 
-                        <TabsContent value="overview" className="mt-4">
-                            <div className="bg-gray-50 p-6 rounded-md text-center text-gray-600 border border-dashed border-gray-300">
-                                Este usuário ainda não postou
-                            </div>
+                        <TabsContent value="overview" className="mt-4 space-y-4">
+                            {user.posts.length === 0 ? (
+                                <div className="bg-gray-50 p-6 rounded-md text-center text-gray-600 border border-dashed border-gray-300">
+                                    Este usuário ainda não postou
+                                </div>
+                            ) : (
+                                user.posts.map((post) => (
+                                    <PostCard
+                                        key={post.id}
+                                        username={user.username}
+                                        userAvatarUrl={user.fotoPerfil || ""}
+                                        imageUrl={post.caminhoFoto || ""}
+                                        description={post.descricao}
+                                        praia={"Praia do Futuro"}
+                                    />
+                                ))
+                            )}
+                        </TabsContent>
+
+                        <TabsContent value="followers" className="mt-4 space-y-2">
+                            {followersList.length === 0
+                                ? "Nenhum seguidor ainda"
+                                : followersList.map((u) => (
+                                    <div key={u.id} className="flex items-center gap-2 p-2 border-b border-gray-200">
+                                        <Avatar className="h-10 w-10 border border-gray-300">
+                                            {u.fotoPerfil ? <AvatarImage src={u.fotoPerfil} /> : <AvatarFallback>{u.username.charAt(0)}</AvatarFallback>}
+                                        </Avatar>
+                                        <span>{u.username}</span>
+                                    </div>
+                                ))}
+                        </TabsContent>
+
+                        <TabsContent value="following" className="mt-4 space-y-2">
+                            {followingList.length === 0
+                                ? "Não está seguindo ninguém"
+                                : followingList.map((u) => (
+                                    <div key={u.id} className="flex items-center gap-2 p-2 border-b border-gray-200">
+                                        <Avatar className="h-10 w-10 border border-gray-300">
+                                            {u.fotoPerfil ? <AvatarImage src={u.fotoPerfil} /> : <AvatarFallback>{u.username.charAt(0)}</AvatarFallback>}
+                                        </Avatar>
+                                        <span>{u.username}</span>
+                                    </div>
+                                ))}
                         </TabsContent>
                     </Tabs>
                 </div>
+
+                {/* Modal Seguidores */}
+                <Dialog open={showFollowers} onOpenChange={() => setShowFollowers(false)}>
+                    <DialogContent>
+                        <DialogHeader>
+                            <DialogTitle>Seguidores</DialogTitle>
+                        </DialogHeader>
+                        <div className="space-y-2 mt-4">
+                            {followersList.length === 0
+                                ? "Nenhum seguidor ainda"
+                                : followersList.map((u) => (
+                                    <div key={u.id} className="flex items-center gap-2 p-2 border-b border-gray-200">
+                                        <Avatar className="h-10 w-10 border border-gray-300">
+                                            {u.fotoPerfil ? (
+                                                <AvatarImage src={u.fotoPerfil} />
+                                            ) : (
+                                                <AvatarFallback>{u.username.charAt(0)}</AvatarFallback>
+                                            )}
+                                        </Avatar>
+                                        <span>{u.username}</span>
+                                    </div>
+                                ))}Quero
+                        </div>
+                        <DialogClose className="mt-4 px-4 py-2 bg-gray-300 rounded hover:bg-gray-400">Fechar</DialogClose>
+                    </DialogContent>
+                </Dialog>
+
+                <Dialog open={showFollowing} onOpenChange={() => setShowFollowing(false)}>
+                    <DialogContent>
+                        <DialogHeader>
+                            <DialogTitle>Seguindo</DialogTitle>
+                        </DialogHeader>
+                        <div className="space-y-2 mt-4">
+                            {followingList.length === 0
+                                ? "Não está seguindo ninguém"
+                                : followingList.map((u) => (
+                                    <div key={u.id} className="flex items-center gap-2 p-2 border-b border-gray-200">
+                                        <Avatar className="h-10 w-10 border border-gray-300">
+                                            {u.fotoPerfil ? (
+                                                <AvatarImage src={u.fotoPerfil} />
+                                            ) : (
+                                                <AvatarFallback>{u.username.charAt(0)}</AvatarFallback>
+                                            )}
+                                        </Avatar>
+                                        <span>{u.username}</span>
+                                    </div>
+                                ))}
+                        </div>
+                        <DialogClose className="mt-4 px-4 py-2 bg-gray-300 rounded hover:bg-gray-400">Fechar</DialogClose>
+                    </DialogContent>
+                </Dialog>
             </div>
         </Card>
     );

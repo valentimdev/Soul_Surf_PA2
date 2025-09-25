@@ -3,7 +3,7 @@ export const userRoutes = {
 
     getById: (id: number | string) => `${userRoutes.base}/${id}`,
     getMe: () => `${userRoutes.base}/me`,
-    updateProfile: () => `${userRoutes.base}/me/profile`,
+    updateProfile: () => `${userRoutes.base}/me/upload`,
 
     follow: (id: number | string) => `${userRoutes.base}/${id}/follow`,
     unfollow: (id: number | string) => `${userRoutes.base}/${id}/follow`,
