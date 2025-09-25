@@ -71,6 +71,7 @@ public class UserController {
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
+
     @Operation(summary = "Atualiza o perfil do usuário autenticado", description = "Permite que o usuário autenticado atualize suas informações de perfil (nome, bio, fotos, etc).", security = @SecurityRequirement(name = "bearerAuth"))
     @ApiResponse(responseCode = "200", description = "Perfil atualizado com sucesso")
     @ApiResponse(responseCode = "401", description = "Não autenticado")
@@ -85,15 +86,5 @@ public class UserController {
         UserDTO updatedUserDTO = userService.updateUserProfile(userId, updateRequest);
 
         return ResponseEntity.ok(updatedUserDTO);
-
-        public ResponseEntity<UserDTO> getMyProfile(@AuthenticationPrincipal UserDetails userDetails) {
-            if (userDetails == null) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-            }
-
-            return userService.getUserByEmail(userDetails.getUsername())
-                    .map(ResponseEntity::ok)
-                    .orElse(ResponseEntity.notFound().build());
-        }
     }
 }

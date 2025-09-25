@@ -56,7 +56,7 @@ public class JwtUtils {
     // 4. Método para validar o token JWT
     public boolean validateJwtToken(String authToken) {
         try {
-            Jwts.parserBuilder().setSigningKey(key()).build().parse(authToken);
+            Jwts.parserBuilder().setSigningKey(key()).build().parseClaimsJws(authToken);
             return true;
         } catch (MalformedJwtException e) {
             logger.error("Token JWT inválido: {}", e.getMessage());
@@ -69,4 +69,5 @@ public class JwtUtils {
         }
         return false;
     }
+
 }
