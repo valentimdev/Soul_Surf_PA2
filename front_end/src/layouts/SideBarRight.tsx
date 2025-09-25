@@ -1,10 +1,3 @@
-import React from 'react';
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-  Button,
-} from '../components/ui/application';
 import { BeachCard } from '../components/customCards/BeachCard';
 import { HashtagCard } from '../components/customCards/HashtagCard';
 
