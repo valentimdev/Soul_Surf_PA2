@@ -1,9 +1,7 @@
 package com.soulsurf.backend.services;
 
-import com.azure.core.exception.ResourceNotFoundException;
 import com.soulsurf.backend.dto.BeachDTO;
 import com.soulsurf.backend.dto.CommentDTO;
-import com.soulsurf.backend.dto.CreatePostRequest;
 import com.soulsurf.backend.dto.PostDTO;
 import com.soulsurf.backend.dto.UserDTO;
 import com.soulsurf.backend.entities.Beach;
@@ -12,9 +10,6 @@ import com.soulsurf.backend.entities.User;
 import com.soulsurf.backend.repository.BeachRepository;
 import com.soulsurf.backend.repository.PostRepository;
 import com.soulsurf.backend.repository.UserRepository;
-
-import jakarta.transaction.Transactional;
-
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -42,33 +37,29 @@ public class PostService {
         this.blobStorageService = blobStorageService;
     }
 
-    @Transactional // Garante a atomicidade da operação
-    public void createPost(CreatePostRequest request, MultipartFile foto, String userEmail) {
-        try {
-            User usuario = userRepository.findByEmail(userEmail)
-                    .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado: " + userEmail));
+    public void createPost(boolean publico, String descricao, MultipartFile foto, String userEmail, Long beachId) throws IOException {
+        User usuario = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado com o e-mail: " + userEmail));
 
-            String urlDaFoto = null;
-            if (blobStorageService.isPresent() && foto != null && !foto.isEmpty()) {
-                urlDaFoto = blobStorageService.get().uploadFile(foto);
-            }
-
-            Post novoPost = new Post();
-            novoPost.setDescricao(request.getDescricao());
-            novoPost.setUsuario(usuario);
-            novoPost.setCaminhoFoto(urlDaFoto);
-            novoPost.setPublico(request.isPublico());
-
-            if (request.getBeachId() != null) {
-                Beach beach = beachRepository.findById(request.getBeachId())
-                        .orElseThrow(() -> new ResourceNotFoundException("Praia não encontrada", null)); // Use exceções específicas
-                novoPost.setBeach(beach);
-            }
-
-            postRepository.save(novoPost);
-        } catch (IOException e) {
-            throw new RuntimeException("Falha ao fazer upload do arquivo.", e);
+        String urlDaFoto = null;
+        if (blobStorageService.isPresent() && foto != null && !foto.isEmpty()) {
+            urlDaFoto = blobStorageService.get().uploadFile(foto);
         }
+
+        Post novoPost = new Post();
+        novoPost.setDescricao(descricao);
+        novoPost.setUsuario(usuario);
+        novoPost.setCaminhoFoto(urlDaFoto);
+        novoPost.setPublico(publico);
+
+        // Adiciona a praia se o ID for fornecido
+        if (beachId != null) {
+            Beach beach = beachRepository.findById(beachId)
+                    .orElseThrow(() -> new RuntimeException("Praia não encontrada"));
+            novoPost.setBeach(beach);
+        }
+
+        postRepository.save(novoPost);
     }
 
     public List<PostDTO> getPublicFeed() {

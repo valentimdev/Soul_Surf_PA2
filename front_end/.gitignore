@@ -1,6 +1,6 @@
 # Dependencies
 /node_modules
-
+backend/src/main/resources/application.properties
 # Build files
 /dist
 
