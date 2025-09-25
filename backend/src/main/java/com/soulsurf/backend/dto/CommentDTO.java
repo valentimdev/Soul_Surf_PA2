@@ -3,14 +3,14 @@ package com.soulsurf.backend.dto;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
 @NoArgsConstructor
-public class BeachDTO {
+public class CommentDTO {
     private Long id;
-    private String nome;
-    private String descricao;
-    private String localizacao;
-    private String caminhoFoto;
+    private String texto;
+    private LocalDateTime data;
+    private UserDTO usuario;
 }

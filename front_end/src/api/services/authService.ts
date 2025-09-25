@@ -32,7 +32,7 @@ export const AuthService = {
     return data;
   },
 
-    signup: async (payload: { email: string; password: any }) => {
+    signup: async (payload: { email: string; password: any, username: string }) => {
         const { data } = await api.post(authRoutes.signup(), payload);
         if (data.token) {
             localStorage.setItem("token", data.token); // salva token após cadastro
