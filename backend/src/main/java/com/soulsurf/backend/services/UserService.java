@@ -11,6 +11,7 @@ import java.util.Optional;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 @Service
 public class UserService {
@@ -18,11 +19,13 @@ public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final PostService postService;
+    private final Optional<BlobStorageService> blobStorageService;
 
-    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder, PostService postService) {
+    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder, PostService postService, Optional<BlobStorageService> blobStorageService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.postService = postService;
+        this.blobStorageService = blobStorageService;
     }
 
     public boolean existsByEmail(String email) {
@@ -79,25 +82,70 @@ public class UserService {
                 .map(this::convertToDto);
             };
 
+//     @Transactional
+//     public UserDTO updateUserProfile(Long userId, UserUpdateRequestDTO updateRequest) {
+//     User userToUpdate = userRepository.findById(userId)
+//             .orElseThrow(() -> new RuntimeException("Usuário não encontrado com o id: " + userId));
+
+//     if (updateRequest.getUsername() != null) {
+//         userToUpdate.setUsername(updateRequest.getUsername());
+//     }
+
+//     if (updateRequest.getFotoPerfil() != null) {
+//         userToUpdate.setFotoPerfil(updateRequest.getFotoPerfil());
+//     }
+//     if (updateRequest.getFotoCapa() != null) {
+//         userToUpdate.setFotoCapa(updateRequest.getFotoCapa());
+//     }
+
+//     User updatedUser = userRepository.save(userToUpdate);
+//     return convertToDto(updatedUser);
+// }
+
     @Transactional
-    public UserDTO updateUserProfile(Long userId, UserUpdateRequestDTO updateRequest) {
-    User userToUpdate = userRepository.findById(userId)
-            .orElseThrow(() -> new RuntimeException("Usuário não encontrado com o id: " + userId));
+    public UserDTO updateUserProfileWithFiles(Long userId, String username,String bio, MultipartFile fotoPerfil, MultipartFile fotoCapa) {
+        User userToUpdate = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado com o id: " + userId));
 
-    if (updateRequest.getUsername() != null) {
-        userToUpdate.setUsername(updateRequest.getUsername());
+        if (username != null) {
+            userToUpdate.setUsername(username);
+        }
+        if (bio != null) {
+            userToUpdate.setBio(bio);
+        }
+
+        // Upload da foto de perfil se fornecida
+        if (fotoPerfil != null && !fotoPerfil.isEmpty()) {
+            if (blobStorageService.isPresent()) {
+                try {
+                    String fotoPerfilUrl = blobStorageService.get().uploadFile(fotoPerfil);
+                    userToUpdate.setFotoPerfil(fotoPerfilUrl);
+                } catch (Exception e) {
+                    throw new RuntimeException("Erro ao fazer upload da foto de perfil: " + e.getMessage());
+                }
+            } else {
+                throw new RuntimeException("Serviço de armazenamento de arquivos não está disponível");
+            }
+        }
+
+        // Upload da foto de capa se fornecida
+        if (fotoCapa != null && !fotoCapa.isEmpty()) {
+            if (blobStorageService.isPresent()) {
+                try {
+                    String fotoCapaUrl = blobStorageService.get().uploadFile(fotoCapa);
+                    userToUpdate.setFotoCapa(fotoCapaUrl);
+                } catch (Exception e) {
+                    throw new RuntimeException("Erro ao fazer upload da foto de capa: " + e.getMessage());
+                }
+            } else {
+                throw new RuntimeException("Serviço de armazenamento de arquivos não está disponível");
+            }
+        }
+
+        User updatedUser = userRepository.save(userToUpdate);
+        return convertToDto(updatedUser);
     }
 
-    if (updateRequest.getFotoPerfil() != null) {
-        userToUpdate.setFotoPerfil(updateRequest.getFotoPerfil());
-    }
-    if (updateRequest.getFotoCapa() != null) {
-        userToUpdate.setFotoCapa(updateRequest.getFotoCapa());
-    }
-
-    User updatedUser = userRepository.save(userToUpdate);
-    return convertToDto(updatedUser);
-}
     private UserDTO convertToDto(User user) {
         UserDTO userDTO = new UserDTO();
         userDTO.setId(user.getId());
@@ -105,6 +153,7 @@ public class UserService {
         userDTO.setEmail(user.getEmail());
         userDTO.setFotoPerfil(user.getFotoPerfil());
         userDTO.setFotoCapa(user.getFotoCapa());
+        userDTO.setBio(user.getBio());
         // Futuramente quando os posts estiverem prontos descomentar essa e trazer os posts para o perfil do usuario
         // userDTO.setPosts(user.getPosts().stream().map(this::convertToDto).collect(Collectors.toList()));
         // Para evitar recursão infinita, podemos usar um DTO mais simples ou apenas contar
