@@ -30,12 +30,7 @@ export const PostService = {
         formData.append("descricao", descricao);
         if (foto) formData.append("foto", foto);
 
-        const { data } = await api.post<MessageResponse>(postRoutes.create(), formData, {
-            headers: {
-                "Content-Type": "multipart/form-data",
-            },
-        });
-
+        const { data } = await api.post<MessageResponse>(postRoutes.create(), formData);
         return data;
     },
 
