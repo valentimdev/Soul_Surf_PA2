@@ -1,5 +1,6 @@
 package com.soulsurf.backend.controllers;
 
+import com.soulsurf.backend.dto.CreatePostRequest;
 import com.soulsurf.backend.dto.MessageResponse;
 import com.soulsurf.backend.dto.PostDTO;
 import com.soulsurf.backend.services.PostService;
@@ -31,32 +32,37 @@ public class PostController {
         this.postService = postService;
     }
 
-    @Operation(
-            summary = "Cria um novo post",
-            description = "Cria um novo registro associado ao usuário autenticado. Requer autenticação JWT.",
-            security = @SecurityRequirement(name = "bearerAuth")
-    )
-    @ApiResponses({
-            @ApiResponse(responseCode = "201", description = "Post criado com sucesso"),
-            @ApiResponse(responseCode = "400", description = "Erro ao criar o post")
-    })
-    @PostMapping
-    public ResponseEntity<MessageResponse> createPost(
-            @Parameter(description = "Visibilidade do post") @RequestParam("publico") boolean publico,
-            @Parameter(description = "Descrição do post") @RequestParam("descricao") String descricao,
-            @Parameter(description = "Arquivo de imagem para o post (opcional)") @RequestParam(value = "foto", required = false) MultipartFile foto,
-            @Parameter(description = "ID da praia (opcional)") @RequestParam(value = "beachId", required = false) Long beachId,
-            @AuthenticationPrincipal UserDetails userDetails) {
+        @Operation(
+                summary = "Cria um novo post",
+                description = "Cria um novo registro associado ao usuário autenticado. Requer autenticação JWT.",
+                security = @SecurityRequirement(name = "bearerAuth")
+        )
+        @ApiResponses({
+                @ApiResponse(responseCode = "201", description = "Post criado com sucesso"),
+                @ApiResponse(responseCode = "400", description = "Erro ao criar o post")
+        })
+        @PostMapping
+        public ResponseEntity<MessageResponse> createPost(
+                @Parameter(description = "Visibilidade do post") @RequestParam("publico") boolean publico,
+                @Parameter(description = "Descrição do post") @RequestParam("descricao") String descricao,
+                @Parameter(description = "Arquivo de imagem para o post (opcional)") @RequestParam(value = "foto", required = false) MultipartFile foto,
+                @Parameter(description = "ID da praia (opcional)") @RequestParam(value = "beachId", required = false) Long beachId,
+                @AuthenticationPrincipal UserDetails userDetails) {
 
-        try {
-            postService.createPost(publico, descricao, foto, userDetails.getUsername(), beachId);
-            return ResponseEntity.status(HttpStatus.CREATED)
-                    .body(new MessageResponse("Post criado com sucesso!"));
-        } catch (Exception e) {
-            return ResponseEntity.badRequest()
-                    .body(new MessageResponse("Erro ao criar o post: " + e.getMessage()));
+            try {
+                CreatePostRequest request = new CreatePostRequest();
+                request.setDescricao(descricao);
+                request.setPublico(publico);
+                request.setBeachId(beachId);
+
+                postService.createPost(request, foto, userDetails.getUsername());
+                return ResponseEntity.status(HttpStatus.CREATED)
+                        .body(new MessageResponse("Post criado com sucesso!"));
+            } catch (Exception e) {
+                return ResponseEntity.badRequest()
+                        .body(new MessageResponse("Erro ao criar o post: " + e.getMessage()));
+            }
         }
-    }
 
     @Operation(
             summary = "Lista todos os posts públicos",
