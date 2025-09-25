@@ -15,6 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
@@ -71,22 +72,39 @@ public class UserController {
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
-    @Operation(summary = "Atualiza o perfil do usuário autenticado", description = "Permite que o usuário autenticado atualize suas informações de perfil (nome, bio, fotos, etc).", security = @SecurityRequirement(name = "bearerAuth"))
+    // @Operation(summary = "Atualiza o perfil do usuário autenticado", description = "Permite que o usuário autenticado atualize suas informações de perfil (nome, bio, fotos, etc).", security = @SecurityRequirement(name = "bearerAuth"))
+    // @ApiResponse(responseCode = "200", description = "Perfil atualizado com sucesso")
+    // @ApiResponse(responseCode = "401", description = "Não autenticado")
+    // @ApiResponse(responseCode = "404", description = "Usuário a ser atualizado não encontrado")
+    // @PutMapping("/me")
+    // public ResponseEntity<UserDTO> updateUserProfile(
+    //         @AuthenticationPrincipal UserDetailsImpl userDetails,
+    //         @RequestBody UserUpdateRequestDTO updateRequest) {
+
+    //     Long userId = userDetails.getId();
+
+    //     UserDTO updatedUserDTO = userService.updateUserProfile(userId, updateRequest);
+
+    //     return ResponseEntity.ok(updatedUserDTO);
+    // }
+
+    @Operation(summary = "Atualiza o perfil do usuário com upload de imagens", description = "Permite que o usuário autenticado atualize suas informações de perfil incluindo upload de fotos.", security = @SecurityRequirement(name = "bearerAuth"))
     @ApiResponse(responseCode = "200", description = "Perfil atualizado com sucesso")
     @ApiResponse(responseCode = "401", description = "Não autenticado")
     @ApiResponse(responseCode = "404", description = "Usuário a ser atualizado não encontrado")
-    @PutMapping("/me")
-    public ResponseEntity<UserDTO> updateUserProfile(
+    @PutMapping(value = "/me/upload", consumes = "multipart/form-data")
+    public ResponseEntity<UserDTO> updateUserProfileWithFiles(
             @AuthenticationPrincipal UserDetailsImpl userDetails,
-            @RequestBody UserUpdateRequestDTO updateRequest) {
+            @Parameter(description = "Nome de usuário") @RequestParam(value = "username", required = false) String username,
+            @Parameter(description = "Biografia") @RequestParam(value = "bio", required = false) String bio,
+            @Parameter(description = "Arquivo de foto de perfil") @RequestParam(value = "fotoPerfil", required = false) MultipartFile fotoPerfil,
+            @Parameter(description = "Arquivo de foto de capa") @RequestParam(value = "fotoCapa", required = false) MultipartFile fotoCapa) {
 
         Long userId = userDetails.getId();
 
-        UserDTO updatedUserDTO = userService.updateUserProfile(userId, updateRequest);
+        UserDTO updatedUserDTO = userService.updateUserProfileWithFiles(userId, username,bio, fotoPerfil, fotoCapa);
 
         return ResponseEntity.ok(updatedUserDTO);
-
-
     }
     public ResponseEntity<UserDTO> getMyProfile(@AuthenticationPrincipal UserDetails userDetails) {
         if (userDetails == null) {
