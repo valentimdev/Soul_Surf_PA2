@@ -1,89 +1,131 @@
 package com.soulsurf.backend.services;
 
 import com.soulsurf.backend.dto.BeachDTO;
+import com.soulsurf.backend.dto.PostDTO;
+import com.soulsurf.backend.dto.UserDTO;
 import com.soulsurf.backend.entities.Beach;
+import com.soulsurf.backend.entities.Post;
+import com.soulsurf.backend.entities.User;
 import com.soulsurf.backend.repository.BeachRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.soulsurf.backend.repository.PostRepository;
+import com.soulsurf.backend.repository.UserRepository;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
 public class BeachService {
 
-    @Autowired
-    private BeachRepository beachRepository;
+    private final BeachRepository beachRepository;
+    private final PostRepository postRepository;
+    private final UserRepository userRepository;
+    private final Optional<BlobStorageService> blobStorageService;
 
-    // Converter Entity -> DTO
-    private BeachDTO toDTO(Beach entity) {
-        BeachDTO dto = new BeachDTO();
-        dto.setId(entity.getId());
-        dto.setName(entity.getName());
-        dto.setState(entity.getState());
-        dto.setCity(entity.getCity());
-        dto.setDescription(entity.getDescription());
-        dto.setLatitude(entity.getLatitude());
-        dto.setLongitude(entity.getLongitude());
-        return dto;
+    public BeachService(BeachRepository beachRepository, PostRepository postRepository, UserRepository userRepository, Optional<BlobStorageService> blobStorageService) {
+        this.beachRepository = beachRepository;
+        this.postRepository = postRepository;
+        this.userRepository = userRepository;
+        this.blobStorageService = blobStorageService;
     }
 
-    // Converter DTO -> Entity
-    private Beach toEntity(BeachDTO dto) {
-        Beach entity = new Beach();
-        entity.setId(dto.getId());
-        entity.setName(dto.getName());
-        entity.setState(dto.getState());
-        entity.setCity(dto.getCity());
-        entity.setDescription(dto.getDescription());
-        entity.setLatitude(dto.getLatitude());
-        entity.setLongitude(dto.getLongitude());
-        return entity;
+    public Beach createBeach(String nome, String descricao, String localizacao, String nivelExperiencia, MultipartFile foto) throws IOException {
+        Beach beach = new Beach();
+        beach.setNome(nome);
+        beach.setDescricao(descricao);
+        beach.setLocalizacao(localizacao);
+        beach.setNivelExperiencia(nivelExperiencia);
+
+        if (blobStorageService.isPresent() && foto != null && !foto.isEmpty()) {
+            String urlDaFoto = blobStorageService.get().uploadFile(foto);
+            beach.setCaminhoFoto(urlDaFoto);
+        }
+
+        return beachRepository.save(beach);
     }
 
-    // Criar nova praia
-    public BeachDTO create(BeachDTO dto) {
-        Beach entity = toEntity(dto);
-        Beach saved = beachRepository.save(entity);
-        return toDTO(saved);
-    }
-
-    // Listar todas
-    public List<BeachDTO> findAll() {
-        return beachRepository.findAll()
-                .stream()
-                .map(this::toDTO)
+    public List<BeachDTO> getAllBeaches() {
+        return beachRepository.findAll().stream()
+                .map(this::convertToDto)
                 .collect(Collectors.toList());
     }
 
-    
-    public BeachDTO findById(Long id) {
-        Beach entity = beachRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Praia não encontrada com ID: " + id));
-        return toDTO(entity);
+    public Optional<BeachDTO> getBeachById(Long id) {
+        return beachRepository.findById(id)
+                .map(this::convertToDto);
     }
 
-   
-    public BeachDTO update(Long id, BeachDTO dto) {
-        Beach entity = beachRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Praia não encontrada com ID: " + id));
+    public List<PostDTO> getBeachPosts(Long beachId, int page, int size, String currentUserEmail) {
+        Beach beach = beachRepository.findById(beachId)
+                .orElseThrow(() -> new RuntimeException("Praia não encontrada"));
 
-        entity.setName(dto.getName());
-        entity.setState(dto.getState());
-        entity.setCity(dto.getCity());
-        entity.setDescription(dto.getDescription());
-        entity.setLatitude(dto.getLatitude());
-        entity.setLongitude(dto.getLongitude());
+        PageRequest pageRequest = PageRequest.of(page, size, Sort.by("data").descending());
 
-        Beach updated = beachRepository.save(entity);
-        return toDTO(updated);
-    }
-
-   
-    public void delete(Long id) {
-        if (!beachRepository.existsById(id)) {
-            throw new RuntimeException("Praia não encontrada com ID: " + id);
+        if (currentUserEmail != null) {
+            // Se está logado, busca posts públicos ou posts próprios
+            return postRepository.findByBeachAndPublicoIsTrueOrUsuarioEmail(beach, currentUserEmail, pageRequest)
+                    .stream()
+                    .map(this::convertPostToDto)
+                    .collect(Collectors.toList());
+        } else {
+            // Se não está logado, busca apenas posts públicos
+            return postRepository.findByBeachAndPublicoIsTrue(beach, pageRequest)
+                    .stream()
+                    .map(this::convertPostToDto)
+                    .collect(Collectors.toList());
         }
-        beachRepository.deleteById(id);
+    }
+
+    public List<PostDTO> getAllBeachPosts(Long beachId, String userEmail) {
+        Beach beach = beachRepository.findById(beachId)
+                .orElseThrow(() -> new RuntimeException("Praia não encontrada"));
+
+        return postRepository.findByBeachOrderByDataDesc(beach).stream()
+                .map(this::convertPostToDto)
+                .collect(Collectors.toList());
+    }
+
+    private BeachDTO convertToDto(Beach beach) {
+        BeachDTO beachDTO = new BeachDTO();
+        beachDTO.setId(beach.getId());
+        beachDTO.setNome(beach.getNome());
+        beachDTO.setDescricao(beach.getDescricao());
+        beachDTO.setLocalizacao(beach.getLocalizacao());
+        beachDTO.setCaminhoFoto(beach.getCaminhoFoto());
+        return beachDTO;
+    }
+
+    // Método auxiliar para converter Post para PostDTO
+    private PostDTO convertPostToDto(Post post) {
+        PostDTO postDTO = new PostDTO();
+        postDTO.setId(post.getId());
+        postDTO.setPublico(post.isPublico());
+        postDTO.setDescricao(post.getDescricao());
+        postDTO.setCaminhoFoto(post.getCaminhoFoto());
+        postDTO.setData(post.getData());
+
+        // Converter usuário
+        UserDTO userDTO = new UserDTO();
+        userDTO.setId(post.getUsuario().getId());
+        userDTO.setUsername(post.getUsuario().getUsername());
+        userDTO.setEmail(post.getUsuario().getEmail());
+        postDTO.setUsuario(userDTO);
+
+        // Converter praia
+        BeachDTO beachDTO = new BeachDTO();
+        beachDTO.setId(post.getBeach().getId());
+        beachDTO.setNome(post.getBeach().getNome());
+        beachDTO.setDescricao(post.getBeach().getDescricao());
+        beachDTO.setLocalizacao(post.getBeach().getLocalizacao());
+        beachDTO.setCaminhoFoto(post.getBeach().getCaminhoFoto());
+        postDTO.setBeach(beachDTO);
+
+        return postDTO;
     }
 }

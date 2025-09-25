@@ -33,10 +33,10 @@ function CadastroCard() {
         }
 
         try {
-            const response = await AuthService.signup({ email, password });
+            const response = await AuthService.signup({ email, password, username });
             localStorage.setItem("token", response.token);
             setSuccess("Conta criada com sucesso! Faça login.");
-            navigate("/");
+            navigate("/home");
         } catch (err: any) {
             setError(err.response?.data?.message || "Erro ao cadastrar");
         }
@@ -53,11 +53,11 @@ function CadastroCard() {
             <CardContent>
                 <form onSubmit={handleSignup} className="flex flex-col gap-4">
                     <div className="grid gap-2">
-                        <Label htmlFor="username">Nome</Label>
+                        <Label htmlFor="username">Username</Label>
                         <Input
                             id="username"
                             type="text"
-                            placeholder="Seu nome completo"
+                            placeholder="Digite seu username"
                             required
                             value={username}
                             onChange={(e) => setUsername(e.target.value)}
@@ -107,7 +107,7 @@ function CadastroCard() {
                 </Button>
                 <div className="flex items-center">
                     <a
-                        href="/home"
+                        href="/login"
                         className="ml-auto inline-block underline-offset-4 hover:underline"
                     >
                         Já possui conta? Entre agora!

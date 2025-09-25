@@ -3,6 +3,7 @@ package com.soulsurf.backend.dto;
 import lombok.Getter;
 import lombok.Setter;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Getter
 @Setter
@@ -14,4 +15,6 @@ public class PostDTO {
     private LocalDateTime data;
     private UserDTO usuario;
     private boolean publico;
+    private BeachDTO beach;
+    private List<CommentDTO> comments;
 }

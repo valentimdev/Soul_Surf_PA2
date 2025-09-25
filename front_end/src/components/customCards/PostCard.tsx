@@ -36,11 +36,13 @@ export function PostCard({
           </div>
       </CardHeader>
       <CardContent className="p-0">
-        <img
-          src={imageUrl}
-          alt="Post"
-          className="w-full aspect-[4/3] object-cover"
-        />
+          {imageUrl && (
+              <img
+                  src={imageUrl}
+                  alt="Post"
+                  className="w-full max-h-[500px] object-cover"
+              />
+          )}
       </CardContent>
       <CardFooter className="flex flex-col items-start p-2">
         <div className="flex gap-4">
