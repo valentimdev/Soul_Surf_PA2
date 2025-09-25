@@ -115,3 +115,7 @@
     @apply bg-background text-foreground;
   }
 }
+
+.sonner-toaster {
+    z-index: 99999 !important;
+}
