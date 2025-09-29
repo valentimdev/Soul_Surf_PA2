@@ -1,23 +1,28 @@
-import { BeachCard } from '@/components/customCards/BeachCard';
-import { BeachCardTeste } from '@/components/customCards/BeachCard_1';
-import React from 'react';
+import { useEffect, useState } from "react";
+import { BeachService, type BeachDTO } from "@/api/services/beachService";
+import {BeachCard} from "@/components/customCards/BeachCard.tsx";
 
 function BeachsPage() {
-  // mock
-  const beachData = [1, 2, 3, 4, 5, 6];
+    const [beaches, setBeaches] = useState<BeachDTO[]>([]);
 
-  return (
-    <div className="flex flex-col ml-[10%] mr-[10%] border border-black mt-5">
-      <div>
-        <h1 className="ml-5 text-2xl font-bold">Praias</h1>
-      </div>
-      <div className="ml-5 mt-5 grid grid-cols-1 md:grid-cols-2 gap-5">
-        {beachData.map((id) => (
-          <BeachCardTeste key={id} />
-        ))}
-      </div>
-    </div>
-  );
+    useEffect(() => {
+        BeachService.getAllBeaches()
+            .then(setBeaches)
+            .catch((err) => console.error("Erro ao carregar praias:", err));
+    }, []);
+
+    return (
+        <div className="flex flex-col ml-[10%] mr-[10%] mt-5">
+            <div>
+                <h1 className="ml-5 text-2xl font-bold">Praias</h1>
+            </div>
+            <div className="ml-5 mt-5 grid grid-cols-1 md:grid-cols-2 gap-5">
+                {beaches.map((beach) => (
+                    <BeachCard key={beach.id} beach={beach} />
+                ))}
+            </div>
+        </div>
+    );
 }
 
 export default BeachsPage;
