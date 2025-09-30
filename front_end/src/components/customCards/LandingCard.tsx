@@ -15,7 +15,7 @@ function LandingCard() {
                         Vem pegar essa onda!
                     </p>
 
-                    <div className="flex flex-col gap-4 w-full">'
+                    <div className="flex flex-col gap-4 w-full">
                         <div className="flex items-center gap-3">
                             <CheckCircle2 className="text-blue-500" size={28} />
                             <span className="text-lg font-semibold">Acompanhe seu progresso nas ondas</span>
