@@ -1,16 +1,21 @@
-// src/api/services/postService.ts
 import api from "../axios";
 import { postRoutes } from "../routes/post";
 import type {UserDTO} from "./userService";
 
-// DTOs
 export type PostDTO = {
     id: number;
-    titulo: string;
     descricao: string;
     caminhoFoto?: string;
-    data: string; // LocalDateTime do backend vira string
+    data: string;
     usuario: UserDTO;
+    publico: boolean;
+    beach?: {
+        id: number;
+        nome: string;
+        descricao: string;
+        localizacao: string;
+        caminhoFoto?: string;
+    };
 };
 
 export type MessageResponse = {
@@ -18,23 +23,26 @@ export type MessageResponse = {
 };
 
 export type CreatePostRequest = {
-    titulo: string;
     descricao: string;
+    publico: boolean;
+    beachId?: number;
     foto?: File;
 };
 
 export const PostService = {
-    create: async ({ titulo, descricao, foto }: CreatePostRequest): Promise<MessageResponse> => {
+    create: async ({ descricao, publico, beachId, foto }: CreatePostRequest): Promise<MessageResponse> => {
         const formData = new FormData();
-        formData.append("titulo", titulo);
         formData.append("descricao", descricao);
+        formData.append("publico", String(publico));
+        if (beachId) formData.append("beachId", beachId.toString());
         if (foto) formData.append("foto", foto);
 
-        const { data } = await api.post<MessageResponse>(postRoutes.create(), formData);
+        const { data } = await api.post<MessageResponse>(postRoutes.create(), formData, {
+            headers: { "Content-Type": "multipart/form-data" },
+        });
         return data;
     },
 
-    // futuros endpoints
     getById: async (id: number | string): Promise<PostDTO> => {
         const { data } = await api.get<PostDTO>(postRoutes.getById(id));
         return data;
