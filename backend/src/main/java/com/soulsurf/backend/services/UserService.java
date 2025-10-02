@@ -32,12 +32,13 @@ public class UserService {
         return userRepository.findByEmail(email).isPresent();
     }
 
-    public void registerUser(SignupRequest signupRequest) {
+    public UserDTO registerUser(SignupRequest signupRequest) {
         User user = new User();
         user.setEmail(signupRequest.getEmail());
         user.setPassword(passwordEncoder.encode(signupRequest.getPassword()));
         user.setUsername(signupRequest.getUsername());
-        userRepository.save(user);
+        User savedUser = userRepository.save(user);
+        return convertToDto(savedUser);
     }
 
     public Optional<UserDTO> getUserProfile(Long id) {
@@ -61,8 +62,18 @@ public class UserService {
         if (follower.getId().equals(userToFollow.getId())) {
             throw new IllegalArgumentException("Você não pode seguir a si mesmo.");
         }
-        follower.getSeguindo().add(userToFollow);
-        userRepository.save(follower);
+        
+        // Verifica se já está seguindo para evitar duplicatas
+        if (!follower.getSeguindo().contains(userToFollow)) {
+            // Adiciona à lista de "seguindo" do seguidor
+            follower.getSeguindo().add(userToFollow);
+            // Adiciona à lista de "seguidores" do usuário seguido
+            userToFollow.getSeguidores().add(follower);
+            
+            // Salva ambos os usuários
+            userRepository.save(follower);
+            userRepository.save(userToFollow);
+        }
     }
 
     @Transactional
