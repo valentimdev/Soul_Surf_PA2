@@ -7,7 +7,9 @@ import com.soulsurf.backend.entities.User;
 import com.soulsurf.backend.repository.PostRepository;
 import com.soulsurf.backend.repository.UserRepository;
 import jakarta.transaction.Transactional;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -65,14 +67,10 @@ public class UserService {
         
         // Verifica se já está seguindo para evitar duplicatas
         if (!follower.getSeguindo().contains(userToFollow)) {
-            // Adiciona à lista de "seguindo" do seguidor
+            // Com o relacionamento bidirecional, só precisamos adicionar em uma direção
+            // O JPA automaticamente atualiza a lista de seguidores do userToFollow
             follower.getSeguindo().add(userToFollow);
-            // Adiciona à lista de "seguidores" do usuário seguido
-            userToFollow.getSeguidores().add(follower);
-            
-            // Salva ambos os usuários
             userRepository.save(follower);
-            userRepository.save(userToFollow);
         }
     }
 
@@ -83,6 +81,9 @@ public class UserService {
 
         User userToUnfollow = userRepository.findById(followedId)
                 .orElseThrow(() -> new UsernameNotFoundException("Usuário a ser deixado de seguir não encontrado."));
+        
+        // Com o relacionamento bidirecional, só precisamos remover de uma direção
+        // O JPA automaticamente atualiza a lista de seguidores do userToUnfollow
         follower.getSeguindo().remove(userToUnfollow);
         userRepository.save(follower);
     }
@@ -91,7 +92,27 @@ public class UserService {
     public Optional<UserDTO> getUserProfileByUsername(String username) {
         return userRepository.findByUsername(username)
                 .map(this::convertToDto);
-            };
+    }
+
+
+    public List<UserDTO> getUserFollowing(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado com o ID: " + userId));
+        
+        return user.getSeguindo().stream()
+                .map(this::convertToDtoWithoutPosts)
+                .collect(Collectors.toList());
+    }
+ 
+    public List<UserDTO> getUserFollowers(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado com o ID: " + userId));
+        
+        return user.getSeguidores().stream()
+                .map(this::convertToDtoWithoutPosts)
+
+                .collect(Collectors.toList());
+    }
 
 //     @Transactional
 //     public UserDTO updateUserProfile(Long userId, UserUpdateRequestDTO updateRequest) {
@@ -179,4 +200,23 @@ public class UserService {
 
         return userDTO;
     }
+    private UserDTO convertToDtoWithoutPosts(User user) {
+    UserDTO userDTO = new UserDTO();
+    userDTO.setId(user.getId());
+    userDTO.setUsername(user.getUsername());
+    userDTO.setEmail(user.getEmail());
+    userDTO.setFotoPerfil(user.getFotoPerfil());
+    userDTO.setFotoCapa(user.getFotoCapa());
+    userDTO.setBio(user.getBio());
+    
+
+    if (user.getSeguidores() != null) {
+        userDTO.setSeguidoresCount(user.getSeguidores().size());
+    }
+    if (user.getSeguindo() != null) {
+        userDTO.setSeguindoCount(user.getSeguindo().size());
+    }
+
+    return userDTO;
+}
 }
