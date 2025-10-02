@@ -1,18 +1,22 @@
 import { useEffect, useState } from "react";
 import { PostService, type PostDTO } from "@/api/services/postService";
+import { UserService, type UserDTO } from "@/api/services/userService";
 import { PostCard } from "@/components/customCards/PostCard";
 
 function HomePage() {
     const [posts, setPosts] = useState<PostDTO[]>([]);
+    const [me, setMe] = useState<UserDTO | null>(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const fetchPosts = async () => {
             try {
-                const data = await PostService.list(); // lista todos os posts
+                const loggedUser = await UserService.getMe();
+                setMe(loggedUser);
+                const data = await PostService.list();
                 setPosts(data);
             } catch (error) {
-                console.error("Erro ao buscar posts:", error);
+                console.error("Erro ao buscar dados:", error);
             } finally {
                 setLoading(false);
             }
@@ -21,7 +25,7 @@ function HomePage() {
         fetchPosts();
     }, []);
 
-    if (loading) {
+    if (loading || !me) {
         return <div className="w-full text-center py-10">Carregando posts...</div>;
     }
 
@@ -36,7 +40,9 @@ function HomePage() {
                         userAvatarUrl={post.usuario.fotoPerfil || ""}
                         imageUrl={post.caminhoFoto || ""}
                         description={post.descricao}
-                        praia={"Praia do Futuro"}
+                        praia={post.beach?.nome || "Praia desconhecida"}
+                        postOwnerId={post.usuario.id}
+                        loggedUserId={me.id}
                     />
                 ))}
             </div>
