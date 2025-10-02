@@ -106,13 +106,5 @@ public class UserController {
 
         return ResponseEntity.ok(updatedUserDTO);
     }
-    public ResponseEntity<UserDTO> getMyProfile(@AuthenticationPrincipal UserDetails userDetails) {
-        if (userDetails == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
 
-        return userService.getUserByEmail(userDetails.getUsername())
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
-    }
 }
