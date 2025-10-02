@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -63,9 +64,14 @@ public class UserController {
 
     @Operation(summary = "Busca o perfil do usuário autenticado", description = "Retorna os detalhes do perfil do usuário que está logado. Requer autenticação JWT.", security = @SecurityRequirement(name = "bearerAuth"))
     @ApiResponse(responseCode = "200", description = "Perfil do usuário encontrado")
+    @ApiResponse(responseCode = "401", description = "Não autenticado")
     @ApiResponse(responseCode = "404", description = "Usuário não encontrado ou erro na conversão")
     @GetMapping("/me")
     public ResponseEntity<UserDTO> getMyProfile(@AuthenticationPrincipal UserDetailsImpl userDetails) {
+        if (userDetails == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        
         Long userId = userDetails.getId();
 
         return userService.getUserProfile(userId)
@@ -105,6 +111,32 @@ public class UserController {
         UserDTO updatedUserDTO = userService.updateUserProfileWithFiles(userId, username,bio, fotoPerfil, fotoCapa);
 
         return ResponseEntity.ok(updatedUserDTO);
+    }
+
+    @Operation(summary = "Lista os usuários que um usuário está seguindo", description = "Retorna a lista de usuários que o usuário com o ID especificado está seguindo.")
+    @ApiResponse(responseCode = "200", description = "Lista de usuários seguidos encontrada")
+    @ApiResponse(responseCode = "404", description = "Usuário não encontrado")
+    @GetMapping("/{id}/following")
+    public ResponseEntity<List<UserDTO>> getUserFollowing(@Parameter(description = "ID do usuário") @PathVariable Long id) {
+        try {
+            List<UserDTO> following = userService.getUserFollowing(id);
+            return ResponseEntity.ok(following);
+        } catch (Exception e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    @Operation(summary = "Lista os seguidores de um usuário", description = "Retorna a lista de seguidores do usuário com o ID especificado.")
+    @ApiResponse(responseCode = "200", description = "Lista de seguidores encontrada")
+    @ApiResponse(responseCode = "404", description = "Usuário não encontrado")
+    @GetMapping("/{id}/followers")
+    public ResponseEntity<List<UserDTO>> getUserFollowers(@Parameter(description = "ID do usuário") @PathVariable Long id) {
+        try {
+            List<UserDTO> followers = userService.getUserFollowers(id);
+            return ResponseEntity.ok(followers);
+        } catch (Exception e) {
+            return ResponseEntity.notFound().build();
+        }
     }
 
 }
