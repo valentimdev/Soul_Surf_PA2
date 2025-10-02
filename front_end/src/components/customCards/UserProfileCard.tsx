@@ -30,7 +30,6 @@ export function UserProfileCard({ user }: UserProfileCardProps) {
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [me, setMe] = useState<UserDTO | null>(null);
 
-    // Para mostrar lista de seguidores/seguindo
     const [showFollowers, setShowFollowers] = useState(false);
     const [showFollowing, setShowFollowing] = useState(false);
     const [followersList, setFollowersList] = useState<UserDTO[]>([]);
@@ -207,7 +206,9 @@ export function UserProfileCard({ user }: UserProfileCardProps) {
                         </TabsList>
 
                         <TabsContent value="overview" className="mt-4 space-y-4">
-                            {user.posts.length === 0 ? (
+                            {!me ? (
+                                <div className="w-full text-center py-10">Carregando...</div>
+                            ) : user.posts.length === 0 ? (
                                 <div className="bg-gray-50 p-6 rounded-md text-center text-gray-600 border border-dashed border-gray-300">
                                     Este usuário ainda não postou
                                 </div>
@@ -220,6 +221,8 @@ export function UserProfileCard({ user }: UserProfileCardProps) {
                                         imageUrl={post.caminhoFoto || ""}
                                         description={post.descricao}
                                         praia={"Praia do Futuro"}
+                                        postOwnerId={post.usuario.id}
+                                        loggedUserId={me.id}
                                     />
                                 ))
                             )}
