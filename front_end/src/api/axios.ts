@@ -18,7 +18,6 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    // exemplo: se 401, redirecionar para login
     if (error.response?.status === 401) {
       console.warn("Token inválido ou expirado. Faça login novamente.");
     }
