@@ -54,13 +54,13 @@ export const UserService = {
         return data;
     },
 
-    getFollowers: async (username: string): Promise<UserDTO[]> => {
-        const { data } = await api.get<UserDTO[]>(userRoutes.getFollowers(username));
+    getFollowers: async (id: number): Promise<UserDTO[]> => {
+        const { data } = await api.get<UserDTO[]>(userRoutes.getFollowers(id));
         return data;
     },
 
-    getFollowing: async (username: string): Promise<UserDTO[]> => {
-        const { data } = await api.get<UserDTO[]>(userRoutes.getFollowing(username));
+    getFollowing: async (id: number): Promise<UserDTO[]> => {
+        const { data } = await api.get<UserDTO[]>(userRoutes.getFollowing(id));
         return data;
     },
 
