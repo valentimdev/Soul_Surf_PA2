@@ -14,7 +14,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { type UserDTO, UserService } from "@/api/services/userService";
 import { toast } from "sonner";
-import {PostCard} from "@/components/customCards/PostCard.tsx";
+import { PostCard } from "@/components/customCards/PostCard.tsx";
 
 type UserProfileCardProps = {
     user: UserDTO;
@@ -29,14 +29,19 @@ export function UserProfileCard({ user }: UserProfileCardProps) {
     const [previewCapa, setPreviewCapa] = useState(user.fotoCapa);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [me, setMe] = useState<UserDTO | null>(null);
-
+    const [followingIds, setFollowingIds] = useState<number[]>([]);
     const [showFollowers, setShowFollowers] = useState(false);
     const [showFollowing, setShowFollowing] = useState(false);
     const [followersList, setFollowersList] = useState<UserDTO[]>([]);
     const [followingList, setFollowingList] = useState<UserDTO[]>([]);
 
     useEffect(() => {
-        UserService.getMe().then(setMe);
+        UserService.getMe().then(user => {
+            setMe(user);
+            UserService.getFollowing(user.id).then(list => {
+                setFollowingIds(list.map(u => u.id));
+            });
+        });
     }, []);
 
     const handleFotoPerfilChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -76,20 +81,26 @@ export function UserProfileCard({ user }: UserProfileCardProps) {
     };
 
     const openFollowers = async () => {
-        const list = await UserService.getFollowers(user.username);
+        const list = await UserService.getFollowers(user.id);
         setFollowersList(list);
         setShowFollowers(true);
     };
 
     const openFollowing = async () => {
-        const list = await UserService.getFollowing(user.username);
+        const list = await UserService.getFollowing(user.id);
         setFollowingList(list);
         setShowFollowing(true);
     };
 
+    const handleToggleFollow = (userId: number, isNowFollowing: boolean) => {
+        setFollowingIds(prev => {
+            if (isNowFollowing) return [...prev, userId];
+            return prev.filter(id => id !== userId);
+        });
+    };
+
     return (
         <Card className="pt-0 w-full bg-white rounded-lg shadow-sm overflow-hidden border border-gray-200">
-            {/* Foto de capa */}
             <div
                 className="w-full h-50 bg-cover bg-center"
                 style={{
@@ -125,7 +136,6 @@ export function UserProfileCard({ user }: UserProfileCardProps) {
                         </div>
                     </div>
 
-                    {/* Botão de editar */}
                     <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                         {me?.id === user.id && (
                             <DialogTrigger asChild>
@@ -196,9 +206,18 @@ export function UserProfileCard({ user }: UserProfileCardProps) {
                     </Dialog>
                 </div>
 
-                {/* Tabs - Posts / Comentários / etc */}
                 <div className="mt-6 border-b border-gray-200">
-                    <Tabs defaultValue="overview">
+                    <Tabs
+                        defaultValue="overview"
+                        onValueChange={(value) => {
+                            if (value === "following" && followingList.length === 0) {
+                                UserService.getFollowing(user.id).then(list => setFollowingList(list));
+                            }
+                            if (value === "followers" && followersList.length === 0) {
+                                UserService.getFollowers(user.id).then(list => setFollowersList(list));
+                            }
+                        }}
+                    >
                         <TabsList className="grid w-full grid-cols-3 h-auto">
                             <TabsTrigger value="overview">Visão Geral</TabsTrigger>
                             <TabsTrigger value="followers">Seguidores</TabsTrigger>
@@ -223,6 +242,8 @@ export function UserProfileCard({ user }: UserProfileCardProps) {
                                         praia={"Praia do Futuro"}
                                         postOwnerId={post.usuario.id}
                                         loggedUserId={me.id}
+                                        isFollowing={followingIds.includes(post.usuario.id)}
+                                        onToggleFollow={handleToggleFollow}
                                     />
                                 ))
                             )}
@@ -256,7 +277,6 @@ export function UserProfileCard({ user }: UserProfileCardProps) {
                     </Tabs>
                 </div>
 
-                {/* Modal Seguidores */}
                 <Dialog open={showFollowers} onOpenChange={() => setShowFollowers(false)}>
                     <DialogContent>
                         <DialogHeader>
@@ -268,15 +288,11 @@ export function UserProfileCard({ user }: UserProfileCardProps) {
                                 : followersList.map((u) => (
                                     <div key={u.id} className="flex items-center gap-2 p-2 border-b border-gray-200">
                                         <Avatar className="h-10 w-10 border border-gray-300">
-                                            {u.fotoPerfil ? (
-                                                <AvatarImage src={u.fotoPerfil} />
-                                            ) : (
-                                                <AvatarFallback>{u.username.charAt(0)}</AvatarFallback>
-                                            )}
+                                            {u.fotoPerfil ? <AvatarImage src={u.fotoPerfil} /> : <AvatarFallback>{u.username.charAt(0)}</AvatarFallback>}
                                         </Avatar>
                                         <span>{u.username}</span>
                                     </div>
-                                ))}Quero
+                                ))}
                         </div>
                         <DialogClose className="mt-4 px-4 py-2 bg-gray-300 rounded hover:bg-gray-400">Fechar</DialogClose>
                     </DialogContent>
@@ -293,11 +309,7 @@ export function UserProfileCard({ user }: UserProfileCardProps) {
                                 : followingList.map((u) => (
                                     <div key={u.id} className="flex items-center gap-2 p-2 border-b border-gray-200">
                                         <Avatar className="h-10 w-10 border border-gray-300">
-                                            {u.fotoPerfil ? (
-                                                <AvatarImage src={u.fotoPerfil} />
-                                            ) : (
-                                                <AvatarFallback>{u.username.charAt(0)}</AvatarFallback>
-                                            )}
+                                            {u.fotoPerfil ? <AvatarImage src={u.fotoPerfil} /> : <AvatarFallback>{u.username.charAt(0)}</AvatarFallback>}
                                         </Avatar>
                                         <span>{u.username}</span>
                                     </div>

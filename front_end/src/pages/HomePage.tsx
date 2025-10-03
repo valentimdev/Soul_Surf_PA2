@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import api from "@/api/axios";
 import { PostService, type PostDTO } from "@/api/services/postService";
 import { UserService, type UserDTO } from "@/api/services/userService";
 import { PostCard } from "@/components/customCards/PostCard";
@@ -6,15 +7,21 @@ import { PostCard } from "@/components/customCards/PostCard";
 function HomePage() {
     const [posts, setPosts] = useState<PostDTO[]>([]);
     const [me, setMe] = useState<UserDTO | null>(null);
+    const [followingIds, setFollowingIds] = useState<number[]>([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const fetchPosts = async () => {
+        const fetchData = async () => {
             try {
                 const loggedUser = await UserService.getMe();
                 setMe(loggedUser);
-                const data = await PostService.list();
-                setPosts(data);
+
+                // pega followings usando o id
+                const followingRes = await api.get<UserDTO[]>(`/users/${loggedUser.id}/following`);
+                setFollowingIds(followingRes.data.map((u) => u.id));
+
+                const postsData = await PostService.list();
+                setPosts(postsData);
             } catch (error) {
                 console.error("Erro ao buscar dados:", error);
             } finally {
@@ -22,8 +29,16 @@ function HomePage() {
             }
         };
 
-        fetchPosts();
+        fetchData();
     }, []);
+
+    const handleToggleFollow = (userId: number, isNowFollowing: boolean) => {
+        setFollowingIds((prev) =>
+            isNowFollowing
+                ? [...prev, userId] // adiciona
+                : prev.filter((id) => id !== userId) // remove
+        );
+    };
 
     if (loading || !me) {
         return <div className="w-full text-center py-10">Carregando posts...</div>;
@@ -43,6 +58,8 @@ function HomePage() {
                         praia={post.beach?.nome || "Praia desconhecida"}
                         postOwnerId={post.usuario.id}
                         loggedUserId={me.id}
+                        isFollowing={followingIds.includes(post.usuario.id)}
+                        onToggleFollow={handleToggleFollow}
                     />
                 ))}
             </div>

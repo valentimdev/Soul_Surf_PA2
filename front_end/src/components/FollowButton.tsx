@@ -1,62 +1,49 @@
-import { useState, useEffect } from "react";
-import api from "@/api/axios"; // seu axios configurado com baseURL e token
-import type { UserDTO } from "@/api/services/userService.ts";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Loader2 } from "lucide-react";
+import api from "@/api/axios";
 
 interface FollowButtonProps {
     postOwnerId: number;
+    isFollowing: boolean;
+    onToggleFollow: (userId: number, isNowFollowing: boolean) => void;
 }
 
-export default function FollowButton({ postOwnerId }: FollowButtonProps) {
-    const [isFollowing, setIsFollowing] = useState<boolean | null>(null);
+export default function FollowButton({ postOwnerId, isFollowing, onToggleFollow }: FollowButtonProps) {
     const [loading, setLoading] = useState(false);
 
-    useEffect(() => {
-        // Pega o usuário logado
-        const fetchFollowing = async () => {
-            try {
-                const res = await api.get<UserDTO[]>("/api/users/me/following");
-                const followingIds = res.data.map((u) => u.id);
-                setIsFollowing(followingIds.includes(postOwnerId));
-            } catch (err) {
-                console.error("Erro ao buscar lista de seguindo:", err);
-            }
-        };
-
-        fetchFollowing();
-    }, [postOwnerId]);
-
-    const handleFollowToggle = async () => {
-        if (loading || isFollowing === null) return;
-
+    const handleClick = async () => {
+        if (loading) return;
         setLoading(true);
+
         try {
             if (isFollowing) {
-                // Unfollow
-                await api.delete(`/api/users/${postOwnerId}/follow`);
-                setIsFollowing(false);
+                await api.delete(`/users/${postOwnerId}/follow`);
+                onToggleFollow(postOwnerId, false);
             } else {
-                // Follow
-                await api.post(`/api/users/${postOwnerId}/follow`);
-                setIsFollowing(true);
+                await api.post(`/users/${postOwnerId}/follow`);
+                onToggleFollow(postOwnerId, true);
             }
         } catch (err) {
-            console.error("Erro ao seguir/deixar de seguir:", err);
+            console.error("Erro ao seguir/deseguir:", err);
         } finally {
             setLoading(false);
         }
     };
 
-    if (isFollowing === null) return null; // ainda carregando
-
     return (
-        <button
-            onClick={handleFollowToggle}
+        <Button
+            size="sm"
+            onClick={handleClick}
             disabled={loading}
-            className={`px-4 py-2 rounded ${
-                isFollowing ? "bg-red-500 text-white" : "bg-blue-500 text-white"
-            }`}
+            className={`
+                px-2 py-1 text-xs rounded-md
+                ${isFollowing
+                ? "bg-blue-500 text-white hover:bg-red-500" // já seguindo: hover vermelho
+                : "bg-blue-500 text-white hover:bg-blue-600"} // ainda não seguindo: hover azul
+            `}
         >
-            {isFollowing ? "Remover seguindo" : "Seguir"}
-        </button>
+            {loading ? <Loader2 className="h-3 w-3 animate-spin" /> : isFollowing ? "Seguindo" : "Seguir"}
+        </Button>
     );
 }

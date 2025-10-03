@@ -17,6 +17,8 @@ interface PostCardProps {
     praia?: string;
     postOwnerId: number;
     loggedUserId: number;
+    isFollowing: boolean;
+    onToggleFollow: (userId: number, isNowFollowing: boolean) => void;
 }
 
 export function PostCard({
@@ -27,6 +29,8 @@ export function PostCard({
                              praia,
                              postOwnerId,
                              loggedUserId,
+                             isFollowing,
+                             onToggleFollow
                          }: PostCardProps) {
     const isOwner = postOwnerId && loggedUserId ? Number(postOwnerId) === Number(loggedUserId) : false;
 
@@ -45,7 +49,7 @@ export function PostCard({
                 </div>
 
                 {!isOwner && (
-                    <FollowButton postOwnerId={postOwnerId} />
+                    <FollowButton postOwnerId={postOwnerId} isFollowing={isFollowing} onToggleFollow={onToggleFollow} />
                 )}
             </CardHeader>
 
