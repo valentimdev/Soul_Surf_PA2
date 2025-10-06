@@ -1,3 +1,4 @@
+import { useNavigate } from "react-router-dom";
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import {
@@ -10,6 +11,7 @@ import { Heart, MessageCircle } from 'lucide-react';
 import FollowButton from "@/components/FollowButton.tsx";
 
 interface PostCardProps {
+    postId: number;
     username: string;
     userAvatarUrl?: string;
     imageUrl?: string;
@@ -22,6 +24,7 @@ interface PostCardProps {
 }
 
 export function PostCard({
+                             postId,
                              username,
                              userAvatarUrl,
                              imageUrl,
@@ -33,6 +36,7 @@ export function PostCard({
                              onToggleFollow
                          }: PostCardProps) {
     const isOwner = postOwnerId && loggedUserId ? Number(postOwnerId) === Number(loggedUserId) : false;
+    const navigate = useNavigate();
 
     return (
         <Card className="w-80% max-w-xl mx-auto">
@@ -68,7 +72,10 @@ export function PostCard({
                     <Button variant="ghost" size="icon">
                         <Heart className="h-6 w-6" />
                     </Button>
-                    <Button variant="ghost" size="icon">
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => navigate(`/posts/${postId}/comments`)}>
                         <MessageCircle className="h-6 w-6" />
                     </Button>
                 </div>
