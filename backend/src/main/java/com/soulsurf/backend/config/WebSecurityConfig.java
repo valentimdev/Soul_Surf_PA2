@@ -47,6 +47,7 @@ public class WebSecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**", "/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**").permitAll()
                         .requestMatchers("/api/posts/home").authenticated()
+                        .requestMatchers("/api/weather/**").permitAll()
                         .requestMatchers("/api/posts/**").authenticated()
                         .requestMatchers("/api/users/**").authenticated()
                         .requestMatchers("/api/comentarios/**").authenticated()
