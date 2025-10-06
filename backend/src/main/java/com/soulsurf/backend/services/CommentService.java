@@ -67,4 +67,15 @@ public class CommentService {
 
         return dto;
     }
+    public void deleteComment(Long commentId, String userEmail) {
+        Comment comment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new RuntimeException("Comentário não encontrado"));
+
+        if (!comment.getUsuario().getEmail().equals(userEmail)) {
+            throw new SecurityException("Usuário não autorizado a excluir este comentário");
+        }
+
+        commentRepository.delete(comment);
+    }
+
 }

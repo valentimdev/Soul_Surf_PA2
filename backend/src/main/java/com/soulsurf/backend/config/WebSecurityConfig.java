@@ -49,6 +49,7 @@ public class WebSecurityConfig {
                         .requestMatchers("/api/posts/home").authenticated()
                         .requestMatchers("/api/posts/**").authenticated()
                         .requestMatchers("/api/users/**").authenticated()
+                        .requestMatchers("/api/comentarios/**").authenticated()
                         .anyRequest().authenticated()
                 );
         http.addFilterBefore(authTokenFilter, UsernamePasswordAuthenticationFilter.class);
