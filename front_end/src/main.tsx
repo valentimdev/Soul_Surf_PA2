@@ -14,6 +14,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import './index.css';
 import BeachsPage from './pages/BeachsPage.tsx';
 import { AuthProvider } from './contexts/AuthContext.tsx';
+import BeachDetailPage from "@/pages/BeachDetailPage.tsx";
 
 const router = createBrowserRouter([
     {
@@ -31,6 +32,7 @@ const router = createBrowserRouter([
                     { path: "perfil", element: <ProfilePage /> },
                     { path: "registros", element: <NovoRegistroPage /> },
                     { path: "praias", element: <BeachsPage /> },
+                    { path: "praias/:id", element: <BeachDetailPage /> },
                 ],
             },
 
