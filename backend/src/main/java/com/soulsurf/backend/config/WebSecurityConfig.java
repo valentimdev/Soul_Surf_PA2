@@ -51,6 +51,10 @@ public class WebSecurityConfig {
                         .requestMatchers("/api/posts/**").authenticated()
                         .requestMatchers("/api/users/**").authenticated()
                         .requestMatchers("/api/comentarios/**").authenticated()
+                        .requestMatchers("/api/beaches/{praiaId}/mensagens").permitAll()
+
+                        // NOVO: Rota POST de Mensagem é PROTEGIDA
+                        .requestMatchers("/api/beaches/{beachesId}/mensagens").authenticated()
                         .anyRequest().authenticated()
                 );
         http.addFilterBefore(authTokenFilter, UsernamePasswordAuthenticationFilter.class);
