@@ -25,7 +25,7 @@ const RootLayout: React.FC = () => {
     '/',
     '/login',
     '/cadastro',
-    '/esqueci-a-senha',
+    '/forgot-password',
     '/landing',
   ];
   const showLayout = !noLayoutRoutes.includes(location.pathname);

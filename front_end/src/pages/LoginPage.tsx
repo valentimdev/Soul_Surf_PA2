@@ -1,4 +1,4 @@
-import surf01 from "../assets/login_page/surf01.jpg";
+import surfimagetest from "../assets/surfimagetest.jpg";
 // Não precisamos mais de ResizablePanelGroup e Handle
 // import {
 //   ResizableHandle,
@@ -12,7 +12,7 @@ function LoginPage() {
     // Div principal que ocupa todo o ecrã
     <div
       className="h-screen w-full flex items-center justify-center bg-cover bg-center"
-      style={{ backgroundImage: `url(${surf01})` }} // Define a imagem de fundo aqui
+      style={{ backgroundImage: `url(${surfimagetest})` }} // Define a imagem de fundo aqui
     >
       {/* O LoginCard agora está diretamente centrado */}
       <LoginCard />
