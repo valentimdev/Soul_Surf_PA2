@@ -1,4 +1,4 @@
-mport axios from "../axios";
+import axios from "../axios";
 
 export interface WeatherDTO {
     cityName: string;
