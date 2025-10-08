@@ -11,6 +11,7 @@ function BeachDetailPage() {
     const [posts, setPosts] = useState<PostDTO[]>([]);
     const [followers, setFollowers] = useState<number>(0);
     const [me, setMe] = useState<UserDTO | null>(null);
+    const [followingIds, setFollowingIds] = useState<number[]>([]);
 
     useEffect(() => {
         UserService.getMe().then(setMe);
@@ -26,6 +27,13 @@ function BeachDetailPage() {
     }, [id]);
 
     if (!beach || !me) return <div className="p-5 mt-5">Carregando...</div>;
+
+    const handleToggleFollow = (userId: number, isNowFollowing: boolean) => {
+        setFollowingIds(prev => {
+            if (isNowFollowing) return [...prev, userId];
+            return prev.filter(id => id !== userId);
+        });
+    };
 
     return (
         <div className="max-w-4xl mx-auto p-5 space-y-6">
@@ -49,6 +57,7 @@ function BeachDetailPage() {
                 {posts.map((post) => (
                     <PostCard
                         key={post.id}
+                        postId={post.id}
                         username={post.usuario.username}
                         userAvatarUrl={post.usuario.fotoPerfil || ""}
                         imageUrl={post.caminhoFoto || ""}
@@ -56,6 +65,8 @@ function BeachDetailPage() {
                         praia={beach.nome}
                         postOwnerId={post.usuario.id}
                         loggedUserId={me.id}
+                        isFollowing={followingIds.includes(post.usuario.id)}
+                        onToggleFollow={handleToggleFollow}
                     />
                 ))}
             </div>

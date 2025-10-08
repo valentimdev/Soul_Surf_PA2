@@ -15,6 +15,7 @@ import './index.css';
 import BeachsPage from './pages/BeachsPage.tsx';
 import { AuthProvider } from './contexts/AuthContext.tsx';
 import BeachDetailPage from "@/pages/BeachDetailPage.tsx";
+import PostCommentsPage from "@/pages/PostCommentsPage.tsx";
 
 const router = createBrowserRouter([
     {
@@ -33,6 +34,7 @@ const router = createBrowserRouter([
                     { path: "registros", element: <NovoRegistroPage /> },
                     { path: "praias", element: <BeachsPage /> },
                     { path: "praias/:id", element: <BeachDetailPage /> },
+                    { path: "posts/:id/comments", element: <PostCommentsPage /> }
                 ],
             },
 

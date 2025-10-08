@@ -51,6 +51,7 @@ function HomePage() {
                 {posts.map((post) => (
                     <PostCard
                         key={post.id}
+                        postId={post.id}
                         username={post.usuario.username}
                         userAvatarUrl={post.usuario.fotoPerfil || ""}
                         imageUrl={post.caminhoFoto || ""}

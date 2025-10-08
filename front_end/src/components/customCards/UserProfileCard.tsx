@@ -235,6 +235,7 @@ export function UserProfileCard({ user }: UserProfileCardProps) {
                                 user.posts.map((post) => (
                                     <PostCard
                                         key={post.id}
+                                        postId={post.id}
                                         username={user.username}
                                         userAvatarUrl={user.fotoPerfil || ""}
                                         imageUrl={post.caminhoFoto || ""}
