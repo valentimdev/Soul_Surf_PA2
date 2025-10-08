@@ -25,16 +25,17 @@ public class CommentController {
         this.commentService = commentService;
     }
 
-    @Operation(summary = "Adiciona um comentário", description = "Adiciona um novo comentário a um post. Requer autenticação.", security = @SecurityRequirement(name = "bearerAuth"))
+    @Operation(summary = "Adiciona um comentário", description = "Adiciona um novo comentário a um post ou responde a um comentário existente. Requer autenticação.", security = @SecurityRequirement(name = "bearerAuth"))
     @ApiResponse(responseCode = "200", description = "Comentário adicionado com sucesso")
-    @ApiResponse(responseCode = "404", description = "Post não encontrado")
+    @ApiResponse(responseCode = "404", description = "Post ou comentário pai não encontrado")
     @PostMapping("/")
     public ResponseEntity<?> addComment(
             @Parameter(description = "ID do post") @PathVariable Long postId,
+            @Parameter(description = "ID do comentário pai (opcional, para respostas)") @RequestParam(value = "parentId", required = false) Long parentId,
             @Parameter(description = "Texto do comentário") @RequestParam("texto") String texto,
             @AuthenticationPrincipal UserDetails userDetails) {
         try {
-            CommentDTO comment = commentService.createComment(postId, texto, userDetails.getUsername());
+            CommentDTO comment = commentService.createComment(postId, parentId, texto, userDetails.getUsername());
             return ResponseEntity.ok(comment);
         } catch (Exception e) {
             return ResponseEntity.badRequest()
@@ -42,7 +43,7 @@ public class CommentController {
         }
     }
 
-    @Operation(summary = "Lista comentários de um post", description = "Retorna todos os comentários de um post específico.")
+    @Operation(summary = "Lista comentários de um post", description = "Retorna todos os comentários de um post específico, aninhados em threads.")
     @ApiResponse(responseCode = "200", description = "Comentários listados com sucesso")
     @ApiResponse(responseCode = "404", description = "Post não encontrado")
     @GetMapping("/")
