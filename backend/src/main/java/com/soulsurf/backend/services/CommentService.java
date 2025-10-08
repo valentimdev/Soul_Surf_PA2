@@ -53,6 +53,40 @@ public class CommentService {
                 .collect(Collectors.toList());
     }
 
+    public CommentDTO updateComment(Long postId, Long commentId, String texto, String userEmail) {
+        Comment comment = validateAndGetComment(postId, commentId, userEmail);
+
+        comment.setTexto(texto);
+        comment = commentRepository.save(comment);
+        return convertToDto(comment);
+    }
+
+    public void deleteComment(Long postId, Long commentId, String userEmail) {
+        Comment comment = validateAndGetComment(postId, commentId, userEmail);
+        commentRepository.delete(comment);
+    }
+
+    private Comment validateAndGetComment(Long postId, Long commentId, String userEmail) {
+        postRepository.findById(postId)
+                .orElseThrow(() -> new RuntimeException("Post não encontrado"));
+
+        Comment comment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new RuntimeException("Comentário não encontrado"));
+
+        User usuario = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado"));
+
+        if (!comment.getPost().getId().equals(postId)) {
+            throw new RuntimeException("Comentário não pertence a este post");
+        }
+
+        if (!comment.getUsuario().equals(usuario)) {
+            throw new RuntimeException("Usuário não autorizado para realizar esta ação");
+        }
+
+        return comment;
+    }
+
     private CommentDTO convertToDto(Comment comment) {
         CommentDTO dto = new CommentDTO();
         dto.setId(comment.getId());

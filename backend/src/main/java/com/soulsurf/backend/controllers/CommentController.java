@@ -56,4 +56,39 @@ public class CommentController {
                     .body(new MessageResponse("Erro ao buscar comentários: " + e.getMessage()));
         }
     }
+
+    @Operation(summary = "Atualiza um comentário", description = "Atualiza o texto de um comentário existente. Requer autenticação.", security = @SecurityRequirement(name = "bearerAuth"))
+    @ApiResponse(responseCode = "200", description = "Comentário atualizado com sucesso")
+    @ApiResponse(responseCode = "404", description = "Comentário não encontrado")
+    @PutMapping("/{commentId}")
+    public ResponseEntity<?> updateComment(
+            @Parameter(description = "ID do post") @PathVariable Long postId,
+            @Parameter(description = "ID do comentário") @PathVariable Long commentId,
+            @Parameter(description = "Novo texto do comentário") @RequestParam("texto") String texto,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        try {
+            CommentDTO updatedComment = commentService.updateComment(postId, commentId, texto, userDetails.getUsername());
+            return ResponseEntity.ok(updatedComment);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                    .body(new MessageResponse("Erro ao atualizar comentário: " + e.getMessage()));
+        }
+    }
+
+    @Operation(summary = "Remove um comentário", description = "Remove um comentário existente. Requer autenticação.", security = @SecurityRequirement(name = "bearerAuth"))
+    @ApiResponse(responseCode = "200", description = "Comentário removido com sucesso")
+    @ApiResponse(responseCode = "404", description = "Comentário não encontrado")
+    @DeleteMapping("/{commentId}")
+    public ResponseEntity<?> deleteComment(
+            @Parameter(description = "ID do post") @PathVariable Long postId,
+            @Parameter(description = "ID do comentário") @PathVariable Long commentId,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        try {
+            commentService.deleteComment(postId, commentId, userDetails.getUsername());
+            return ResponseEntity.ok(new MessageResponse("Comentário removido com sucesso"));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                    .body(new MessageResponse("Erro ao remover comentário: " + e.getMessage()));
+        }
+    }
 }
