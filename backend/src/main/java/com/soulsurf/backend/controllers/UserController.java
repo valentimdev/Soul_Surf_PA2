@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -87,10 +88,13 @@ public class UserController {
     @ApiResponse(responseCode = "200", description = "Perfil atualizado com sucesso")
     @ApiResponse(responseCode = "401", description = "Não autenticado")
     @ApiResponse(responseCode = "404", description = "Usuário a ser atualizado não encontrado")
-    @PutMapping("/me")
-    public ResponseEntity<UserDTO> updateUserProfile(
+    @PutMapping(value = "/me/upload", consumes = "multipart/form-data")
+    public ResponseEntity<UserDTO> updateUserProfileWithFiles(
             @AuthenticationPrincipal UserDetailsImpl userDetails,
-            @RequestBody UserUpdateRequestDTO updateRequest) {
+            @Parameter(description = "Nome de usuário") @RequestParam(value = "username", required = false) String username,
+            @Parameter(description = "Biografia") @RequestParam(value = "bio", required = false) String bio,
+            @Parameter(description = "Arquivo de foto de perfil") @RequestParam(value = "fotoPerfil", required = false) MultipartFile fotoPerfil,
+            @Parameter(description = "Arquivo de foto de capa") @RequestParam(value = "fotoCapa", required = false) MultipartFile fotoCapa) {
 
         Long userId = userDetails.getId();
         UserDTO updatedUserDTO = userService.updateUserProfile(userId, updateRequest);

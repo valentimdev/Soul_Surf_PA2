@@ -48,8 +48,14 @@ public class WebSecurityConfig {
                         .requestMatchers("/api/auth/**", "/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**").permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/posts/home").authenticated()
+                        .requestMatchers("/api/weather/**").permitAll()
                         .requestMatchers("/api/posts/**").authenticated()
                         .requestMatchers("/api/users/**").authenticated()
+                        .requestMatchers("/api/comentarios/**").authenticated()
+                        .requestMatchers("/api/beaches/{praiaId}/mensagens").permitAll()
+
+                        // NOVO: Rota POST de Mensagem é PROTEGIDA
+                        .requestMatchers("/api/beaches/{beachesId}/mensagens").authenticated()
                         .anyRequest().authenticated()
                 );
         http.addFilterBefore(authTokenFilter, UsernamePasswordAuthenticationFilter.class);

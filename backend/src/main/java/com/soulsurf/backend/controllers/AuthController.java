@@ -66,11 +66,11 @@ public class AuthController {
                     .body(new MessageResponse("Erro: O e-mail já está em uso!"));
         }
 
-        userService.registerUser(signUpRequest);
+        UserDTO newUser = userService.registerUser(signUpRequest);
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
-                .body(new MessageResponse("Usuário registrado com sucesso!"));
+                .body(newUser);
     }
 
     @Operation(summary = "Solicita redefinição de senha", description = "Envia um link de redefinição de senha para o e-mail do usuário.")

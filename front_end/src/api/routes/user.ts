@@ -3,13 +3,13 @@ export const userRoutes = {
 
     getById: (id: number | string) => `${userRoutes.base}/${id}`,
     getMe: () => `${userRoutes.base}/me`,
-    updateProfile: () => `${userRoutes.base}/me/profile`,
+    updateProfile: () => `${userRoutes.base}/me/upload`,
 
     follow: (id: number | string) => `${userRoutes.base}/${id}/follow`,
     unfollow: (id: number | string) => `${userRoutes.base}/${id}/follow`,
 
-    getFollowers: (username: string) => `${userRoutes.base}/${username}/followers`,
-    getFollowing: (username: string) => `${userRoutes.base}/${username}/following`,
+    getFollowers: (id: number | string) => `${userRoutes.base}/${id}/followers`,
+    getFollowing: (id: number | string) => `${userRoutes.base}/${id}/following`,
 
     hello: () => `${userRoutes.base}/hello`,
 };

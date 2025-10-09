@@ -10,6 +10,7 @@ public class UserUpdateRequestDTO {
     private String fotoPerfil;
 
     private String fotoCapa;
+    private String bio;
 
     private String bio;
 

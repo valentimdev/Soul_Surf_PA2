@@ -4,6 +4,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 @Setter
@@ -13,4 +15,6 @@ public class CommentDTO {
     private String texto;
     private LocalDateTime data;
     private UserDTO usuario;
+    private Long parentId;
+    private List<CommentDTO> replies = new ArrayList<>();
 }

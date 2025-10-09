@@ -1,5 +1,6 @@
 import api from "../axios";
 import { userRoutes } from "../routes/user";
+import type {MessageResponse} from "@/api/services/postService.ts";
 
 // DTOs do backend
 export type PostDTO = {
@@ -15,20 +16,12 @@ export type UserDTO = {
     id: number;
     username: string;
     email: string;
+    bio: string;
     fotoPerfil?: string;
     fotoCapa?: string;
     seguidoresCount: number;
     seguindoCount: number;
     posts: PostDTO[];
-};
-
-export type MessageResponse = {
-    message: string;
-};
-
-export type UpdateProfileRequest = {
-    fotoPerfil?: File;
-    fotoCapa?: File;
 };
 
 export const UserService = {
@@ -42,13 +35,11 @@ export const UserService = {
         return data;
     },
 
-    updateProfile: async ({ fotoPerfil, fotoCapa }: UpdateProfileRequest): Promise<MessageResponse> => {
-        const formData = new FormData();
-        if (fotoPerfil) formData.append("fotoPerfil", fotoPerfil);
-        if (fotoCapa) formData.append("fotoCapa", fotoCapa);
-
-        const { data } = await api.put<MessageResponse>(userRoutes.updateProfile(), formData, {
-            headers: { "Content-Type": "multipart/form-data" },
+    updateProfile: async (formData: FormData): Promise<UserDTO> => {
+        const { data } = await api.put<UserDTO>(userRoutes.updateProfile(), formData, {
+            headers: {
+                Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
         });
         return data;
     },
@@ -63,13 +54,13 @@ export const UserService = {
         return data;
     },
 
-    getFollowers: async (username: string): Promise<UserDTO[]> => {
-        const { data } = await api.get<UserDTO[]>(userRoutes.getFollowers(username));
+    getFollowers: async (id: number): Promise<UserDTO[]> => {
+        const { data } = await api.get<UserDTO[]>(userRoutes.getFollowers(id));
         return data;
     },
 
-    getFollowing: async (username: string): Promise<UserDTO[]> => {
-        const { data } = await api.get<UserDTO[]>(userRoutes.getFollowing(username));
+    getFollowing: async (id: number): Promise<UserDTO[]> => {
+        const { data } = await api.get<UserDTO[]>(userRoutes.getFollowing(id));
         return data;
     },
 

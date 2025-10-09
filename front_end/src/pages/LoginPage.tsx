@@ -1,40 +1,22 @@
-import surf01 from "../assets/login_page/surf01.jpg"
-import surf02 from "../assets/login_page/surf02.jpg"
-
-import {
-  ResizableHandle,
-  ResizablePanel,
-  ResizablePanelGroup,
-} from "@/components/ui/resizable"
-import LoginCard from "../components/customCards/LoginCard"
+import surfimagetest from "../assets/surfimagetest.jpg";
+// Não precisamos mais de ResizablePanelGroup e Handle
+// import {
+//   ResizableHandle,
+//   ResizablePanel,
+//   ResizablePanelGroup,
+// } from "@/components/ui/resizable";
+import LoginCard from "../components/customCards/LoginCard";
 
 function LoginPage() {
-
-
-  return (<div className="h-screen w-full flex flex-col">
-
-      <ResizablePanelGroup direction="horizontal" className="flex-1">
-        <ResizablePanel defaultSize={30}>
-          <div className="h-full flex items-center justify-center">
-              <img src={surf01} alt="Foto Surf 1" className="w-full h-full object-cover" />
-          </div>
-        </ResizablePanel>
-
-        <ResizableHandle />
-
-        <ResizablePanel defaultSize={40}>
-          <LoginCard/>
-        </ResizablePanel>
-
-        <ResizableHandle />
-
-        <ResizablePanel defaultSize={30}>
-          <div className="h-full flex items-center justify-center">
-              <img src={surf02} alt="Foto Surf 2" className="w-full h-full object-cover" />
-          </div>
-        </ResizablePanel>
-      </ResizablePanelGroup>
+  return (
+    // Div principal que ocupa todo o ecrã
+    <div
+      className="h-screen w-full flex items-center justify-center bg-cover bg-center"
+      style={{ backgroundImage: `url(${surfimagetest})` }} // Define a imagem de fundo aqui
+    >
+      {/* O LoginCard agora está diretamente centrado */}
+      <LoginCard />
     </div>
   );
 }
-export default LoginPage
+export default LoginPage;

@@ -35,17 +35,12 @@ public class User {
     private String fotoPerfil;
     private String bio; 
 
-    // Relacionamento - seguidores
-    @ManyToMany
-    @JoinTable(
-            name = "user_seguidores",
-            joinColumns = @JoinColumn(name = "user_id"),
-            inverseJoinColumns = @JoinColumn(name = "seguidor_id")
-    )
+    // Relacionamento - seguidores (quem me segue)
+    @ManyToMany(mappedBy = "seguindo", fetch = FetchType.LAZY)
     private java.util.List<User> seguidores = new java.util.ArrayList<>();
 
-    // Relacionamento - seguindo
-    @ManyToMany
+    // Relacionamento - seguindo (quem eu sigo)
+    @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
             name = "user_seguindo",
             joinColumns = @JoinColumn(name = "user_id"),
