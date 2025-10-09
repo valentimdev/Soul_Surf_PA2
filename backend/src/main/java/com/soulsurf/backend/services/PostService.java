@@ -7,6 +7,7 @@ import com.soulsurf.backend.dto.CreatePostRequest;
 import com.soulsurf.backend.dto.PostDTO;
 import com.soulsurf.backend.dto.UserDTO;
 import com.soulsurf.backend.entities.Beach;
+import com.soulsurf.backend.entities.Comment;
 import com.soulsurf.backend.entities.Post;
 import com.soulsurf.backend.entities.User;
 import com.soulsurf.backend.repository.BeachRepository;
@@ -20,6 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -42,7 +44,7 @@ public class PostService {
         this.blobStorageService = blobStorageService;
     }
 
-    @Transactional // Garante a atomicidade da operação
+    @Transactional
     public void createPost(CreatePostRequest request, MultipartFile foto, String userEmail) {
         try {
             User usuario = userRepository.findByEmail(userEmail)
@@ -61,7 +63,7 @@ public class PostService {
 
             if (request.getBeachId() != null) {
                 Beach beach = beachRepository.findById(request.getBeachId())
-                        .orElseThrow(() -> new ResourceNotFoundException("Praia não encontrada", null)); // Use exceções específicas
+                        .orElseThrow(() -> new ResourceNotFoundException("Praia não encontrada", null));
                 novoPost.setBeach(beach);
             }
 
@@ -73,6 +75,23 @@ public class PostService {
 
     public List<PostDTO> getPublicFeed() {
         return postRepository.findByPublicoIsTrueOrderByDataDesc().stream()
+                .map(this::convertToDto)
+                .collect(Collectors.toList());
+    }
+
+    public List<PostDTO> getFollowingPosts(String userEmail) {
+        User currentUser = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado: " + userEmail));
+
+        List<User> followingUsers = currentUser.getSeguindo();
+
+        if (followingUsers.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        List<Post> posts = postRepository.findByUsuarioInOrderByDataDesc(followingUsers);
+
+        return posts.stream()
                 .map(this::convertToDto)
                 .collect(Collectors.toList());
     }
@@ -96,12 +115,10 @@ public class PostService {
         }
 
         Post post = postOptional.get();
-        // verifica se é dono do post ou o post é publico
         if (post.isPublico() || (requesterEmail != null && post.getUsuario().getEmail().equals(requesterEmail))) {
             return Optional.of(convertToDto(post));
         }
 
-        // se o nao for o dono do post e o post for privado retorna null
         return Optional.empty();
     }
 
@@ -109,15 +126,35 @@ public class PostService {
         Post post = postRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Post não encontrado"));
 
-        // Verifica se o usuário é o dono do post
         if (!post.getUsuario().getEmail().equals(userEmail)) {
             throw new SecurityException("Usuário não tem permissão para editar este post");
         }
 
-        // Atualiza apenas a descrição do post
         post.setDescricao(descricao);
-
         postRepository.save(post);
+    }
+
+    private CommentDTO convertCommentToDto(Comment comment) {
+        CommentDTO dto = new CommentDTO();
+        dto.setId(comment.getId());
+        dto.setTexto(comment.getTexto());
+        dto.setData(comment.getData());
+
+        if (comment.getParentComment() != null) {
+            dto.setParentId(comment.getParentComment().getId());
+        }
+
+        UserDTO userDTO = new UserDTO();
+        userDTO.setId(comment.getUsuario().getId());
+        userDTO.setUsername(comment.getUsuario().getUsername());
+        userDTO.setEmail(comment.getUsuario().getEmail());
+        dto.setUsuario(userDTO);
+
+        dto.setReplies(comment.getReplies().stream()
+                .map(this::convertCommentToDto)
+                .collect(Collectors.toList()));
+
+        return dto;
     }
 
     private PostDTO convertToDto(Post post) {
@@ -128,14 +165,12 @@ public class PostService {
         postDTO.setCaminhoFoto(post.getCaminhoFoto());
         postDTO.setData(post.getData());
 
-        // Converter usuário
         UserDTO userDTO = new UserDTO();
         userDTO.setId(post.getUsuario().getId());
         userDTO.setUsername(post.getUsuario().getUsername());
         userDTO.setEmail(post.getUsuario().getEmail());
         postDTO.setUsuario(userDTO);
 
-        // Converter praia se existir
         if (post.getBeach() != null) {
             BeachDTO beachDTO = new BeachDTO();
             beachDTO.setId(post.getBeach().getId());
@@ -147,20 +182,8 @@ public class PostService {
         }
 
         List<CommentDTO> commentDTOs = post.getComments().stream()
-                .map(comment -> {
-                    CommentDTO dto = new CommentDTO();
-                    dto.setId(comment.getId());
-                    dto.setTexto(comment.getTexto());
-                    dto.setData(comment.getData());
-
-                    UserDTO commentUserDTO = new UserDTO();
-                    commentUserDTO.setId(comment.getUsuario().getId());
-                    commentUserDTO.setUsername(comment.getUsuario().getUsername());
-                    commentUserDTO.setEmail(comment.getUsuario().getEmail());
-                    dto.setUsuario(commentUserDTO);
-
-                    return dto;
-                })
+                .filter(comment -> comment.getParentComment() == null)
+                .map(this::convertCommentToDto)
                 .collect(Collectors.toList());
         postDTO.setComments(commentDTOs);
 
