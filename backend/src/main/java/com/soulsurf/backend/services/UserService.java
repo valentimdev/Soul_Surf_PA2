@@ -4,7 +4,6 @@ import com.soulsurf.backend.dto.SignupRequest;
 import com.soulsurf.backend.dto.UserDTO;
 import com.soulsurf.backend.dto.UserUpdateRequestDTO;
 import com.soulsurf.backend.entities.User;
-import com.soulsurf.backend.repository.PostRepository;
 import com.soulsurf.backend.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import java.util.List;
@@ -21,9 +20,9 @@ public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final PostService postService;
-    private final Optional<BlobStorageService> blobStorageService;
+    private final java.util.Optional<BlobStorageService> blobStorageService;
 
-    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder, PostService postService, Optional<BlobStorageService> blobStorageService) {
+    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder, PostService postService, java.util.Optional<BlobStorageService> blobStorageService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.postService = postService;
@@ -177,7 +176,62 @@ public class UserService {
         User updatedUser = userRepository.save(userToUpdate);
         return convertToDto(updatedUser);
     }
+    if (updateRequest.getBio() != null) {
+        userToUpdate.setBio(updateRequest.getBio());
+    }
 
+    User updatedUser = userRepository.save(userToUpdate);
+    return convertToDto(updatedUser);
+}
+
+    @Transactional
+    public UserDTO updateUserProfileWithFiles(Long userId,
+                                              String username,
+                                              String bio,
+                                              MultipartFile fotoPerfil,
+                                              MultipartFile fotoCapa) {
+        User userToUpdate = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado com o id: " + userId));
+
+        if (username != null && !username.isBlank()) {
+            userToUpdate.setUsername(username);
+        }
+        if (bio != null) {
+            userToUpdate.setBio(bio);
+        }
+
+        try {
+            if (blobStorageService.isPresent()) {
+                if (fotoPerfil != null && !fotoPerfil.isEmpty()) {
+                    String urlPerfil = blobStorageService.get().uploadFile(fotoPerfil);
+                    userToUpdate.setFotoPerfil(urlPerfil);
+                }
+                if (fotoCapa != null && !fotoCapa.isEmpty()) {
+                    String urlCapa = blobStorageService.get().uploadFile(fotoCapa);
+                    userToUpdate.setFotoCapa(urlCapa);
+                }
+            }
+        } catch (java.io.IOException e) {
+            throw new RuntimeException("Falha ao enviar arquivos de imagem", e);
+        }
+
+        User updatedUser = userRepository.save(userToUpdate);
+        return convertToDto(updatedUser);
+    }
+
+    @Transactional
+    public java.util.List<UserDTO> getUserFollowing(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado."));
+        return user.getSeguindo().stream().map(this::convertToDto).toList();
+    }
+
+    @Transactional
+    public java.util.List<UserDTO> getUserFollowers(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado."));
+        return user.getSeguidores().stream().map(this::convertToDto).toList();
+    }
     private UserDTO convertToDto(User user) {
         UserDTO userDTO = new UserDTO();
         userDTO.setId(user.getId());

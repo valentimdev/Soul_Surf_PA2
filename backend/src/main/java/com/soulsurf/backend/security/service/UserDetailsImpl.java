@@ -5,10 +5,9 @@ import com.soulsurf.backend.entities.User;
 import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 import java.util.Collection;
-import java.util.Collections;
-import java.util.UUID; // Importação adicionada para UUID
 
 @Getter
 public class UserDetailsImpl implements UserDetails {
@@ -18,22 +17,29 @@ public class UserDetailsImpl implements UserDetails {
     @JsonIgnore
     private final String password;
 
-    public UserDetailsImpl(Long id, String email, String password) {
+    private final boolean admin;
+
+    public UserDetailsImpl(Long id, String email, String password, boolean admin) {
         this.id = id;
         this.email = email;
         this.password = password;
+        this.admin = admin;
     }
 
     public static UserDetailsImpl build(User user) {
         return new UserDetailsImpl(
                 user.getId(),
                 user.getEmail(),
-                user.getPassword());
+                user.getPassword(),
+                user.isAdmin());
     }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return Collections.emptyList();
+        if (admin) {
+            return java.util.List.of(new SimpleGrantedAuthority("ROLE_ADMIN"));
+        }
+        return java.util.List.of(new SimpleGrantedAuthority("ROLE_USER"));
     }
 
     @Override
