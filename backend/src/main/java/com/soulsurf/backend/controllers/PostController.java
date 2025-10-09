@@ -32,46 +32,59 @@ public class PostController {
         this.postService = postService;
     }
 
-        @Operation(
-                summary = "Cria um novo post",
-                description = "Cria um novo registro associado ao usuário autenticado. Requer autenticação JWT.",
-                security = @SecurityRequirement(name = "bearerAuth")
-        )
-        @ApiResponses({
-                @ApiResponse(responseCode = "201", description = "Post criado com sucesso"),
-                @ApiResponse(responseCode = "400", description = "Erro ao criar o post")
-        })
-        @PostMapping
-        public ResponseEntity<MessageResponse> createPost(
-                @Parameter(description = "Visibilidade do post") @RequestParam("publico") boolean publico,
-                @Parameter(description = "Descrição do post") @RequestParam("descricao") String descricao,
-                @Parameter(description = "Arquivo de imagem para o post (opcional)") @RequestParam(value = "foto", required = false) MultipartFile foto,
-                @Parameter(description = "ID da praia (opcional)") @RequestParam(value = "beachId", required = false) Long beachId,
-                @AuthenticationPrincipal UserDetails userDetails) {
+    @Operation(
+            summary = "Cria um novo post",
+            description = "Cria um novo registro associado ao usuário autenticado. Requer autenticação JWT.",
+            security = @SecurityRequirement(name = "bearerAuth")
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "201", description = "Post criado com sucesso"),
+            @ApiResponse(responseCode = "400", description = "Erro ao criar o post")
+    })
+    @PostMapping
+    public ResponseEntity<MessageResponse> createPost(
+            @Parameter(description = "Visibilidade do post") @RequestParam("publico") boolean publico,
+            @Parameter(description = "Descrição do post") @RequestParam("descricao") String descricao,
+            @Parameter(description = "Arquivo de imagem para o post (opcional)") @RequestParam(value = "foto", required = false) MultipartFile foto,
+            @Parameter(description = "ID da praia (opcional)") @RequestParam(value = "beachId", required = false) Long beachId,
+            @AuthenticationPrincipal UserDetails userDetails) {
 
-            try {
-                CreatePostRequest request = new CreatePostRequest();
-                request.setDescricao(descricao);
-                request.setPublico(publico);
-                request.setBeachId(beachId);
+        try {
+            CreatePostRequest request = new CreatePostRequest();
+            request.setDescricao(descricao);
+            request.setPublico(publico);
+            request.setBeachId(beachId);
 
-                postService.createPost(request, foto, userDetails.getUsername());
-                return ResponseEntity.status(HttpStatus.CREATED)
-                        .body(new MessageResponse("Post criado com sucesso!"));
-            } catch (Exception e) {
-                return ResponseEntity.badRequest()
-                        .body(new MessageResponse("Erro ao criar o post: " + e.getMessage()));
-            }
+            postService.createPost(request, foto, userDetails.getUsername());
+            return ResponseEntity.status(HttpStatus.CREATED)
+                    .body(new MessageResponse("Post criado com sucesso!"));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                    .body(new MessageResponse("Erro ao criar o post: " + e.getMessage()));
         }
+    }
 
     @Operation(
-            summary = "Lista todos os posts públicos",
+            summary = "Lista todos os posts públicos (Feed Principal)",
             description = "Retorna uma lista de todos os posts marcados como públicos, ideal para o feed principal."
     )
     @ApiResponse(responseCode = "200", description = "Posts listados com sucesso")
     @GetMapping("/home")
     public ResponseEntity<List<PostDTO>> getPublicFeed() {
         return ResponseEntity.ok(postService.getPublicFeed());
+    }
+
+    @Operation(
+            summary = "Lista os posts dos usuários que você segue (Feed 'Seguindo')",
+            description = "Retorna um feed com os posts das pessoas que o usuário autenticado segue. Requer autenticação JWT.",
+            security = @SecurityRequirement(name = "bearerAuth")
+    )
+    @ApiResponse(responseCode = "200", description = "Feed 'seguindo' listado com sucesso")
+    @GetMapping("/following")
+    public ResponseEntity<List<PostDTO>> getFollowingFeed(
+            @AuthenticationPrincipal UserDetails userDetails) {
+        List<PostDTO> posts = postService.getFollowingPosts(userDetails.getUsername());
+        return ResponseEntity.ok(posts);
     }
 
     @Operation(
