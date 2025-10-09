@@ -11,4 +11,6 @@ public class UserUpdateRequestDTO {
 
     private String fotoCapa;
 
+    private String bio;
+
 }
