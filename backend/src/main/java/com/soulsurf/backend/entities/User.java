@@ -53,6 +53,12 @@ public class User {
     )
     private java.util.List<User> seguindo = new java.util.ArrayList<>();
 
+    @Column(nullable = false, columnDefinition = "BOOLEAN DEFAULT FALSE")
+    private boolean admin = false;
+
+    @Column(nullable = false, columnDefinition = "BOOLEAN DEFAULT FALSE")
+    private boolean banned = false;
+
     public User(String email, String password) {
         this.email = email;
         this.password = password;
