@@ -5,13 +5,10 @@ import com.soulsurf.backend.dto.PostDTO;
 import com.soulsurf.backend.dto.UserDTO;
 import com.soulsurf.backend.entities.Beach;
 import com.soulsurf.backend.entities.Post;
-import com.soulsurf.backend.entities.User;
 import com.soulsurf.backend.repository.BeachRepository;
 import com.soulsurf.backend.repository.PostRepository;
-import com.soulsurf.backend.repository.UserRepository;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -25,13 +22,11 @@ public class BeachService {
 
     private final BeachRepository beachRepository;
     private final PostRepository postRepository;
-    private final UserRepository userRepository;
     private final Optional<BlobStorageService> blobStorageService;
 
-    public BeachService(BeachRepository beachRepository, PostRepository postRepository, UserRepository userRepository, Optional<BlobStorageService> blobStorageService) {
+    public BeachService(BeachRepository beachRepository, PostRepository postRepository, Optional<BlobStorageService> blobStorageService) {
         this.beachRepository = beachRepository;
         this.postRepository = postRepository;
-        this.userRepository = userRepository;
         this.blobStorageService = blobStorageService;
     }
 
