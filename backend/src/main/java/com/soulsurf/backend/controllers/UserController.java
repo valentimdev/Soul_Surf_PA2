@@ -2,7 +2,6 @@ package com.soulsurf.backend.controllers;
 
 import com.soulsurf.backend.dto.MessageResponse;
 import com.soulsurf.backend.dto.UserDTO;
-import com.soulsurf.backend.dto.UserUpdateRequestDTO;
 import com.soulsurf.backend.security.service.UserDetailsImpl;
 import com.soulsurf.backend.services.UserService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -17,8 +16,6 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-
-import java.util.List;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
@@ -84,22 +81,6 @@ public class UserController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    @Operation(summary = "Atualiza o perfil do usuário autenticado", description = "Permite que o usuário autenticado atualize suas informações de perfil (nome, bio, etc).", security = @SecurityRequirement(name = "bearerAuth"))
-    @ApiResponse(responseCode = "200", description = "Perfil atualizado com sucesso")
-    @ApiResponse(responseCode = "401", description = "Não autenticado")
-    @ApiResponse(responseCode = "404", description = "Usuário a ser atualizado não encontrado")
-    @PutMapping(value = "/me/upload", consumes = "multipart/form-data")
-    public ResponseEntity<UserDTO> updateUserProfileWithFiles(
-            @AuthenticationPrincipal UserDetailsImpl userDetails,
-            @Parameter(description = "Nome de usuário") @RequestParam(value = "username", required = false) String username,
-            @Parameter(description = "Biografia") @RequestParam(value = "bio", required = false) String bio,
-            @Parameter(description = "Arquivo de foto de perfil") @RequestParam(value = "fotoPerfil", required = false) MultipartFile fotoPerfil,
-            @Parameter(description = "Arquivo de foto de capa") @RequestParam(value = "fotoCapa", required = false) MultipartFile fotoCapa) {
-
-        Long userId = userDetails.getId();
-        UserDTO updatedUserDTO = userService.updateUserProfile(userId, updateRequest);
-        return ResponseEntity.ok(updatedUserDTO);
-    }
 
     @Operation(summary = "Atualiza o perfil com upload de imagens", description = "Permite que o usuário autenticado atualize suas informações de perfil com fotos.", security = @SecurityRequirement(name = "bearerAuth"))
     @ApiResponse(responseCode = "200", description = "Perfil atualizado com sucesso")
