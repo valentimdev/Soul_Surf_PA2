@@ -30,13 +30,12 @@ public class MensagemService {
 
     // Método para listar mensagens (GET)
     public List<MensagemDTO> listarMensagensPorPraia(Long praiaId) {
-        // Validação da existência da praia
-        if (!beachRepository.existsById(praiaId)) {
-            throw new RuntimeException("Praia não encontrada.");
-        }
+        // Busca a praia primeiro
+        Beach praia = beachRepository.findById(praiaId)
+                .orElseThrow(() -> new RuntimeException("Praia não encontrada."));
 
         // Busca e ordenação feitas pelo método do JpaRepository
-        List<Mensagem> mensagens = mensagemRepository.findByPraiaIdOrderByDataDesc(praiaId);
+        List<Mensagem> mensagens = mensagemRepository.findByBeachOrderByDataDesc(praia);
 
         return mensagens.stream()
                 .map(this::convertToDto)
