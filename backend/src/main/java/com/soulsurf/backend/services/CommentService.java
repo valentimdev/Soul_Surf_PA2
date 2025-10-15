@@ -63,7 +63,7 @@ public class CommentService {
      * Processa menções em um comentário e cria notificações para os usuários mencionados
      */
     @Transactional
-    private void processarMencoes(Comment comment, String senderUsername) {
+    public void processarMencoes(Comment comment, String senderUsername) {
         // Padrão regex para encontrar menções (@username)
         Pattern pattern = Pattern.compile("@(\\w+)");
         Matcher matcher = pattern.matcher(comment.getTexto());
