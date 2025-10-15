@@ -16,6 +16,8 @@ interface Comment {
         username: string;
         fotoPerfil?: string | null;
     };
+    parentId?: number | null;
+    replies?: Comment[];
 }
 
 interface Post {
@@ -35,8 +37,116 @@ interface Post {
     comments: Comment[];
 }
 
+function CommentItem({
+                         comment,
+                         loggedUserId,
+                         onReplySubmit,
+                         onDelete,
+                         onUpdate,
+                     }: {
+    comment: Comment;
+    loggedUserId: number;
+    onReplySubmit: (parentId: number, text: string) => void;
+    onDelete: (commentId: number) => void;
+    onUpdate: (commentId: number, newText: string) => void;
+}) {
+    const [showReplyBox, setShowReplyBox] = useState(false);
+    const [replyText, setReplyText] = useState("");
+    const [isEditing, setIsEditing] = useState(false);
+    const [editText, setEditText] = useState(comment.texto);
+
+    const handleReply = () => {
+        if (!replyText.trim()) return;
+        onReplySubmit(comment.id, replyText);
+        setReplyText("");
+        setShowReplyBox(false);
+    };
+
+    const handleUpdate = () => {
+        if (!editText.trim()) return;
+        onUpdate(comment.id, editText);
+        setIsEditing(false);
+    };
+
+    const isOwner = comment.usuario.id === loggedUserId;
+
+    return (
+        <div className="pl-2 border-l border-gray-200">
+            <Card className="p-3 mb-2">
+                <CardHeader className="flex items-center gap-3 p-0 mb-2">
+                    <Avatar>
+                        <AvatarImage src={comment.usuario.fotoPerfil || undefined} alt={comment.usuario.username} />
+                        <AvatarFallback>{comment.usuario.username.charAt(0).toUpperCase()}</AvatarFallback>
+                    </Avatar>
+                    <span className="font-semibold">{comment.usuario.username}</span>
+                </CardHeader>
+                <CardContent className="p-0">
+                    {isEditing ? (
+                        <>
+                            <Textarea value={editText} onChange={(e) => setEditText(e.target.value)} />
+                            <div className="mt-2 flex gap-2">
+                                <Button size="sm" onClick={handleUpdate}>Salvar</Button>
+                                <Button size="sm" variant="outline" onClick={() => setIsEditing(false)}>Cancelar</Button>
+                            </div>
+                        </>
+                    ) : (
+                        <p className="text-sm">{comment.texto}</p>
+                    )}
+
+                    <p className="text-xs text-gray-400 mt-1">{new Date(comment.data).toLocaleString()}</p>
+
+                    {!comment.parentId && !isEditing && (
+                        <Button
+                            variant="link"
+                            size="sm"
+                            className="p-0 mt-1"
+                            onClick={() => setShowReplyBox((prev) => !prev)}
+                        >
+                            {showReplyBox ? "Cancelar" : "Responder"}
+                        </Button>
+                    )}
+
+                    {showReplyBox && (
+                        <div className="mt-2">
+                            <Textarea placeholder={`Responder a ${comment.usuario.username}...`} value={replyText} onChange={(e) => setReplyText(e.target.value)} />
+                            <Button className="mt-2" size="sm" onClick={handleReply}>Enviar resposta</Button>
+                        </div>
+                    )}
+
+                    {isOwner && !isEditing && (
+                        <div className="mt-2 flex gap-2">
+                            <Button size="sm" variant="outline" onClick={() => setIsEditing(true)}>Editar</Button>
+                            <Button size="sm" variant="destructive" onClick={() => onDelete(comment.id)}>Apagar</Button>
+                        </div>
+                    )}
+                </CardContent>
+            </Card>
+
+            {comment.replies && comment.replies.length > 0 && (
+                <div className="ml-4 mt-2 space-y-2">
+                    {comment.replies.map((resp: Comment) => (
+                        <Card key={resp.id} className="p-3 mb-2">
+                            <CardHeader className="flex items-center gap-3 p-0 mb-2">
+                                <Avatar>
+                                    <AvatarImage src={resp.usuario.fotoPerfil || undefined} alt={resp.usuario.username} />
+                                    <AvatarFallback>{resp.usuario.username.charAt(0).toUpperCase()}</AvatarFallback>
+                                </Avatar>
+                                <span className="font-semibold">{resp.usuario.username}</span>
+                            </CardHeader>
+                            <CardContent className="p-0">
+                                <p className="text-sm">{resp.texto}</p>
+                                <p className="text-xs text-gray-400 mt-1">{new Date(resp.data).toLocaleString()}</p>
+                            </CardContent>
+                        </Card>
+                    ))}
+                </div>
+            )}
+        </div>
+    );
+}
+
 export default function PostCommentsPage() {
-    const { id } = useParams(); // vem da URL: /posts/:id/comments
+    const { id } = useParams();
     const [post, setPost] = useState<Post | null>(null);
     const [comments, setComments] = useState<Comment[]>([]);
     const [newComment, setNewComment] = useState("");
@@ -45,8 +155,9 @@ export default function PostCommentsPage() {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                // Buscar post
-                const postRes = await api.get(`/posts/${id}`);
+                const postRes = await api.get(`/posts/${id}`, {
+                    headers: { "Content-Type": "application/json" },
+                });
                 const postData = postRes.data;
 
                 setPost({
@@ -59,22 +170,13 @@ export default function PostCommentsPage() {
                     postOwnerId: postData.usuario.id,
                     loggedUserId: postData.loggedUserId || 0,
                     isFollowing: postData.isFollowing || false,
-                    comments: postData.comments || [],
+                    comments: [],
                 });
 
-                // Mapear os comentários
-                setComments(
-                    (postData.comments || []).map((c: any) => ({
-                        id: c.id,
-                        texto: c.texto,
-                        data: c.data,
-                        usuario: {
-                            id: c.usuario.id,
-                            username: c.usuario.username,
-                            fotoPerfil: c.usuario.fotoPerfil,
-                        },
-                    }))
-                );
+                const commentsRes = await api.get(`/posts/${id}/comments/`, {
+                    headers: { "Content-Type": "application/json" },
+                });
+                setComments(commentsRes.data);
             } catch (e) {
                 console.error("Erro ao carregar post/comentários", e);
             } finally {
@@ -89,27 +191,80 @@ export default function PostCommentsPage() {
         if (!newComment.trim()) return;
 
         try {
-            const res = await api.post(`/posts/${id}/comments/`, new URLSearchParams({ texto: newComment }));
+            const params = new URLSearchParams({ texto: newComment });
+            const res = await api.post(`/posts/${id}/comments/?${params.toString()}`);
             const created = res.data;
 
-            // Adicionar comentário no estado já mapeado
-            setComments((prev) => [
-                ...prev,
-                {
-                    id: created.id,
-                    texto: created.texto,
-                    data: created.data,
-                    usuario: {
-                        id: created.usuario.id,
-                        username: created.usuario.username,
-                        fotoPerfil: created.usuario.fotoPerfil,
-                    },
+            const newC: Comment = {
+                id: created.id,
+                texto: created.texto,
+                data: created.data,
+                parentId: created.parentId,
+                usuario: {
+                    id: created.usuario.id,
+                    username: created.usuario.username,
+                    fotoPerfil: created.usuario.fotoPerfil,
                 },
-            ]);
+                replies: [],
+            };
 
+            setComments((prev) => [newC, ...prev]);
             setNewComment("");
         } catch (err) {
             console.error("Erro ao enviar comentário:", err);
+        }
+    };
+
+    const handleReplySubmit = async (parentId: number, text: string) => {
+        if (!text.trim()) return;
+        try {
+            const params = new URLSearchParams({ texto: text, parentId: parentId.toString() });
+            const res = await api.post(`/posts/${id}/comments/?${params.toString()}`);
+            const created = res.data;
+
+            const newReply: Comment = {
+                id: created.id,
+                texto: created.texto,
+                data: created.data,
+                parentId: created.parentId,
+                usuario: {
+                    id: created.usuario.id,
+                    username: created.usuario.username,
+                    fotoPerfil: created.usuario.fotoPerfil,
+                },
+                replies: [],
+            };
+
+            setComments((prev) =>
+                prev.map((c) =>
+                    c.id === parentId
+                        ? { ...c, replies: [...(c.replies || []), newReply] }
+                        : c
+                )
+            );
+        } catch (err) {
+            console.error("Erro ao enviar resposta:", err);
+        }
+    };
+
+    const handleDeleteComment = async (commentId: number) => {
+        try {
+            await api.delete(`/posts/${id}/comments/${commentId}`);
+            setComments((prev) => prev.filter((c) => c.id !== commentId));
+        } catch (err) {
+            console.error("Erro ao apagar comentário:", err);
+        }
+    };
+
+    const handleUpdateComment = async (commentId: number, newText: string) => {
+        try {
+            const res = await api.put(`/posts/${id}/comments/${commentId}?texto=${encodeURIComponent(newText)}`);
+            const updated = res.data;
+            setComments((prev) =>
+                prev.map((c) => (c.id === commentId ? { ...c, texto: updated.texto } : c))
+            );
+        } catch (err) {
+            console.error("Erro ao atualizar comentário:", err);
         }
     };
 
@@ -138,31 +293,20 @@ export default function PostCommentsPage() {
                     value={newComment}
                     onChange={(e) => setNewComment(e.target.value)}
                 />
-                <Button onClick={handleAddComment} className="mt-2">
-                    Enviar
-                </Button>
+                <Button onClick={handleAddComment} className="mt-2">Enviar</Button>
             </Card>
 
             <div className="space-y-3">
-                {
-                    comments.map((c) => (
-                        <Card key={c.id} className="p-3">
-                            <CardHeader className="flex flex-row items-center gap-3 p-0 mb-2">
-                                <Avatar>
-                                    <AvatarImage src={c.usuario.fotoPerfil || undefined} alt={c.usuario.username} />
-                                    <AvatarFallback>{c.usuario.username.charAt(0).toUpperCase()}</AvatarFallback>
-                                </Avatar>
-                                <span className="font-semibold">{c.usuario.username}</span>
-                            </CardHeader>
-                            <CardContent className="p-0">
-                                <p className="text-sm">{c.texto}</p>
-                                <p className="text-xs text-gray-400 mt-1">
-                                    {new Date(c.data).toLocaleString()}
-                                </p>
-                            </CardContent>
-                        </Card>
-                    ))
-                }
+                {comments.map((c) => (
+                    <CommentItem
+                        key={c.id}
+                        comment={c}
+                        loggedUserId={post.loggedUserId}
+                        onReplySubmit={handleReplySubmit}
+                        onDelete={handleDeleteComment}
+                        onUpdate={handleUpdateComment}
+                    />
+                ))}
             </div>
         </div>
     );
