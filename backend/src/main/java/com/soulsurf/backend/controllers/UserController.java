@@ -139,5 +139,21 @@ public class UserController {
         }
     }
     
+    @Operation(summary = "Buscar sugestões de usuários para menções", description = "Retorna sugestões de usuários quando o usuário está digitando uma menção com @", security = @SecurityRequirement(name = "bearerAuth"))
+    @ApiResponse(responseCode = "200", description = "Sugestões encontradas com sucesso")
+    @GetMapping("/mention-suggestions")
+    public ResponseEntity<?> getUserSuggestions(
+            @Parameter(description = "Termo de busca (texto após o @)") @RequestParam String query,
+            @Parameter(description = "Limite de resultados") @RequestParam(defaultValue = "5") int limit,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        try {
+            List<UserDTO> suggestions = userService.getUserSuggestions(query, userDetails.getUsername(), limit);
+            return ResponseEntity.ok(suggestions);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                    .body(new MessageResponse("Erro ao buscar sugestões de usuários: " + e.getMessage()));
+        }
+    }
 
 }
+

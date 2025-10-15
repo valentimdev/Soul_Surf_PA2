@@ -6,14 +6,15 @@ import com.soulsurf.backend.dto.UserUpdateRequestDTO;
 import com.soulsurf.backend.entities.User;
 import com.soulsurf.backend.repository.PostRepository;
 import com.soulsurf.backend.repository.UserRepository;
-import jakarta.transaction.Transactional;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class UserService {
@@ -176,6 +177,49 @@ public class UserService {
 
         User updatedUser = userRepository.save(userToUpdate);
         return convertToDto(updatedUser);
+    }
+
+    /**
+     * Busca sugestões de usuários para menções em comentários
+     * Prioriza usuários que o usuário atual segue
+     * @param searchTerm O termo de busca (após o @)
+     * @param currentUserEmail Email do usuário atual
+     * @param limit Número máximo de sugestões a retornar
+     * @return Lista de UserDTOs simplificados para sugestões
+     */
+    @Transactional
+    public List<UserDTO> getUserSuggestions(String searchTerm, String currentUserEmail, int limit) {
+        User currentUser = userRepository.findByEmail(currentUserEmail)
+                .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado"));
+
+        // Busca primeiro os usuários seguidos que correspondem à pesquisa
+        List<User> followedUsers = userRepository.findFollowedUsersContainingUsername(
+                currentUser.getId(), searchTerm);
+
+        // Se não encontrou o suficiente, busca outros usuários
+        if (followedUsers.size() < limit) {
+            List<User> otherUsers = userRepository.findByUsernameContainingIgnoreCase(searchTerm);
+
+            // Remove usuários que já estão incluídos
+            List<User> filteredOtherUsers = otherUsers.stream()
+                    .filter(user -> !followedUsers.contains(user))
+                    .limit(limit - followedUsers.size())
+                    .collect(Collectors.toList());
+
+            followedUsers.addAll(filteredOtherUsers);
+        }
+
+        // Retorna apenas o necessário para mostrar as sugestões
+        return followedUsers.stream()
+                .limit(limit)
+                .map(user -> {
+                    UserDTO dto = new UserDTO();
+                    dto.setId(user.getId());
+                    dto.setUsername(user.getUsername());
+                    dto.setFotoPerfil(user.getFotoPerfil());
+                    return dto;
+                })
+                .collect(Collectors.toList());
     }
 
     private UserDTO convertToDto(User user) {
