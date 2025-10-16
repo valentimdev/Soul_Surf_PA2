@@ -2,9 +2,7 @@ package com.soulsurf.backend.services;
 
 import com.soulsurf.backend.dto.SignupRequest;
 import com.soulsurf.backend.dto.UserDTO;
-import com.soulsurf.backend.dto.UserUpdateRequestDTO;
 import com.soulsurf.backend.entities.User;
-import com.soulsurf.backend.repository.PostRepository;
 import com.soulsurf.backend.repository.UserRepository;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -22,9 +20,9 @@ public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final PostService postService;
-    private final Optional<BlobStorageService> blobStorageService;
+    private final java.util.Optional<BlobStorageService> blobStorageService;
 
-    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder, PostService postService, Optional<BlobStorageService> blobStorageService) {
+    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder, PostService postService, java.util.Optional<BlobStorageService> blobStorageService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.postService = postService;

@@ -2,7 +2,6 @@ package com.soulsurf.backend.controllers;
 
 import com.soulsurf.backend.dto.MessageResponse;
 import com.soulsurf.backend.dto.UserDTO;
-import com.soulsurf.backend.dto.UserUpdateRequestDTO;
 import com.soulsurf.backend.security.service.UserDetailsImpl;
 import com.soulsurf.backend.services.UserService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -23,7 +22,9 @@ import org.springframework.web.multipart.MultipartFile;
 @RequestMapping("/api/users")
 @Tag(name = "3. Usuários", description = "Endpoints para gerenciamento de perfis e interações de usuários.")
 public class UserController {
+
     private final UserService userService;
+
     public UserController(UserService userService) {
         this.userService = userService;
     }
@@ -43,7 +44,8 @@ public class UserController {
     @ApiResponse(responseCode = "401", description = "Não autenticado")
     @ApiResponse(responseCode = "404", description = "Usuário a ser seguido não encontrado")
     @PostMapping("/{id}/follow")
-    public ResponseEntity<?> followUser(@Parameter(description = "ID do usuário a ser seguido") @PathVariable Long id, @AuthenticationPrincipal UserDetails userDetails) {
+    public ResponseEntity<?> followUser(@Parameter(description = "ID do usuário a ser seguido") @PathVariable Long id,
+                                        @AuthenticationPrincipal UserDetails userDetails) {
         if (userDetails == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new MessageResponse("Usuário não autenticado"));
         }
@@ -56,11 +58,11 @@ public class UserController {
     @ApiResponse(responseCode = "401", description = "Não autenticado")
     @ApiResponse(responseCode = "404", description = "Usuário a ser deixado de seguir não encontrado")
     @DeleteMapping("/{id}/follow")
-    public ResponseEntity<?> unfollowUser(@Parameter(description = "ID do usuário a ser deixado de seguir") @PathVariable Long id, @AuthenticationPrincipal UserDetails userDetails) {
+    public ResponseEntity<?> unfollowUser(@Parameter(description = "ID do usuário a ser deixado de seguir") @PathVariable Long id,
+                                          @AuthenticationPrincipal UserDetails userDetails) {
         userService.unfollowUser(userDetails.getUsername(), id);
         return ResponseEntity.ok(new MessageResponse("Você deixou de seguir o usuário com ID " + id));
     }
-
 
     @Operation(summary = "Busca o perfil do usuário autenticado", description = "Retorna os detalhes do perfil do usuário que está logado. Requer autenticação JWT.", security = @SecurityRequirement(name = "bearerAuth"))
     @ApiResponse(responseCode = "200", description = "Perfil do usuário encontrado")
@@ -71,30 +73,16 @@ public class UserController {
         if (userDetails == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
-        
+
         Long userId = userDetails.getId();
 
         return userService.getUserProfile(userId)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
-    // @Operation(summary = "Atualiza o perfil do usuário autenticado", description = "Permite que o usuário autenticado atualize suas informações de perfil (nome, bio, fotos, etc).", security = @SecurityRequirement(name = "bearerAuth"))
-    // @ApiResponse(responseCode = "200", description = "Perfil atualizado com sucesso")
-    // @ApiResponse(responseCode = "401", description = "Não autenticado")
-    // @ApiResponse(responseCode = "404", description = "Usuário a ser atualizado não encontrado")
-    // @PutMapping("/me")
-    // public ResponseEntity<UserDTO> updateUserProfile(
-    //         @AuthenticationPrincipal UserDetailsImpl userDetails,
-    //         @RequestBody UserUpdateRequestDTO updateRequest) {
 
-    //     Long userId = userDetails.getId();
 
-    //     UserDTO updatedUserDTO = userService.updateUserProfile(userId, updateRequest);
-
-    //     return ResponseEntity.ok(updatedUserDTO);
-    // }
-
-    @Operation(summary = "Atualiza o perfil do usuário com upload de imagens", description = "Permite que o usuário autenticado atualize suas informações de perfil incluindo upload de fotos.", security = @SecurityRequirement(name = "bearerAuth"))
+    @Operation(summary = "Atualiza o perfil com upload de imagens", description = "Permite que o usuário autenticado atualize suas informações de perfil com fotos.", security = @SecurityRequirement(name = "bearerAuth"))
     @ApiResponse(responseCode = "200", description = "Perfil atualizado com sucesso")
     @ApiResponse(responseCode = "401", description = "Não autenticado")
     @ApiResponse(responseCode = "404", description = "Usuário a ser atualizado não encontrado")
@@ -107,9 +95,7 @@ public class UserController {
             @Parameter(description = "Arquivo de foto de capa") @RequestParam(value = "fotoCapa", required = false) MultipartFile fotoCapa) {
 
         Long userId = userDetails.getId();
-
-        UserDTO updatedUserDTO = userService.updateUserProfileWithFiles(userId, username,bio, fotoPerfil, fotoCapa);
-
+        UserDTO updatedUserDTO = userService.updateUserProfileWithFiles(userId, username, bio, fotoPerfil, fotoCapa);
         return ResponseEntity.ok(updatedUserDTO);
     }
 

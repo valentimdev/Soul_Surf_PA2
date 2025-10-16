@@ -21,4 +21,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
     // Buscar usuários que o usuário atual segue e cujo nome contém o termo de busca
     @Query("SELECT u FROM User u WHERE u IN (SELECT s FROM User me JOIN me.seguindo s WHERE me.id = :userId) AND LOWER(u.username) LIKE LOWER(CONCAT('%', :searchTerm, '%'))")
     List<User> findFollowedUsersContainingUsername(Long userId, String searchTerm);
+    long countByAdminTrue();
+    long countByBannedTrue();
 }

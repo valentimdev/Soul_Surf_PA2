@@ -7,6 +7,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 
@@ -21,4 +22,20 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     Page<Post> findByBeachAndPublicoIsTrueOrUsuarioEmail(Beach beach, String userEmail, Pageable pageable);
 
     Page<Post> findByBeachAndPublicoIsTrue(Beach beach, Pageable pageable);
+
+    @Query("SELECT COUNT(DISTINCT p.usuario.id) FROM Post p")
+    long countDistinctAuthors();
+
+    @Query("SELECT COUNT(p) FROM Post p WHERE p.data BETWEEN :start AND :end")
+    long countPostsBetween(@Param("start") java.time.LocalDateTime start,
+                           @Param("end") java.time.LocalDateTime end);
+
+    @Query("SELECT p.usuario.id, p.usuario.username, COUNT(p) FROM Post p WHERE p.data BETWEEN :start AND :end GROUP BY p.usuario.id, p.usuario.username ORDER BY COUNT(p) DESC")
+    java.util.List<Object[]> topAuthorsBetween(@Param("start") java.time.LocalDateTime start,
+                                               @Param("end") java.time.LocalDateTime end,
+                                               org.springframework.data.domain.Pageable pageable);
+
+    @Query("SELECT p.beach.id, p.beach.nome, COUNT(p) FROM Post p WHERE p.data BETWEEN :start AND :end AND p.beach IS NOT NULL GROUP BY p.beach.id, p.beach.nome ORDER BY COUNT(p) DESC")
+    java.util.List<Object[]> postsByBeachBetween(@Param("start") java.time.LocalDateTime start,
+                                                 @Param("end") java.time.LocalDateTime end);
 }
