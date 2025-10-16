@@ -1,6 +1,6 @@
-// import surf01 from "../assets/login_page/surf01.jpg"
-// import surf02 from "../assets/login_page/surf02.jpg"
-import azul2 from "../assets/azul2.png"
+ import surf01 from "../assets/login_page/surf01.jpg"
+ import surf02 from "../assets/login_page/surf02.jpg"
+//import azul2 from "../assets/azul2.png"
 
 import {
   ResizableHandle,
