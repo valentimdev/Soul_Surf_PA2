@@ -1,4 +1,4 @@
-import surfimagetest from "../assets/surfimagetest.jpg";
+import surfimagetest from "../assets/soul_surfer_1.jpeg";
 // Não precisamos mais de ResizablePanelGroup e Handle
 // import {
 //   ResizableHandle,

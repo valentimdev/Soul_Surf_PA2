@@ -53,8 +53,9 @@ public class WebSecurityConfig {
                         .requestMatchers("/api/users/**").authenticated()
                         .requestMatchers("/api/comentarios/**").authenticated()
                         .requestMatchers("/api/beaches/{praiaId}/mensagens").permitAll()
-
-                        // NOVO: Rota POST de Mensagem é PROTEGIDA
+                        .requestMatchers("/files/**").permitAll()
+                        .requestMatchers("/ws/**").permitAll()
+                        .requestMatchers("/api/chat/**").authenticated()
                         .requestMatchers("/api/beaches/{beachesId}/mensagens").authenticated()
                         .anyRequest().authenticated()
                 );
@@ -66,9 +67,12 @@ public class WebSecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of("http://localhost:5173")); // Host do frontend React
+        config.setAllowedOrigins(List.of("http://localhost:5173"));
+
+
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        config.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept"));
+        config.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept", "X-Requested-With"));
+        config.setExposedHeaders(List.of("Authorization")); // se precisar ler no front
         config.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
