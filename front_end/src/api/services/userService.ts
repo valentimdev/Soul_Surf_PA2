@@ -1,15 +1,21 @@
 import api from "../axios";
 import { userRoutes } from "../routes/user";
 import type {MessageResponse} from "@/api/services/postService.ts";
+import type {BeachDTO} from "@/api/services/beachService.ts";
+
+class CommentDTO {
+}
 
 // DTOs do backend
 export type PostDTO = {
     id: number;
-    titulo: string;
     descricao: string;
-    caminhoFoto?: string;
+    caminhoFoto: string; // não opcional
     data: string;
     usuario: UserDTO;
+    publico: boolean;
+    beach: BeachDTO;
+    comments: CommentDTO[];
 };
 
 export type UserDTO = {

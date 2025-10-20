@@ -74,10 +74,13 @@ const RootLayout: React.FC = () => {
                 <Plus className="h-8 w-8" />
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[650px] p-0">
-              {/* O seu formulário é renderizado aqui dentro do modal */}
-              <NovoRegistroCard />
-            </DialogContent>
+              <DialogContent className="sm:max-w-[650px] p-0">
+                  <NovoRegistroCard
+                      onSuccess={() => {
+                          setIsModalOpen(false);
+                      }}
+                  />
+              </DialogContent>
           </Dialog>
         </>
       ) : (
