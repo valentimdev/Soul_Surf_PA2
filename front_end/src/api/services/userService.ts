@@ -44,6 +44,7 @@ export const UserService = {
     updateProfile: async (formData: FormData): Promise<UserDTO> => {
         const { data } = await api.put<UserDTO>(userRoutes.updateProfile(), formData, {
             headers: {
+                'Content-Type': 'multipart/form-data',
                 Authorization: `Bearer ${localStorage.getItem("token")}`,
             },
         });

@@ -11,6 +11,7 @@ import {type BeachDTO, BeachService} from "@/api/services/beachService";
 import {PostService} from "@/api/services/postService";
 import {MencoesService} from "@/api/services/mencoesService";
 import {type PostDTO, type UserDTO, UserService} from "@/api/services/userService";
+import { DialogClose } from "@radix-ui/react-dialog";
 
 interface NovoRegistroCardProps {
     onSuccess?: (newPost: PostDTO) => void;
