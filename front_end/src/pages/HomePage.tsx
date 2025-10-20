@@ -30,6 +30,13 @@ function HomePage() {
         };
 
         fetchData();
+        const handleNewPost = (e: Event) => {
+            const customEvent = e as CustomEvent<PostDTO>;
+            setPosts((prev) => [customEvent.detail, ...prev]);
+        };
+
+        window.addEventListener("newPost", handleNewPost);
+        return () => window.removeEventListener("newPost", handleNewPost);
     }, []);
 
     const handleToggleFollow = (userId: number, isNowFollowing: boolean) => {
