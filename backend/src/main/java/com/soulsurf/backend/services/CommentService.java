@@ -10,8 +10,11 @@ import com.soulsurf.backend.repository.PostRepository;
 import com.soulsurf.backend.repository.UserRepository;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Service
@@ -20,11 +23,14 @@ public class CommentService {
     private final CommentRepository commentRepository;
     private final PostRepository postRepository;
     private final UserRepository userRepository;
+    private final NotificationService notificationService;
 
-    public CommentService(CommentRepository commentRepository, PostRepository postRepository, UserRepository userRepository) {
+    public CommentService(CommentRepository commentRepository, PostRepository postRepository,
+                         UserRepository userRepository, NotificationService notificationService) {
         this.commentRepository = commentRepository;
         this.postRepository = postRepository;
         this.userRepository = userRepository;
+        this.notificationService = notificationService;
     }
 
     public CommentDTO createComment(Long postId, Long parentId, String texto, String userEmail) {
@@ -46,7 +52,36 @@ public class CommentService {
         }
 
         comment = commentRepository.save(comment);
+
+        // Processa menções após salvar o comentário
+        processarMencoes(comment, usuario.getUsername());
+
         return convertToDto(comment);
+    }
+
+    /**
+     * Processa menções em um comentário e cria notificações para os usuários mencionados
+     */
+    @Transactional
+    public void processarMencoes(Comment comment, String senderUsername) {
+        // Padrão regex para encontrar menções (@username)
+        Pattern pattern = Pattern.compile("@(\\w+)");
+        Matcher matcher = pattern.matcher(comment.getTexto());
+
+        while (matcher.find()) {
+            String mentionedUsername = matcher.group(1);
+
+            // Verifica se o usuário mencionado existe
+            userRepository.findByUsername(mentionedUsername).ifPresent(mentionedUser -> {
+                // Cria notificação para o usuário mencionado
+                notificationService.createMentionNotification(
+                    senderUsername,
+                    mentionedUsername,
+                    comment.getPost().getId(),
+                    comment.getId()
+                );
+            });
+        }
     }
 
     public List<CommentDTO> getPostComments(Long postId) {
@@ -63,6 +98,12 @@ public class CommentService {
 
         comment.setTexto(texto);
         comment = commentRepository.save(comment);
+
+        // Processa menções após atualizar o comentário
+        User usuario = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado"));
+        processarMencoes(comment, usuario.getUsername());
+
         return convertToDto(comment);
     }
 
