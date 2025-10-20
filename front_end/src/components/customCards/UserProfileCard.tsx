@@ -15,6 +15,7 @@ import { Input } from '@/components/ui/input';
 import { type UserDTO, UserService } from '@/api/services/userService';
 import { toast } from 'sonner';
 import { PostCard } from '@/components/customCards/PostCard.tsx';
+import { Button } from '../ui/button';
 
 type UserProfileCardProps = {
   user: UserDTO;
@@ -43,26 +44,40 @@ export function UserProfileCard({ user }: UserProfileCardProps) {
       });
     });
   }, []);
+  const [editData, setEditData] = useState({
+    username: user.username,
+    bio: user.bio || '',
+    previewPerfil: user.fotoPerfil,
+    previewCapa: user.fotoCapa,
+  });
 
   const handleFotoPerfilChange = (e: ChangeEvent<HTMLInputElement>) => {
     if (e.target.files?.[0]) {
-      setFotoPerfil(e.target.files[0]);
-      setPreviewPerfil(URL.createObjectURL(e.target.files[0]));
+      const file = e.target.files[0];
+      setFotoPerfil(file);
+      setEditData((prevData) => ({
+        ...prevData,
+        previewPerfil: URL.createObjectURL(file),
+      }));
     }
   };
 
   const handleFotoCapaChange = (e: ChangeEvent<HTMLInputElement>) => {
     if (e.target.files?.[0]) {
-      setFotoCapa(e.target.files[0]);
-      setPreviewCapa(URL.createObjectURL(e.target.files[0]));
+      const file = e.target.files[0];
+      setFotoCapa(file);
+      setEditData((prevData) => ({
+        ...prevData,
+        previewCapa: URL.createObjectURL(file),
+      }));
     }
   };
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     const formData = new FormData();
-    formData.append('username', username);
-    formData.append('bio', bio);
+    formData.append('username', editData.username);
+    formData.append('bio', editData.bio);
     if (fotoPerfil) formData.append('fotoPerfil', fotoPerfil);
     if (fotoCapa) formData.append('fotoCapa', fotoCapa);
 
@@ -153,7 +168,20 @@ export function UserProfileCard({ user }: UserProfileCardProps) {
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             {me?.id === user.id && (
               <DialogTrigger asChild>
-                <button className="mr-4 p-2 rounded-full hover:bg-gray-100 transition cursor-pointer">
+                <button
+                  onClick={() => {
+                    setEditData({
+                      username: username,
+                      bio: bio,
+                      previewPerfil: previewPerfil,
+                      previewCapa: previewCapa,
+                    });
+
+                    setFotoPerfil(null);
+                    setFotoCapa(null);
+                  }}
+                  className="mr-4 p-2 rounded-full hover:bg-gray-100 transition cursor-pointer"
+                >
                   <Pencil size={20} />
                 </button>
               </DialogTrigger>
@@ -170,34 +198,61 @@ export function UserProfileCard({ user }: UserProfileCardProps) {
                   </label>
                   <Input
                     type="text"
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
+                    value={editData.username}
+                    onChange={(e) =>
+                      setEditData({ ...editData, username: e.target.value })
+                    }
                     placeholder="Digite seu nome"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 mb-1 ">
                     Foto de Perfil
                   </label>
-                  <input
+                  <Input
                     type="file"
                     accept="image/*"
                     onChange={handleFotoPerfilChange}
-                    className="cursor-pointer border border-gray-300 rounded px-3 py-2 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="cursor-pointer "
                   />
+                  {editData.previewPerfil &&
+                    editData.previewPerfil !== previewPerfil && (
+                      <div className="mt-2 flex flex-col">
+                        <p className="text-sm text-gray-500 mb-1">Nova foto:</p>
+                        <Avatar className="h-30 w-30 ">
+                          <AvatarImage
+                            src={editData.previewPerfil}
+                            alt="Pré-visualização"
+                          />
+                        </Avatar>
+                      </div>
+                    )}
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Foto de Capa
                   </label>
-                  <input
+                  <Input
                     type="file"
                     accept="image/*"
                     onChange={handleFotoCapaChange}
-                    className="cursor-pointer border border-gray-300 rounded px-3 py-2 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="cursor-pointer"
                   />
+                  {editData.previewCapa &&
+                    editData.previewCapa !== previewCapa && (
+                      <div className="mt-2">
+                        <p className="text-sm text-gray-500 mb-1">
+                          Nova foto de capa:
+                        </p>
+                        <img
+                          src={editData.previewCapa}
+                          alt="Pré-visualização da capa"
+                          className="w-full h-32 rounded-md object-cover mt-1"
+                        />
+                      </div>
+                    )}
                 </div>
 
                 <div>
@@ -206,24 +261,23 @@ export function UserProfileCard({ user }: UserProfileCardProps) {
                   </label>
                   <textarea
                     placeholder="Escreva sobre você..."
-                    value={bio}
-                    onChange={(e) => setBio(e.target.value)}
-                    className="w-full border border-gray-300 rounded p-2"
+                    value={editData.bio}
+                    onChange={(e) =>
+                      setEditData({ ...editData, bio: e.target.value })
+                    }
+                    className="w-full border border-gray-300 rounded p-2 resize-none"
                   />
                 </div>
 
                 <div className="flex justify-end gap-2">
                   <DialogClose asChild>
-                    <button className="px-4 py-2 bg-gray-300 text-black rounded hover:bg-gray-400">
+                    <Button type="button" variant="secondary">
                       Cancelar
-                    </button>
+                    </Button>
                   </DialogClose>
-                  <button
-                    type="submit"
-                    className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-                  >
+                  <Button type="submit" className="">
                     Salvar
-                  </button>
+                  </Button>
                 </div>
               </form>
             </DialogContent>
@@ -248,7 +302,7 @@ export function UserProfileCard({ user }: UserProfileCardProps) {
           >
             <TabsContent
               value="overview"
-              className="mt-4 space-y-4 border border-black"
+              className="mt-4 space-y-4"
             >
               {!me ? (
                 <div className="w-full text-center py-10">Carregando...</div>
@@ -350,7 +404,7 @@ export function UserProfileCard({ user }: UserProfileCardProps) {
                     </div>
                   ))}
             </div>
-            <DialogClose className="mt-4 px-4 py-2 bg-gray-300 rounded hover:bg-gray-400">
+            <DialogClose className="mt-4 px-4 py-2 bg-gray-300 rounded hover:bg-gray-400 cursor-pointer">
               Fechar
             </DialogClose>
           </DialogContent>
@@ -385,7 +439,7 @@ export function UserProfileCard({ user }: UserProfileCardProps) {
                     </div>
                   ))}
             </div>
-            <DialogClose className="mt-4 px-4 py-2 bg-gray-300 rounded hover:bg-gray-400">
+            <DialogClose className="mt-4 px-4 py-2 bg-gray-300 rounded hover:bg-gray-400 cursor-pointer">
               Fechar
             </DialogClose>
           </DialogContent>
