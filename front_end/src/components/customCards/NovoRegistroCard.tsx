@@ -250,28 +250,32 @@ function NovoRegistroCard({ onSuccess }: NovoRegistroCardProps) {
                             type="file"
                             accept="image/*"
                             onChange={handleFileChange}
+                            className="cursor-pointer"
                         />
                     </div>
                 </CardContent>
 
-                <CardFooter className="flex justify-end gap-4">
-                    <Button variant="outline" asChild>
-                        <Link to="/home">Cancelar</Link>
-                    </Button>
-                    <Button type="submit" disabled={loading}>
-                        {loading ? (
-                            <>
-                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                Publicando...
-                            </>
-                        ) : (
-                            "Publicar Registo"
-                        )}
-                    </Button>
-                </CardFooter>
+        <CardFooter className="flex justify-end gap-4 mt-5">
+          <DialogClose asChild>
+            <Button type="button" variant="outline">
+              Cancelar
+            </Button>
+          </DialogClose>
+          <Button type="submit" disabled={loading}>
+            {loading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Publicando...
+              </>
+            ) : (
+              'Publicar Registo'
+            )}
+          </Button>
+        </CardFooter>
             </form>
         </Card>
     );
+
 }
 
 export default NovoRegistroCard;
