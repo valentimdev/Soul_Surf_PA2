@@ -30,14 +30,14 @@ export type CreatePostRequest = {
 };
 
 export const PostService = {
-    create: async ({ descricao, publico, beachId, foto }: CreatePostRequest): Promise<MessageResponse> => {
+    create: async ({ descricao, publico, beachId, foto }: CreatePostRequest): Promise<PostDTO> => {
         const formData = new FormData();
         formData.append("descricao", descricao);
         formData.append("publico", String(publico));
         if (beachId) formData.append("beachId", beachId.toString());
         if (foto) formData.append("foto", foto);
 
-        const { data } = await api.post<MessageResponse>(postRoutes.create(), formData, {
+        const { data } = await api.post<PostDTO>(postRoutes.create(), formData, {
             headers: { "Content-Type": "multipart/form-data" },
         });
         return data;
