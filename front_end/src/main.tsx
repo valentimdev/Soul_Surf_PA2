@@ -1,5 +1,5 @@
-import { StrictMode } from 'react';
-import { createRoot } from 'react-dom/client';
+import React from "react";
+import ReactDOM from "react-dom/client";
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 
 import RootLayout from './layouts/RootLayout';
@@ -26,10 +26,8 @@ const router = createBrowserRouter([
     path: "/",
     element: <RootLayout />,
     children: [
-      // rota pública padrão → Landing
       { index: true, element: <LandingPage /> },
 
-      // rotas protegidas
       {
         element: <ProtectedRoute />,
         children: [
@@ -40,12 +38,10 @@ const router = createBrowserRouter([
           { path: "praias/:id", element: <BeachDetailPage /> },
           { path: "posts/:id/comments", element: <PostCommentsPage /> },
 
-          // + nova rota protegida do chat (recebe o ID da conversa)
           { path: "chat/:conversationId", element: <ChatPage /> },
         ],
       },
 
-      // outras rotas públicas
       { path: "login", element: <LoginPage /> },
       { path: "cadastro", element: <CadastroPage /> },
       { path: "forgot-password", element: <ForgotPasswordPage /> },
@@ -53,10 +49,10 @@ const router = createBrowserRouter([
   },
 ]);
 
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <AuthProvider>
-      <RouterProvider router={router} />
-    </AuthProvider>
-  </StrictMode>
+ReactDOM.createRoot(document.getElementById("root")!).render(
+    <React.StrictMode>
+        <AuthProvider>
+            <RouterProvider router={router} />
+        </AuthProvider>
+    </React.StrictMode>
 );
