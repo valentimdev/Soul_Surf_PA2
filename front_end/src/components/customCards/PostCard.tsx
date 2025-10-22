@@ -52,7 +52,7 @@ export function PostCard({
     };
 
     return (
-        <Card className="w-full max-w-xl mx-auto">
+        <Card className="w-full mx-auto">
             <CardHeader className="flex flex-row items-center justify-between p-2">
                 <div className="flex items-center gap-3">
                     <Avatar>

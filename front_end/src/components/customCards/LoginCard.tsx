@@ -19,7 +19,7 @@ function LoginCard() {
     const [password, setPassword] = useState("");
     const [error, setError] = useState<string | null>(null);
     const navigate = useNavigate();
-    const { login } = useAuth();
+    const { login } =useAuth();
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();

@@ -57,7 +57,7 @@ function Header() {
         return <Cloud size={12} />; // Padrão
     };
     return (
-        <header className="bg-[var(--primary)] h-20 w-full flex items-center justify-between px-6 relative">
+        <header className="bg-[var(--primary)] h-20 w-full flex items-center justify-between px-6 relative z-100">
             <div className="flex items-center h-full">
                 <img
                     src={soulSurfIcon}
