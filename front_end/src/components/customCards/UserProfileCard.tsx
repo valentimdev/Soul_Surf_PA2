@@ -16,7 +16,6 @@ import { type UserDTO, UserService } from '@/api/services/userService';
 import { toast } from 'sonner';
 import { PostCard } from '@/components/customCards/PostCard.tsx';
 import { Button } from '../ui/button';
-
 type UserProfileCardProps = {
   user: UserDTO;
 };
