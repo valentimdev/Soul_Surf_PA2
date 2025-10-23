@@ -1,0 +1,27 @@
+---
+- name: Deploy completo do Soul Surf
+  hosts: all
+  become: yes
+  gather_facts: yes
+  
+  tasks:
+    - name: Incluir instalação de dependências
+      include: install-dependencies.yml
+
+- name: Deploy do Backend
+  hosts: backend
+  become: yes
+  gather_facts: yes
+  
+  tasks:
+    - name: Incluir deploy do backend
+      include: deploy-backend.yml
+
+- name: Deploy do Frontend
+  hosts: frontend
+  become: yes
+  gather_facts: yes
+  
+  tasks:
+    - name: Incluir deploy do frontend
+      include: deploy-frontend.yml

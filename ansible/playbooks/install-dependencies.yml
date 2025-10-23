@@ -1,0 +1,187 @@
+---
+- name: Instalar dependências para Soul Surf
+  hosts: azure_app_services
+  become: yes
+  gather_facts: yes
+  
+  vars:
+    java_version: "17"
+    maven_version: "3.9.6"
+    node_version: "18"
+    npm_version: "latest"
+    
+  tasks:
+    - name: Atualizar sistema
+      package:
+        name: "*"
+        state: latest
+      when: ansible_os_family == "RedHat"
+      
+    - name: Atualizar sistema (Ubuntu/Debian)
+      apt:
+        update_cache: yes
+        upgrade: dist
+      when: ansible_os_family == "Debian"
+
+    - name: Instalar dependências básicas
+      package:
+        name:
+          - curl
+          - wget
+          - git
+          - unzip
+          - software-properties-common
+          - apt-transport-https
+          - ca-certificates
+          - gnupg
+          - lsb-release
+        state: present
+      when: ansible_os_family == "Debian"
+
+    - name: Instalar dependências básicas (RedHat)
+      package:
+        name:
+          - curl
+          - wget
+          - git
+          - unzip
+          - yum-utils
+          - device-mapper-persistent-data
+          - lvm2
+        state: present
+      when: ansible_os_family == "RedHat"
+
+    - name: Configurar repositório OpenJDK (Ubuntu)
+      apt_repository:
+        repo: "ppa:openjdk-r/ppa"
+        state: present
+      when: ansible_os_family == "Debian"
+
+    - name: Instalar OpenJDK {{ java_version }}
+      package:
+        name: "openjdk-{{ java_version }}-jdk"
+        state: present
+      when: ansible_os_family == "Debian"
+
+    - name: Instalar OpenJDK {{ java_version }} (RedHat)
+      package:
+        name: "java-{{ java_version }}-openjdk-devel"
+        state: present
+      when: ansible_os_family == "RedHat"
+
+    - name: Definir JAVA_HOME
+      lineinfile:
+        path: /etc/environment
+        line: "JAVA_HOME=/usr/lib/jvm/java-{{ java_version }}-openjdk-amd64"
+        create: yes
+      when: ansible_os_family == "Debian"
+
+    - name: Definir JAVA_HOME (RedHat)
+      lineinfile:
+        path: /etc/environment
+        line: "JAVA_HOME=/usr/lib/jvm/java-{{ java_version }}-openjdk"
+        create: yes
+      when: ansible_os_family == "RedHat"
+
+    - name: Baixar Maven {{ maven_version }}
+      get_url:
+        url: "https://archive.apache.org/dist/maven/maven-3/{{ maven_version }}/binaries/apache-maven-{{ maven_version }}-bin.tar.gz"
+        dest: "/tmp/maven-{{ maven_version }}.tar.gz"
+        mode: '0644'
+
+    - name: Extrair Maven
+      unarchive:
+        src: "/tmp/maven-{{ maven_version }}.tar.gz"
+        dest: "/opt"
+        remote_src: yes
+
+    - name: Criar link simbólico do Maven
+      file:
+        src: "/opt/apache-maven-{{ maven_version }}"
+        dest: "/opt/maven"
+        state: link
+
+    - name: Configurar PATH do Maven
+      lineinfile:
+        path: /etc/environment
+        line: "PATH=/opt/maven/bin:$PATH"
+        create: yes
+
+    - name: Instalar Node.js via NodeSource
+      shell: |
+        curl -fsSL https://deb.nodesource.com/setup_{{ node_version }}.x | sudo -E bash -
+        apt-get install -y nodejs
+      when: ansible_os_family == "Debian"
+
+    - name: Instalar Node.js via NodeSource (RedHat)
+      shell: |
+        curl -fsSL https://rpm.nodesource.com/setup_{{ node_version }}.x | sudo bash -
+        yum install -y nodejs
+      when: ansible_os_family == "RedHat"
+
+    - name: Instalar npm globalmente
+      npm:
+        name: npm
+        global: yes
+        state: present
+
+    - name: Instalar dependências globais do Node.js
+      npm:
+        name:
+          - pm2
+          - typescript
+          - @types/node
+        global: yes
+        state: present
+
+    - name: Instalar PostgreSQL client
+      package:
+        name: postgresql-client
+        state: present
+      when: ansible_os_family == "Debian"
+
+    - name: Instalar PostgreSQL client (RedHat)
+      package:
+        name: postgresql
+        state: present
+      when: ansible_os_family == "RedHat"
+
+    - name: Configurar variáveis de ambiente
+      lineinfile:
+        path: /etc/environment
+        line: "{{ item }}"
+        create: yes
+      loop:
+        - "NODE_ENV=production"
+        - "NPM_CONFIG_PREFIX=/usr/local"
+
+    - name: Recarregar variáveis de ambiente
+      shell: source /etc/environment
+
+    - name: Verificar instalação do Java
+      command: java -version
+      register: java_version_output
+      failed_when: false
+
+    - name: Verificar instalação do Maven
+      command: mvn -version
+      register: maven_version_output
+      failed_when: false
+
+    - name: Verificar instalação do Node.js
+      command: node --version
+      register: node_version_output
+      failed_when: false
+
+    - name: Verificar instalação do npm
+      command: npm --version
+      register: npm_version_output
+      failed_when: false
+
+    - name: Exibir versões instaladas
+      debug:
+        msg:
+          - "Java: {{ java_version_output.stdout_lines[0] if java_version_output.rc == 0 else 'Não instalado' }}"
+          - "Maven: {{ maven_version_output.stdout_lines[0] if maven_version_output.rc == 0 else 'Não instalado' }}"
+          - "Node.js: {{ node_version_output.stdout if node_version_output.rc == 0 else 'Não instalado' }}"
+          - "npm: {{ npm_version_output.stdout if npm_version_output.rc == 0 else 'Não instalado' }}"

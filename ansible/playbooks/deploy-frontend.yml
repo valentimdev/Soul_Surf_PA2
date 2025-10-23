@@ -1,0 +1,178 @@
+---
+- name: Deploy do Frontend Soul Surf
+  hosts: frontend
+  become: yes
+  gather_facts: yes
+  
+  vars:
+    app_name: "{{ app_name }}"
+    node_version: "18"
+    project_dir: "/opt/{{ app_name }}"
+    frontend_dir: "{{ project_dir }}/frontend"
+    
+  tasks:
+    - name: Criar diretório do projeto
+      file:
+        path: "{{ project_dir }}"
+        state: directory
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+        mode: '0755'
+
+    - name: Clonar repositório do frontend
+      git:
+        repo: "{{ frontend_repo_url | default('https://github.com/seu-usuario/Soul_Surf_PA2.git') }}"
+        dest: "{{ project_dir }}"
+        version: "{{ frontend_branch | default('main') }}"
+        force: yes
+      when: frontend_repo_url is defined and frontend_repo_url != ""
+
+    - name: Copiar código do frontend
+      copy:
+        src: "../../front_end/"
+        dest: "{{ frontend_dir }}"
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+      when: frontend_repo_url is not defined or frontend_repo_url == ""
+
+    - name: Instalar dependências do Node.js
+      npm:
+        path: "{{ frontend_dir }}"
+        state: present
+      become_user: "{{ ansible_user }}"
+
+    - name: Configurar variáveis de ambiente para build
+      copy:
+        content: |
+          VITE_BACKEND_URL={{ backend_url | default('http://localhost:8080') }}
+          NODE_ENV=production
+        dest: "{{ frontend_dir }}/.env.production"
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+        mode: '0644'
+
+    - name: Build do projeto React/Vite
+      shell: |
+        cd {{ frontend_dir }}
+        npm run build
+      become_user: "{{ ansible_user }}"
+      environment:
+        NODE_ENV: production
+        VITE_BACKEND_URL: "{{ backend_url | default('http://localhost:8080') }}"
+
+    - name: Verificar se build foi criado
+      stat:
+        path: "{{ frontend_dir }}/dist"
+      register: build_dir_stat
+
+    - name: Falhar se build não foi criado
+      fail:
+        msg: "Build do frontend não foi criado. Verifique a compilação."
+      when: not build_dir_stat.stat.exists
+
+    - name: Instalar servidor web (nginx)
+      package:
+        name: nginx
+        state: present
+
+    - name: Configurar nginx para frontend
+      copy:
+        content: |
+          server {
+              listen 80;
+              server_name _;
+              root {{ frontend_dir }}/dist;
+              index index.html;
+
+              location / {
+                  try_files $uri $uri/ /index.html;
+              }
+
+              location /api {
+                  proxy_pass {{ backend_url | default('http://localhost:8080') }};
+                  proxy_set_header Host $host;
+                  proxy_set_header X-Real-IP $remote_addr;
+                  proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                  proxy_set_header X-Forwarded-Proto $scheme;
+              }
+
+              location /ws {
+                  proxy_pass {{ backend_url | default('http://localhost:8080') }};
+                  proxy_http_version 1.1;
+                  proxy_set_header Upgrade $http_upgrade;
+                  proxy_set_header Connection "upgrade";
+                  proxy_set_header Host $host;
+                  proxy_set_header X-Real-IP $remote_addr;
+                  proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                  proxy_set_header X-Forwarded-Proto $scheme;
+              }
+          }
+        dest: /etc/nginx/sites-available/soulsurf-frontend
+        mode: '0644'
+
+    - name: Habilitar site no nginx
+      file:
+        src: /etc/nginx/sites-available/soulsurf-frontend
+        dest: /etc/nginx/sites-enabled/soulsurf-frontend
+        state: link
+
+    - name: Remover site padrão do nginx
+      file:
+        path: /etc/nginx/sites-enabled/default
+        state: absent
+
+    - name: Testar configuração do nginx
+      command: nginx -t
+      register: nginx_test
+      failed_when: nginx_test.rc != 0
+
+    - name: Reiniciar nginx
+      systemd:
+        name: nginx
+        state: restarted
+        enabled: yes
+
+    - name: Configurar PM2 para gerenciamento de processos
+      npm:
+        name: pm2
+        global: yes
+        state: present
+
+    - name: Criar arquivo de configuração do PM2
+      copy:
+        content: |
+          {
+            "apps": [{
+              "name": "soulsurf-frontend",
+              "script": "serve",
+              "args": "-s {{ frontend_dir }}/dist -l 3000",
+              "cwd": "{{ frontend_dir }}",
+              "instances": 1,
+              "exec_mode": "fork",
+              "env": {
+                "NODE_ENV": "production",
+                "PORT": 3000
+              }
+            }]
+          }
+        dest: "{{ project_dir }}/ecosystem.config.js"
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+        mode: '0644'
+
+    - name: Iniciar aplicação com PM2
+      shell: |
+        cd {{ project_dir }}
+        pm2 start ecosystem.config.js
+        pm2 save
+        pm2 startup
+      become_user: "{{ ansible_user }}"
+
+    - name: Verificar status do PM2
+      shell: pm2 status
+      become_user: "{{ ansible_user }}"
+      register: pm2_status
+
+    - name: Exibir status do PM2
+      debug:
+        msg: "{{ pm2_status.stdout_lines }}"
