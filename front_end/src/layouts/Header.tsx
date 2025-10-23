@@ -57,7 +57,7 @@ function Header() {
         return <Cloud size={12} />; // Padrão
     };
     return (
-        <header className="bg-[var(--primary)] h-20 w-full flex items-center justify-between px-6 relative z-100">
+        <header className="bg-[var(--primary)] h-20 w-full flex items-center justify-center md:justify-between px-6 relative z-100">
             <div className="flex items-center h-full">
                 <img
                     src={soulSurfIcon}
@@ -67,7 +67,7 @@ function Header() {
                 />
             </div>
 
-            <div className="absolute w-1/2 left-1/2 -translate-x-1/2">
+            <div className="hidden md:block absolute w-1/2 left-1/2 -translate-x-1/2">
                 <div className="relative w-full">
                     <Search
                         className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
@@ -81,7 +81,7 @@ function Header() {
                 </div>
             </div>
 
-           <div className="flex items-center gap-8">
+           <div className="hidden md:flex items-center gap-8">
                 <div className="flex flex-col text-xs text-white font-medium text-center">
 
                     {/* LINHA 1: CLIMA E TEMPERATURA (DADOS REAIS DA API) */}

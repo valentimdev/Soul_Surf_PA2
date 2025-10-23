@@ -47,15 +47,6 @@ const RootLayout: React.FC = () => {
                         </div>
 
                         <div className="w-full md:w-[60%] relative">
-                            {location.pathname !== "/home" && (
-                                <Button
-                                    onClick={goBack}
-                                    className="absolute top-2 left-2 flex items-center gap-1 bg-white text-black p-2 rounded-full shadow z-10"
-                                >
-                                    <ArrowLeft className="w-5 h-5 text-[#5899c2]" />
-                                    <span className="hidden sm:inline">Voltar</span>
-                                </Button>
-                            )}
                             <Outlet />
                         </div>
 
