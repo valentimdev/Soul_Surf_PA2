@@ -1,0 +1,33 @@
+# Arquivo de exemplo para variáveis do Terraform
+# Copie este arquivo para terraform.tfvars e configure suas variáveis
+
+# Configurações básicas
+project_name = "soulsurf"
+location = "East US"
+environment = "development"
+
+# Configurações do banco de dados
+database_name = "soulsurf_db"
+db_admin_username = "soulsurf_admin"
+db_admin_password = "SUA_SENHA_SEGURA_AQUI"
+
+# Configurações de segurança
+jwt_secret = "SUA_CHAVE_JWT_SECRETA_AQUI"
+
+# Configurações de email
+mail_host = "smtp.gmail.com"
+mail_port = 587
+mail_username = "SEU_EMAIL_AQUI"
+mail_password = "SUA_SENHA_DE_APLICATIVO_AQUI"
+
+# Configurações do Git (opcional)
+backend_repo_url = "https://github.com/seu-usuario/Soul_Surf_PA2.git"
+frontend_repo_url = "https://github.com/seu-usuario/Soul_Surf_PA2.git"
+backend_branch = "main"
+frontend_branch = "main"
+
+# Configurações adicionais
+enable_cdn = false
+app_service_sku = "B1"
+backend_stack = "17"
+frontend_stack = "18-lts"
