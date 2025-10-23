@@ -125,17 +125,18 @@ function NovoRegistroCard({ onSuccess }: NovoRegistroCardProps) {
                     descricao: "",
                     localizacao: "",
                     caminhoFoto: "",
+                    nivelExperiencia: ""
                 };
 
             const tempPost: PostDTO = {
-                id: createdPost.id ?? Math.random(), // temporário
+                id: createdPost.id ?? Math.random(),
                 descricao,
-                caminhoFoto: foto ? URL.createObjectURL(foto) : "", // nunca null
+                caminhoFoto: foto ? URL.createObjectURL(foto) : "",
                 data: new Date().toISOString(),
                 usuario: createdPost.usuario ?? me,
                 publico: true,
                 beach: selectedBeach,
-                comments: [], // inicializa vazio
+                comments: [],
             };
 
             setDescricao("");
