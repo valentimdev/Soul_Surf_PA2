@@ -1,0 +1,135 @@
+---
+- name: Deploy do Backend Soul Surf
+  hosts: backend
+  become: yes
+  gather_facts: yes
+  
+  vars:
+    app_name: "{{ app_name }}"
+    java_version: "17"
+    maven_version: "3.9.6"
+    project_dir: "/opt/{{ app_name }}"
+    jar_file: "backend-0.0.1-SNAPSHOT.jar"
+    
+  tasks:
+    - name: Criar diretório do projeto
+      file:
+        path: "{{ project_dir }}"
+        state: directory
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+        mode: '0755'
+
+    - name: Clonar repositório do backend
+      git:
+        repo: "{{ backend_repo_url | default('https://github.com/seu-usuario/Soul_Surf_PA2.git') }}"
+        dest: "{{ project_dir }}"
+        version: "{{ backend_branch | default('main') }}"
+        force: yes
+      when: backend_repo_url is defined and backend_repo_url != ""
+
+    - name: Copiar código do backend
+      copy:
+        src: "../../backend/"
+        dest: "{{ project_dir }}/backend"
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+      when: backend_repo_url is not defined or backend_repo_url == ""
+
+    - name: Configurar Maven
+      copy:
+        content: |
+          <?xml version="1.0" encoding="UTF-8"?>
+          <settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
+                    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                    xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0 
+                    http://maven.apache.org/xsd/settings-1.0.0.xsd">
+            <localRepository>{{ project_dir }}/.m2/repository</localRepository>
+          </settings>
+        dest: "{{ ansible_user_dir }}/.m2/settings.xml"
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+        mode: '0644'
+
+    - name: Compilar projeto Maven
+      shell: |
+        cd {{ project_dir }}/backend
+        mvn clean package -DskipTests
+      environment:
+        JAVA_HOME: /usr/lib/jvm/java-{{ java_version }}-openjdk-amd64
+        MAVEN_HOME: /opt/maven
+        PATH: /opt/maven/bin:$PATH
+      become_user: "{{ ansible_user }}"
+
+    - name: Verificar se o JAR foi criado
+      stat:
+        path: "{{ project_dir }}/backend/target/{{ jar_file }}"
+      register: jar_file_stat
+
+    - name: Falhar se JAR não foi criado
+      fail:
+        msg: "JAR file não foi criado. Verifique a compilação."
+      when: not jar_file_stat.stat.exists
+
+    - name: Copiar JAR para diretório de deploy
+      copy:
+        src: "{{ project_dir }}/backend/target/{{ jar_file }}"
+        dest: "{{ project_dir }}/{{ jar_file }}"
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+        mode: '0755'
+        remote_src: yes
+
+    - name: Criar script de inicialização
+      copy:
+        content: |
+          #!/bin/bash
+          cd {{ project_dir }}
+          export JAVA_HOME=/usr/lib/jvm/java-{{ java_version }}-openjdk-amd64
+          export PATH=$JAVA_HOME/bin:$PATH
+          java -jar {{ jar_file }} --spring.profiles.active=production
+        dest: "{{ project_dir }}/start-backend.sh"
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+        mode: '0755'
+
+    - name: Criar systemd service
+      copy:
+        content: |
+          [Unit]
+          Description=Soul Surf Backend
+          After=network.target
+
+          [Service]
+          Type=simple
+          User={{ ansible_user }}
+          WorkingDirectory={{ project_dir }}
+          ExecStart={{ project_dir }}/start-backend.sh
+          Restart=always
+          RestartSec=10
+          Environment=JAVA_HOME=/usr/lib/jvm/java-{{ java_version }}-openjdk-amd64
+          Environment=PATH=/usr/lib/jvm/java-{{ java_version }}-openjdk-amd64/bin:/opt/maven/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+          [Install]
+          WantedBy=multi-user.target
+        dest: /etc/systemd/system/soulsurf-backend.service
+        mode: '0644'
+
+    - name: Recarregar systemd
+      systemd:
+        daemon_reload: yes
+
+    - name: Habilitar serviço
+      systemd:
+        name: soulsurf-backend
+        enabled: yes
+        state: started
+
+    - name: Verificar status do serviço
+      systemd:
+        name: soulsurf-backend
+      register: service_status
+
+    - name: Exibir status do serviço
+      debug:
+        msg: "Serviço soulsurf-backend está {{ 'ativo' if service_status.status.ActiveState == 'active' else 'inativo' }}"
