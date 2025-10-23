@@ -6,10 +6,10 @@ import { useNavigate } from "react-router-dom";
 function LandingCard() {
     const navigate = useNavigate();
     return (
-        <div className="h-full flex items-start justify-center">
+        <div className="h-full flex items-center justify-center py-10">
             <Card className="w-full max-w-md shadow-none border-0 mt-[-50px]">
                 <CardContent className="flex flex-col items-center gap-6 p-6">
-                    <img src={soulSurfIcon} alt="Soul Surf Logo" className="h-100 w-auto" />
+                    <img src={soulSurfIcon} alt="Soul Surf Logo" className="h-75 w-auto" />
 
                     <p className="text-center text-lg italic">
                         Vem pegar essa onda!
@@ -32,7 +32,7 @@ function LandingCard() {
 
                     <Button
                         className="w-full py-8 text-lg font-bold hover:cursor-pointer"
-                        onClick={() => navigate("/cadastro")}
+                        onClick={() => navigate("/login")}
                     >
                         Entrar
                     </Button>

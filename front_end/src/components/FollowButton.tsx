@@ -11,11 +11,12 @@ interface FollowButtonProps {
 
 export default function FollowButton({ postOwnerId, isFollowing, onToggleFollow }: FollowButtonProps) {
     const [loading, setLoading] = useState(false);
+    const [isHovering, setIsHovering] = useState(false);
 
     const handleClick = async () => {
+        // ... (your existing handleClick logic)
         if (loading) return;
         setLoading(true);
-
         try {
             if (isFollowing) {
                 await api.delete(`/users/${postOwnerId}/follow`);
@@ -31,19 +32,44 @@ export default function FollowButton({ postOwnerId, isFollowing, onToggleFollow 
         }
     };
 
+    const commonClasses = `
+        px-4 py-1 text-xs rounded-md font-semibold
+        focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2
+        transition-all duration-300 ease-in-out
+        min-w-[120px] 
+    `;
+
+    if (isFollowing) {
+        return (
+            <Button
+                size="sm"
+                variant={isHovering ? "destructive" : "outline"}
+                onClick={handleClick}
+                disabled={loading}
+                onMouseEnter={() => setIsHovering(true)}
+                onMouseLeave={() => setIsHovering(false)}
+                className={commonClasses} // Use the common classes
+            >
+                {loading ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                ) : isHovering ? (
+                    "Deixar de Seguir"
+                ) : (
+                    "Seguindo"
+                )}
+            </Button>
+        );
+    }
+
     return (
         <Button
             size="sm"
+            variant="default"
             onClick={handleClick}
             disabled={loading}
-            className={`
-                px-2 py-1 text-xs rounded-md
-                ${isFollowing
-                ? "bg-blue-500 text-white hover:bg-red-500" // já seguindo: hover vermelho
-                : "bg-blue-500 text-white hover:bg-blue-600"} // ainda não seguindo: hover azul
-            `}
+            className={commonClasses} // Use the common classes
         >
-            {loading ? <Loader2 className="h-3 w-3 animate-spin" /> : isFollowing ? "Seguindo" : "Seguir"}
+            {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Seguir"}
         </Button>
     );
 }
