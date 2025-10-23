@@ -67,7 +67,7 @@ function Header() {
                 />
             </div>
 
-            <div className="absolute w-1/2 left-1/2 -translate-x-1/2">
+            <div className="absolute w-1/3 left-1/2 -translate-x-1/2">
                 <div className="relative w-full">
                     <Search
                         className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"

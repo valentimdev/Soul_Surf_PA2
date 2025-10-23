@@ -5,7 +5,6 @@ import { Link, useLocation } from 'react-router-dom';
 // Ícones existentes e novos para as opções de configuração
 import {
   Home,
-  Compass,
   Waves,
   Users,
   MessageSquare,
@@ -40,7 +39,6 @@ interface NavItemProps {
 const navItems: NavItemProps[] = [
   { href: '/home', icon: Home, label: 'Início' },
   { href: '/perfil', icon: User, label: 'Perfil' },
-  { href: '/explorar', icon: Compass, label: 'Explorar' },
   { href: '/praias', icon: Waves, label: 'Praias' },
   { href: '/grupos', icon: Users, label: 'Grupos' },
   { href: '/mensagens', icon: MessageSquare, label: 'Mensagens' },
@@ -58,7 +56,7 @@ const SidebarLeft: React.FC = () => {
   };
 
   return (
-    <aside className="w-80 h-[90%] flex flex-col justify-between p-4 bg-white border-r border-gray-200">
+    <aside className="w-60 h-[90%] flex flex-col justify-between p-4 bg-white border-r border-gray-200">
       {/* Seção Principal de Navegação */}
       <nav>
         <ul className="space-y-1">

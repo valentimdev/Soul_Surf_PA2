@@ -8,6 +8,7 @@ export type BeachDTO = {
     descricao: string;
     localizacao: string;
     caminhoFoto: string;
+    nivelExperiencia: string;
 };
 
 export type PostDTO = {
