@@ -56,6 +56,7 @@ public class WebSecurityConfig {
                         .requestMatchers("/files/**").permitAll()
                         .requestMatchers("/ws/**").permitAll()
                         .requestMatchers("/api/chat/**").authenticated()
+                        .requestMatchers("/api/users/following").authenticated()
                         .requestMatchers("/api/beaches/{beachesId}/mensagens").authenticated()
                         .anyRequest().authenticated()
                 );

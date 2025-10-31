@@ -30,7 +30,8 @@ public class ChatService {
         if (userA.equals(userB)) throw new RuntimeException("DM precisa de usuários distintos");
 
         // Tenta achar conversa existente
-        String existingId = partRepo.findDMConversationId(userA, userB).orElse(null);
+        String existingId = partRepo.findDMBetween(userA, userB);
+
         if (existingId != null) {
             return convRepo.findById(existingId)
                     .orElseThrow(() -> new RuntimeException("Conversa existente não encontrada"));
