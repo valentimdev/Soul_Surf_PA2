@@ -3,6 +3,7 @@ package com.soulsurf.backend.controllers;
 import com.soulsurf.backend.dto.MessageResponse;
 import com.soulsurf.backend.dto.UserDTO;
 import com.soulsurf.backend.security.service.UserDetailsImpl;
+import com.soulsurf.backend.services.FollowService;
 import com.soulsurf.backend.services.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -10,6 +11,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -23,10 +26,15 @@ import org.springframework.web.multipart.MultipartFile;
 @Tag(name = "3. Usuários", description = "Endpoints para gerenciamento de perfis e interações de usuários.")
 public class UserController {
 
-    private final UserService userService;
+    @Autowired
+    private FollowService followService;
 
-    public UserController(UserService userService) {
-        this.userService = userService;
+    @Autowired
+    private UserService userService;
+
+    @GetMapping("/following")
+    public List<UserDTO> getMyFollowing() {
+        return followService.listMyFollowing();
     }
 
     @Operation(summary = "Busca o perfil de um usuário", description = "Retorna os detalhes do perfil de um usuário pelo seu ID.")
