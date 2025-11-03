@@ -16,6 +16,8 @@ public class UserDTO {
     private int seguidoresCount;
     private int seguindoCount;
     private List<PostDTO> posts;
+    private boolean admin;
+    private boolean banned;
 
     public UserDTO() {
     }

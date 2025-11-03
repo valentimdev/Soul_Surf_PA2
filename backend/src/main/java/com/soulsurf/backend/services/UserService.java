@@ -228,6 +228,8 @@ public class UserService {
         userDTO.setFotoPerfil(user.getFotoPerfil());
         userDTO.setFotoCapa(user.getFotoCapa());
         userDTO.setBio(user.getBio());
+        userDTO.setAdmin(user.isAdmin());
+        userDTO.setBanned(user.isBanned());
         // Futuramente quando os posts estiverem prontos descomentar essa e trazer os posts para o perfil do usuario
         // userDTO.setPosts(user.getPosts().stream().map(this::convertToDto).collect(Collectors.toList()));
         // Para evitar recursão infinita, podemos usar um DTO mais simples ou apenas contar
@@ -250,7 +252,9 @@ public class UserService {
     userDTO.setFotoPerfil(user.getFotoPerfil());
     userDTO.setFotoCapa(user.getFotoCapa());
     userDTO.setBio(user.getBio());
-    
+    userDTO.setAdmin(user.isAdmin());
+    userDTO.setBanned(user.isBanned());
+
 
     if (user.getSeguidores() != null) {
         userDTO.setSeguidoresCount(user.getSeguidores().size());
