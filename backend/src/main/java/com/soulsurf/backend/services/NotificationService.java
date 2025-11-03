@@ -62,6 +62,61 @@ public class NotificationService {
     }
 
     @Transactional
+    public void createCommentNotification(String senderUsername, Long postId, Long commentId) {
+        User sender = userRepository.findByUsername(senderUsername)
+                .orElseThrow(() -> new RuntimeException("Usuário remetente não encontrado"));
+
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new RuntimeException("Post não encontrado"));
+
+        // Não criar notificação se o usuário está comentando no próprio post
+        if (sender.getId().equals(post.getUsuario().getId())) {
+            return;
+        }
+
+        Comment comment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new RuntimeException("Comentário não encontrado"));
+
+        Notification notification = new Notification();
+        notification.setSender(sender);
+        notification.setRecipient(post.getUsuario()); // Notifica o dono do post
+        notification.setType("COMMENT");
+        notification.setPost(post);
+        notification.setComment(comment);
+
+        notificationRepository.save(notification);
+    }
+
+    @Transactional
+    public void createReplyNotification(String senderUsername, Long postId, Long commentId, Long parentCommentId) {
+        User sender = userRepository.findByUsername(senderUsername)
+                .orElseThrow(() -> new RuntimeException("Usuário remetente não encontrado"));
+
+        Comment parentComment = commentRepository.findById(parentCommentId)
+                .orElseThrow(() -> new RuntimeException("Comentário pai não encontrado"));
+
+        // Não criar notificação se o usuário está respondendo a si mesmo
+        if (sender.getId().equals(parentComment.getUsuario().getId())) {
+            return;
+        }
+
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new RuntimeException("Post não encontrado"));
+
+        Comment comment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new RuntimeException("Comentário não encontrado"));
+
+        Notification notification = new Notification();
+        notification.setSender(sender);
+        notification.setRecipient(parentComment.getUsuario()); // Notifica o autor do comentário pai
+        notification.setType("REPLY");
+        notification.setPost(post);
+        notification.setComment(comment);
+
+        notificationRepository.save(notification);
+    }
+
+    @Transactional
     public List<NotificationDTO> getUserNotifications(String username) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
@@ -125,6 +180,10 @@ public class NotificationService {
         String message = "";
         if ("MENTION".equals(notification.getType())) {
             message = notification.getSender().getUsername() + " mencionou você em um comentário";
+        } else if ("COMMENT".equals(notification.getType())) {
+            message = notification.getSender().getUsername() + " comentou em seu post";
+        } else if ("REPLY".equals(notification.getType())) {
+            message = notification.getSender().getUsername() + " respondeu ao seu comentário";
         }
         dto.setMessage(message);
 
