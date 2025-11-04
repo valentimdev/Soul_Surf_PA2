@@ -116,18 +116,17 @@ function NovoRegistroCard({ onSuccess }: NovoRegistroCardProps) {
                 beachId: selectedBeachId,
                 foto: foto ?? undefined,
             });
-
+            console.log(createdPost);
+            const me = await UserService.getMe();
             const mentionMatches = descricao.match(/@([\w]+)/g) || [];
             for (const mention of mentionMatches) {
                 const username = mention.substring(1);
                 try {
-                    await NotificationService.mention(username, createdPost.id);
+                    await NotificationService.mention(username, createdPost.id, null);
                 } catch (err) {
                     console.error(`Erro ao notificar ${username}:`, err);
                 }
             }
-
-            const me = await UserService.getMe();
 
             const selectedBeach =
                 praias.find((b) => b.id === selectedBeachId) ?? {

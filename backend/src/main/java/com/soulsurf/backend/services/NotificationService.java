@@ -10,6 +10,7 @@ import com.soulsurf.backend.repository.CommentRepository;
 import com.soulsurf.backend.repository.NotificationRepository;
 import com.soulsurf.backend.repository.PostRepository;
 import com.soulsurf.backend.repository.UserRepository;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -33,30 +34,24 @@ public class NotificationService {
     }
 
     @Transactional
-    public void createMentionNotification(String senderUsername, String recipientUsername, Long postId, Long commentId) {
-        User sender = userRepository.findByUsername(senderUsername)
-                .orElseThrow(() -> new RuntimeException("Usuário remetente não encontrado"));
-
+    public void createMentionNotification(String recipientUsername, Long postId, Long commentId) {
         User recipient = userRepository.findByUsername(recipientUsername)
-                .orElseThrow(() -> new RuntimeException("Usuário mencionado não encontrado"));
-
-        // Não criar notificação se o usuário está se mencionando
-        if (sender.getId().equals(recipient.getId())) {
-            return;
-        }
-
-        Post post = postRepository.findById(postId)
-                .orElseThrow(() -> new RuntimeException("Post não encontrado"));
-
-        Comment comment = commentRepository.findById(commentId)
-                .orElseThrow(() -> new RuntimeException("Comentário não encontrado"));
+                .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado: " + recipientUsername));
 
         Notification notification = new Notification();
-        notification.setSender(sender);
         notification.setRecipient(recipient);
-        notification.setType("MENTION");
-        notification.setPost(post);
-        notification.setComment(comment);
+
+        if (postId != null) {
+            Post post = postRepository.findById(postId)
+                    .orElseThrow(() -> new RuntimeException("Post não encontrado"));
+            notification.setPost(post);
+        }
+
+        if (commentId != null) {
+            Comment comment = commentRepository.findById(commentId)
+                    .orElseThrow(() -> new RuntimeException("Comentário não encontrado"));
+            notification.setComment(comment);
+        }
 
         notificationRepository.save(notification);
     }

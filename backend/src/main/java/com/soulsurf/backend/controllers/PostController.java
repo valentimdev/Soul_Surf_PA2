@@ -42,11 +42,11 @@ public class PostController {
             @ApiResponse(responseCode = "400", description = "Erro ao criar o post")
     })
     @PostMapping
-    public ResponseEntity<MessageResponse> createPost(
-            @Parameter(description = "Visibilidade do post") @RequestParam("publico") boolean publico,
-            @Parameter(description = "Descrição do post") @RequestParam("descricao") String descricao,
-            @Parameter(description = "Arquivo de imagem para o post (opcional)") @RequestParam(value = "foto", required = false) MultipartFile foto,
-            @Parameter(description = "ID da praia (opcional)") @RequestParam(value = "beachId", required = false) Long beachId,
+    public ResponseEntity<PostDTO> createPost(
+            @RequestParam("publico") boolean publico,
+            @RequestParam("descricao") String descricao,
+            @RequestParam(value = "foto", required = false) MultipartFile foto,
+            @RequestParam(value = "beachId", required = false) Long beachId,
             @AuthenticationPrincipal UserDetails userDetails) {
 
         try {
@@ -55,15 +55,12 @@ public class PostController {
             request.setPublico(publico);
             request.setBeachId(beachId);
 
-            postService.createPost(request, foto, userDetails.getUsername());
-            return ResponseEntity.status(HttpStatus.CREATED)
-                    .body(new MessageResponse("Post criado com sucesso!"));
+            PostDTO createdPost = postService.createPost(request, foto, userDetails.getUsername());
+            return ResponseEntity.status(HttpStatus.CREATED).body(createdPost);
         } catch (Exception e) {
-            return ResponseEntity.badRequest()
-                    .body(new MessageResponse("Erro ao criar o post: " + e.getMessage()));
+            return ResponseEntity.badRequest().build();
         }
     }
-
     @Operation(
             summary = "Lista todos os posts públicos (Feed Principal)",
             description = "Retorna uma lista de todos os posts marcados como públicos, ideal para o feed principal."

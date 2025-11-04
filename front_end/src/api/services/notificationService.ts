@@ -40,9 +40,12 @@ export const NotificationService = {
         });
     },
 
-    async mention(recipientUsername: string, postId: number, commentId?: number): Promise<void> {
+    async mention(recipientUsername: string, postId: number, commentId: number | null = null): Promise<void> {
+        const params: Record<string, any> = { recipientUsername, postId };
+        if (commentId !== null) params.commentId = commentId;
+
         await api.post(`/notifications/mention`, null, {
-            params: { recipientUsername, postId, commentId },
+            params: { ...params }
         });
-    }
+    },
 };
