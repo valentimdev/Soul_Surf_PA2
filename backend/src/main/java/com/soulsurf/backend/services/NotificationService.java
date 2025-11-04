@@ -117,8 +117,8 @@ public class NotificationService {
     }
 
     @Transactional
-    public List<NotificationDTO> getUserNotifications(String username) {
-        User user = userRepository.findByUsername(username)
+    public List<NotificationDTO> getUserNotifications(String email) {
+        User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
 
         return notificationRepository.findByRecipientOrderByCreatedAtDesc(user).stream()

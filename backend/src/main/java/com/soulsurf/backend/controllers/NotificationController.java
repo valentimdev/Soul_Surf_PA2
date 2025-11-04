@@ -2,11 +2,13 @@ package com.soulsurf.backend.controllers;
 
 import com.soulsurf.backend.dto.MessageResponse;
 import com.soulsurf.backend.dto.NotificationDTO;
+import com.soulsurf.backend.security.service.UserDetailsImpl;
 import com.soulsurf.backend.services.NotificationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -32,7 +34,12 @@ public class NotificationController {
     @GetMapping("/")
     public ResponseEntity<?> getUserNotifications(@AuthenticationPrincipal UserDetails userDetails) {
         try {
-            List<NotificationDTO> notifications = notificationService.getUserNotifications(userDetails.getUsername());
+            if (userDetails == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(new MessageResponse("Usuário não autenticado"));
+            }
+            String username = userDetails.getUsername();
+            List<NotificationDTO> notifications = notificationService.getUserNotifications(username);
             return ResponseEntity.ok(notifications);
         } catch (Exception e) {
             return ResponseEntity.badRequest()

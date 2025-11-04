@@ -52,6 +52,7 @@ public class WebSecurityConfig {
                         .requestMatchers("/api/posts/**").authenticated()
                         .requestMatchers("/api/users/**").authenticated()
                         .requestMatchers("/api/comentarios/**").authenticated()
+                        .requestMatchers("/api/notifications/**").authenticated()
                         .requestMatchers("/api/beaches/{praiaId}/mensagens").permitAll()
                         .requestMatchers("/files/**").permitAll()
                         .requestMatchers("/ws/**").permitAll()
