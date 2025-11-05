@@ -1,143 +1,59 @@
-```markdown
-# 🌊 Soul Surf - Backend
+# 🌊 Soul Surf - Backend (Spring Boot)
 
-O **Soul Surf** é uma aplicação que une a ideia de comunidade do **Reddit** com o tracking esportivo do **Strava**, mas totalmente voltado para **surfistas**.  
-Este repositório contém o **backend em Spring Boot**, responsável por autenticação, gerenciamento de usuários, posts, comentários e sessões de surf.
+<p align="center">
+  <strong>Backend Spring Boot da plataforma Soul Surf — autenticação JWT, posts, comentários com menções, notificações, chat em tempo real (WebSocket) e integrações.</strong>
+</p>
 
----
+<p align="center">
+  <a href="https://openjdk.org/" target="_blank" rel="noopener noreferrer">
+    <img src="https://img.shields.io/badge/Java-17-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white" alt="Java 17">
+  </a>
+  <a href="https://spring.io/projects/spring-boot" target="_blank" rel="noopener noreferrer">
+    <img src="https://img.shields.io/badge/Spring%20Boot-3.3-6DB33F?style=for-the-badge&logo=spring&logoColor=white" alt="Spring Boot 3.3">
+  </a>
+  <a href="https://www.postgresql.org/" target="_blank" rel="noopener noreferrer">
+    <img src="https://img.shields.io/badge/PostgreSQL-DB-336791?style=for-the-badge&logo=postgresql&logoColor=white" alt="PostgreSQL">
+  </a>
+  <a href="https://jwt.io/" target="_blank" rel="noopener noreferrer">
+    <img src="https://img.shields.io/badge/JWT-Auth-000000?style=for-the-badge&logo=jsonwebtokens&logoColor=white" alt="JWT">
+  </a>
+  <a href="https://maven.apache.org/" target="_blank" rel="noopener noreferrer">
+    <img src="https://img.shields.io/badge/Maven-Build-C71A36?style=for-the-badge&logo=apachemaven&logoColor=white" alt="Maven">
+  </a>
+  <a href="https://stomp.github.io/" target="_blank" rel="noopener noreferrer">
+    <img src="https://img.shields.io/badge/WebSocket-STOMP-4E9A06?style=for-the-badge" alt="WebSocket STOMP">
+  </a>
+</p>
 
-## 🚀 Tecnologias Utilizadas
+Backend da plataforma social de surfistas: autenticação JWT, posts, comentários com menções, notificações, chat (REST + WebSocket), perfis, praias e clima.
 
-- **Java 17+**
-- **Spring Boot 3.3.x**
-  - Spring Web
-  - Spring Data JPA
-  - Spring Security + JWT
-  - Lombok
-- **PostgreSQL** (banco principal)
-- **H2 Database** (para testes locais)
-- **Maven** (gerenciamento de dependências)
-- **Docker & Docker Compose** (infraestrutura local)
-
----
-
-## 📂 Estrutura do Projeto
-
-```
-
-src/main/java/com/soulsurf
-│
-├── SoulSurfApplication.java   # Classe principal
-│
-├── config/                    # Configurações globais (CORS, segurança, etc.)
-├── controller/                # Controllers REST (endpoints públicos e privados)
-├── dto/                       # Objetos de transferência (entrada/saída)
-├── entity/                    # Entidades JPA (User, Post, Comment, SurfSession)
-├── repository/                # Interfaces de acesso ao banco (Spring Data JPA)
-├── security/                  # JWT, filtros e configuração de autenticação
-└── service/                   # Regras de negócio
-
-````
+- Java 17 • Spring Boot 3 • Spring Security (JWT) • JPA • PostgreSQL • WebSocket (STOMP)
+- Pasta: `backend/` (este repositório)
 
 ---
 
-## 🛠️ Configuração e Execução
+## ⚙️ Como Rodar (Local)
 
-### 1. Clonar o repositório
-```bash
-git clone https://github.com/seu-usuario/soul-surf-backend.git
-cd soul-surf-backend
-````
-
-### 2. Configurar o banco de dados
-
-Crie um banco no PostgreSQL:
-
-```sql
-CREATE DATABASE soulsurf;
-```
-
-Crie um usuário (se necessário):
-
-```sql
-CREATE USER soulsurf_user WITH PASSWORD 'soulsurf_pass';
-GRANT ALL PRIVILEGES ON DATABASE soulsurf TO soulsurf_user;
-```
-
-### 3. Arquivo `application.yml`
-
-```yaml
-spring:
-  datasource:
-    url: jdbc:postgresql://localhost:5432/soulsurf
-    username: soulsurf_user
-    password: soulsurf_pass
-  jpa:
-    hibernate:
-      ddl-auto: update
-    show-sql: true
-    properties:
-      hibernate:
-        format_sql: true
-  security:
-    jwt:
-      secret: changeme123
-      expiration: 86400000 # 1 dia
-```
-
-### 4. Rodar com Maven
+1) Configurar variáveis sensíveis em `application.properties` (DB, JWT, storage, e-mail).  
+2) Rodar com Maven:
 
 ```bash
-./mvnw spring-boot:run
+mvnw spring-boot:run
 ```
 
-### 5. Rodar com Docker Compose
+Backend fica disponível em: http://localhost:8080
 
-`docker-compose.yml`:
-
-```yaml
-version: '3.8'
-services:
-  postgres:
-    image: postgres:15
-    container_name: soulsurf_postgres
-    environment:
-      POSTGRES_USER: soulsurf_user
-      POSTGRES_PASSWORD: soulsurf_pass
-      POSTGRES_DB: soulsurf
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-
-volumes:
-  postgres_data:
-```
-
-Inicie:
-
-```bash
-docker-compose up -d
-```
+Swagger (se ativo): http://localhost:8080/swagger-ui/index.html
 
 ---
 
-## 🔑 Autenticação JWT
+## 🔐 Autenticação JWT
 
-### Registro
+- Registro: `POST /api/auth/signup` (email, username, password)
+- Login: `POST /api/auth/login` → retorna `{ token }`
+- Header obrigatório: `Authorization: Bearer {token}`
 
-```http
-POST /api/auth/register
-Content-Type: application/json
-
-{
-  "username": "surfista123",
-  "email": "surfista@mail.com",
-  "password": "123456"
-}
-```
-
-### Login
+Exemplo Login:
 
 ```http
 POST /api/auth/login
@@ -150,152 +66,292 @@ Content-Type: application/json
 ```
 
 Resposta:
-
 ```json
-{
-  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6..."
+{ "token": "eyJhbGciOi..." }
+```
+
+Como saber se o usuário é ADMIN (Front-End):
+- O token JWT não carrega a role no payload. Utilize uma destas abordagens:
+  1) Checagem de permissão: tente `GET /api/admin/metrics`. Se 200 → admin; se 403 → não admin.
+  2) Opcional: exiba telas admin apenas após resposta positiva do endpoint acima.
+
+---
+
+## 🚀 Como o Front-End Usa (Simples e Direto)
+
+### 1) Feed de Posts
+
+- Feed público: `GET /api/posts/home` (requer JWT)
+- Feed “seguindo”: `GET /api/posts/following` (requer JWT)
+- Post por ID: `GET /api/posts/{id}` (se privado, só o dono vê)
+
+Criar Post (multipart):
+```http
+POST /api/posts
+Authorization: Bearer {token}
+Content-Type: multipart/form-data
+
+publico=true
+descricao="Dia épico em Taíba"
+foto=<arquivo opcional>
+beachId=123 (opcional)
+```
+
+Editar Post:
+```http
+PUT /api/posts/{id}
+Authorization: Bearer {token}
+Content-Type: application/x-www-form-urlencoded
+
+descricao="Atualizando a legenda"
+```
+
+---
+
+### 2) Comentários (+ Respostas)
+
+Base: `/api/posts/{postId}/comments`
+
+- Listar comentários: `GET /`  
+- Criar comentário: `POST /` (requer JWT)  
+  Parâmetros: `texto` e opcional `parentId` (para resposta)
+- Editar: `PUT /{commentId}` (requer JWT)
+- Remover: `DELETE /{commentId}` (requer JWT)
+
+Criar comentário (com possível resposta):
+```http
+POST /api/posts/42/comments/
+Authorization: Bearer {token}
+Content-Type: application/x-www-form-urlencoded
+
+texto="Muito bom @joao_surfista"
+parentId=128   # opcional (quando é resposta)
+```
+
+---
+
+### 3) Notificações (Menção, Comentário, Resposta)
+
+Base: `/api/notifications` (requer JWT)
+
+- Buscar notificações: `GET /`  
+- Contar não lidas: `GET /count`  
+- Marcar como lida: `PUT /{id}/read`
+
+Criar (para o front disparar após ações):
+- Menção: `POST /mention?recipientUsername={user}&postId={id}&commentId={id}`
+- Comentário: `POST /comment?postId={id}&commentId={id}`
+- Resposta: `POST /reply?postId={id}&commentId={id}&parentCommentId={id}`
+
+Exemplo sequência ao criar comentário com menção no front:
+```javascript
+// 1) Criar comentário (vide seção comentários)
+const comment = await createComment(postId, texto);
+
+// 2) Notificar dono do post
+await fetch(`/api/notifications/comment?postId=${postId}&commentId=${comment.id}`, {
+  method: 'POST', headers: { Authorization: `Bearer ${token}` }
+});
+
+// 3) Detectar menções e notificar
+for (const username of (texto.match(/@(\w+)/g) || []).map(s => s.slice(1))) {
+  await fetch(`/api/notifications/mention?recipientUsername=${username}&postId=${postId}&commentId=${comment.id}`, {
+    method: 'POST', headers: { Authorization: `Bearer ${token}` }
+  });
 }
 ```
 
-Use o token nos endpoints privados:
+Mensagens geradas automaticamente no DTO:  
+- MENTION → "{user} mencionou você em um comentário"
+- COMMENT → "{user} comentou em seu post"
+- REPLY → "{user} respondeu ao seu comentário"
 
-```
-Authorization: Bearer <token>
-```
-
----
-
-## 📌 Endpoints Principais (MVP)
-
-### Usuários
-
-* `POST /api/auth/register` → registrar usuário
-* `POST /api/auth/login` → autenticar usuário
-* `GET /api/users/me` → dados do usuário logado
-
-### Posts & Comentários
-
-* `POST /api/posts` → criar post
-* `GET /api/posts` → listar posts
-* `POST /api/posts/{id}/comments` → comentar em um post
-
-### Sessões de Surf
-
-* `POST /api/sessions` → registrar sessão (data, local, duração)
-* `GET /api/sessions` → listar sessões do usuário
-* `GET /api/sessions/{id}` → detalhes de uma sessão
+Regra de ruído: o backend evita notificar quando é ação sobre si mesmo (auto-menção, comentar no próprio post, responder a si).
 
 ---
 
-## 🏗️ Arquitetura do Sistema
+### 4) Sugestões de Menções (@username) - Autocomplete
 
-```mermaid
-flowchart TD
-    Client[Aplicativo Mobile/Web] -->|HTTP/HTTPS| Gateway[Spring Boot Backend]
-    Gateway --> Auth[Auth Controller - JWT]
-    Gateway --> PostCtrl[Post Controller]
-    Gateway --> SessionCtrl[SurfSession Controller]
-    Gateway --> UserCtrl[User Controller]
+Endpoint: `GET /api/users/mention-suggestions?query={texto}&limit=5` (requer JWT)  
+Prioriza usuários que o cliente segue, depois completa com demais.
 
-    Auth --> Security[Spring Security + JWT]
-    UserCtrl --> UserService
-    PostCtrl --> PostService
-    SessionCtrl --> SessionService
+Exemplo:
+```javascript
+const getSuggestions = async (searchTerm) => {
+  const r = await fetch(`/api/users/mention-suggestions?query=${searchTerm}&limit=5`, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  return r.json();
+};
+```
 
-    UserService --> UserRepo[(PostgreSQL - users)]
-    PostService --> PostRepo[(PostgreSQL - posts)]
-    SessionService --> SessionRepo[(PostgreSQL - sessions)]
-    CommentRepo[(PostgreSQL - comments)] --> PostService
+Resposta típica:
+```json
+[
+  { "id": 1, "username": "joao_surfista", "fotoPerfil": "https://..." },
+  { "id": 5, "username": "joaquim_beach", "fotoPerfil": "https://..." }
+]
 ```
 
 ---
 
-## 📊 Modelo Entidade-Relacionamento (MER)
+### 5) Perfis e Social (seguir/deixar de seguir)
 
-```mermaid
-erDiagram
-    USER {
-        Long id
-        String username
-        String email
-        String password
-    }
+Base: `/api/users`
 
-    POST {
-        Long id
-        String content
-        String mediaUrl
-        LocalDateTime createdAt
-    }
+- Meu perfil: `GET /me` (requer JWT)
+- Perfil por ID: `GET /{id}`
+- Atualizar perfil (com arquivos): `PUT /me/upload` (multipart)
+- Seguir usuário: `POST /{id}/follow` (requer JWT)
+- Deixar de seguir: `DELETE /{id}/follow` (requer JWT)
+- Quem eu sigo: `GET /following` (requer JWT)
+- Quem o usuário segue: `GET /{id}/following`
+- Seguidores do usuário: `GET /{id}/followers`
 
-    COMMENT {
-        Long id
-        String content
-        LocalDateTime createdAt
-    }
+Atualizar perfil com arquivos:
+```http
+PUT /api/users/me/upload
+Authorization: Bearer {token}
+Content-Type: multipart/form-data
 
-    SURFSESSION {
-        Long id
-        String location
-        LocalDate date
-        Integer durationMinutes
-        Double wavesCaught
-    }
-
-    USER ||--o{ POST : "cria"
-    USER ||--o{ COMMENT : "escreve"
-    POST ||--o{ COMMENT : "recebe"
-    USER ||--o{ SURFSESSION : "registra"
+username=novo_nome
+bio="Sobre mim..."
+fotoPerfil=<arquivo>
+fotoCapa=<arquivo>
 ```
 
 ---
 
-## 🔑 Fluxo de Autenticação JWT
+### 6) Chat (DM) + WebSocket
 
-O sistema utiliza **JWT (JSON Web Token)** para autenticação. O fluxo funciona assim:
+Base REST: `/api/chat` (requer JWT)
 
-```mermaid
-sequenceDiagram
-    participant U as Usuário
-    participant A as Auth Controller
-    participant S as Spring Security
-    participant DB as PostgreSQL
-    participant P as Protected Endpoint
+- Criar/obter DM: `POST /dm` body `{ otherUserId }` → `{ conversationId }`
+- Minhas conversas: `GET /conversations` → lista com preview e unreadCount
+- Mensagens da conversa: `GET /conversations/{id}/messages?page=0&size=30`
+- Enviar mensagem: `POST /conversations/{id}/messages` body `{ content, attachmentUrl }`
 
-    U->>A: POST /api/auth/login (email, senha)
-    A->>DB: valida credenciais
-    DB-->>A: usuário válido
-    A->>S: gera JWT
-    A-->>U: retorna JWT no response
+WebSocket (STOMP):
+- Endpoint handshake: `/ws` (SockJS habilitado)
+- Broker: subscribe em `/topic/conversations/{conversationId}` para receber mensagens
 
-    U->>P: Requisição com Header "Authorization: Bearer <token>"
-    P->>S: valida JWT
-    S-->>P: ok (usuário autenticado)
-    P-->>U: resposta do endpoint
+Exemplo subscribe (front):
+```javascript
+client.subscribe(`/topic/conversations/${conversationId}`, (frame) => {
+  const msg = JSON.parse(frame.body);
+  // renderizar mensagem
+});
 ```
 
-### Resumo do processo:
+---
 
-1. O usuário faz login (`/api/auth/login`) com **email + senha**.
-2. O backend valida as credenciais no banco.
-3. Se estiver correto, gera um **JWT assinado** e retorna ao usuário.
-4. O usuário utiliza o token no header `Authorization: Bearer <token>` para acessar endpoints privados.
-5. O **Spring Security** valida o token em cada requisição antes de liberar o acesso.
+### 7) Upload de Arquivos
+
+Base: `/api/files` (requer JWT)
+
+- Upload: `POST /upload` (multipart) → retorna URL pública
+- Listagem: `GET /list` → lista de URLs
+
+Exemplo upload:
+```http
+POST /api/files/upload
+Authorization: Bearer {token}
+Content-Type: multipart/form-data
+
+file=<arquivo>
+```
 
 ---
 
-## 📊 Roadmap
+### 8) Praias (Beaches)
 
-* [x] Estrutura inicial (User, Post, Comment, Session)
-* [x] Autenticação JWT
-* [ ] Upload de mídia (imagens/vídeos dos posts)
-* [ ] Ranking de surfistas
-* [ ] Feed em tempo real (WebSocket)
-* [ ] Integração com mapas e previsão do tempo
-* [ ] Deploy em ambiente cloud (Azure App Service, AWS, Render ou Kubernetes)
+Base: `/api/beaches`
+
+- Listar praias: `GET /`
+- Detalhe: `GET /{id}`
+- Criar praia: `POST /` (requer JWT)
+- Posts públicos por praia: `GET /{id}/posts?page=0&size=20`
+- Posts (admin, inclui privados): `GET /{id}/all-posts` (requer ADMIN)
 
 ---
 
-🌊 **Soul Surf** – Conectando surfistas pelo mundo através da tecnologia!
+### 9) Mural da Praia (Mensagens Públicas)
 
+Base: `/api/beaches/{beachId}/mensagens`
 
+- Listar mensagens: `GET /`
+- Postar mensagem: `POST /` (requer JWT) — parâmetro `texto`
+
+---
+
+### 10) Clima (OpenWeather)
+
+Base: `/api/weather`
+
+- Atual: `GET /current?city=Fortaleza,BR` (público)
+
+---
+
+### 11) Administração (ADMIN)
+
+Base: `/api/admin` (requer ADMIN)
+
+- Apagar usuário: `DELETE /users/{userId}`
+- Apagar post: `DELETE /posts/{postId}`
+- Apagar comentário: `DELETE /comments/{commentId}`
+- Promover admin: `POST /users/{userId}/promote`
+- Remover admin: `POST /users/{userId}/demote`
+- Banir usuário: `POST /users/{userId}/ban`
+- Desbanir: `POST /users/{userId}/unban`
+- Auditorias: `GET /audits?page=0&size=20`
+- Métricas: `GET /metrics`
+- Métricas por período: `GET /metrics/period?start=YYYY-MM-DDTHH:mm:ss&end=YYYY-MM-DDTHH:mm:ss`
+- Top autores: `GET /metrics/top-authors?start=...&end=...&limit=10`
+- Posts por praia: `GET /metrics/by-beach?start=...&end=...`
+
+Checagem de admin no front (leve):
+```javascript
+async function isAdmin(token){
+  const r = await fetch('/api/admin/metrics', { headers: { Authorization: `Bearer ${token}` }});
+  return r.status === 200;
+}
+```
+
+---
+
+## ✅ Regras e Observações Importantes
+
+- Endpoints protegidos exigem `Authorization: Bearer {token}`.
+- Notificações evitam auto-notificação (auto-menção, comentar no próprio post, responder a si).
+- Sugestões de menção priorizam usuários que o cliente segue.
+- WebSocket: use `/topic/conversations/{id}` para receber novas mensagens em tempo real.
+- CORS: por padrão, `http://localhost:5173` está permitido (ajuste em produção).
+
+---
+
+## 📦 Estrutura (Resumo)
+
+```
+src/main/java/com/soulsurf/backend/
+  config/ (WebSecurity, WebSocket)
+  controllers/ (Auth, Users, Posts, Comments, Beaches, Mensagens, Files, Chat, Notifications, Admin, Weather)
+  dto/ (UserDTO, PostDTO, CommentDTO, NotificationDTO, ...)
+  entities/ (User, Post, Comment, Notification, ...)
+  repository/ (...)
+  security/ (JWT, filtros, UserDetails, AuthUtils, WebSocket interceptor)
+  services/ (...)
+resources/
+  application.properties
+```
+
+---
+
+## 🧪 Smoke Test Rápido
+
+1) Registre-se (`/api/auth/signup`) e faça login (`/api/auth/login`).  
+2) Crie um post (`/api/posts`).  
+3) Comente com `@username` e dispare as notificações (`/api/notifications/comment` e `/mention`).  
+4) Consulte notificações (`/api/notifications/` e `/count`).  
+5) Abra um DM (`/api/chat/dm`) e assine `/topic/conversations/{id}`; envie mensagem e verifique recebimento.
+
+Pronto. O front já consegue consumir tudo com segurança e sem surpresas.
