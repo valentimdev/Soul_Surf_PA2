@@ -6,12 +6,16 @@ import soulSurfIcon from "../assets/header/SoulSurfIcon.png";
 import { Input } from "@/components/ui/input";
 import { UserService, type UserDTO } from "@/api/services/userService";
 import { WeatherService, type WeatherDTO } from "@/api/services/WeatherService";
+import { useLocation } from "react-router-dom";
 
 function Header() {
     const [currentUser, setCurrentUser] = useState<UserDTO | null>(null);
     const [weatherData, setWeatherData] = useState<WeatherDTO | null>(null);
     const [notifications, setNotifications] = useState<NotificationDTO[]>([]);
     const [showDropdown, setShowDropdown] = useState(false);
+    const [searchQuery, setSearchQuery] = useState("");
+    const location = useLocation();
+    const isUserTimeline = location.pathname === "/usertimeline";
 
     const surfConditions = {
         vento: "12 km/h NE",
@@ -25,12 +29,9 @@ function Header() {
             try {
                 const user = await UserService.getMe();
                 setCurrentUser(user);
-
                 const weather = await WeatherService.getCurrentWeather("Fortaleza,BR");
                 setWeatherData(weather);
-            } catch (error) {
-                console.error("Erro ao carregar dados do Header:", error);
-            }
+            } catch (error) {}
         };
         fetchUserAndWeather();
     }, []);
@@ -40,11 +41,8 @@ function Header() {
             try {
                 const notifs = await NotificationService.getMyNotifications();
                 setNotifications(notifs);
-            } catch (err) {
-                console.error("Erro ao atualizar notificações:", err);
-            }
+            } catch {}
         }, 30000);
-
         return () => clearInterval(interval);
     }, []);
 
@@ -56,24 +54,16 @@ function Header() {
                     prev.map((n) => (n.id === notif.id ? { ...n, read: true } : n))
                 );
             }
-
             if (notif.postId) {
                 window.location.href = `/posts/${notif.postId}`;
             }
-        } catch (err) {
-            console.error("Erro ao marcar notificação como lida:", err);
-        }
+        } catch {}
     };
 
     useEffect(() => {
         const handleClickOutside = (e: MouseEvent) => {
             const target = e.target as HTMLElement;
-            if (
-                target.closest(".notification-dropdown") ||
-                target.closest(".notification-button")
-            ) {
-                return;
-            }
+            if (target.closest(".notification-dropdown") || target.closest(".notification-button")) return;
             setShowDropdown(false);
         };
         document.addEventListener("click", handleClickOutside);
@@ -109,7 +99,26 @@ function Header() {
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                     <Input
                         type="text"
-                        placeholder="Buscar praias, surfistas, comunidades..."
+                        placeholder={
+                            isUserTimeline
+                                ? "Buscar surfistas..."
+                                : "Buscar praias, surfistas, comunidades..."
+                        }
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                                if (isUserTimeline) {
+                                    window.dispatchEvent(
+                                        new CustomEvent("searchUsers", { detail: searchQuery })
+                                    );
+                                } else {
+                                    window.dispatchEvent(
+                                        new CustomEvent("searchGeneric", { detail: searchQuery })
+                                    );
+                                }
+                            }
+                        }}
                         className="pl-10 pr-4 py-2 rounded-full border border-gray-300 bg-white focus:ring-2 focus:ring-blue-400"
                     />
                 </div>

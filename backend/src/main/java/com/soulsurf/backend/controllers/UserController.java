@@ -32,6 +32,26 @@ public class UserController {
     @Autowired
     private UserService userService;
 
+    @Operation(summary = "Buscar usuários por nome ou bio", description = "Permite buscar usuários pelo nome de usuário ou biografia. Requer autenticação JWT.", security = @SecurityRequirement(name = "bearerAuth"))
+    @ApiResponse(responseCode = "200", description = "Usuários encontrados com sucesso")
+    @ApiResponse(responseCode = "401", description = "Não autenticado")
+    @GetMapping("/search")
+    public ResponseEntity<List<UserDTO>> searchUsers(
+            @RequestParam String query,
+            @AuthenticationPrincipal UserDetailsImpl userDetails
+    ) {
+        if (userDetails == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        try {
+            List<UserDTO> users = userService.searchUsers(query, userDetails.getId());
+            return ResponseEntity.ok(users);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
     @GetMapping("/following")
     public List<UserDTO> getMyFollowing() {
         return followService.listMyFollowing();
@@ -132,7 +152,7 @@ public class UserController {
             return ResponseEntity.notFound().build();
         }
     }
-    
+
     @Operation(summary = "Buscar sugestões de usuários para menções", description = "Retorna sugestões de usuários quando o usuário está digitando uma menção com @", security = @SecurityRequirement(name = "bearerAuth"))
     @ApiResponse(responseCode = "200", description = "Sugestões encontradas com sucesso")
     @GetMapping("/mention-suggestions")
@@ -149,5 +169,25 @@ public class UserController {
         }
     }
 
+    @Operation(summary = "Lista todos os usuários paginados", description = "Retorna uma lista de usuários da plataforma com paginação. Requer autenticação JWT.", security = @SecurityRequirement(name = "bearerAuth"))
+    @ApiResponse(responseCode = "200", description = "Lista de usuários retornada com sucesso")
+    @ApiResponse(responseCode = "401", description = "Não autenticado")
+    @GetMapping
+    public ResponseEntity<List<UserDTO>> getAllUsers(
+            @RequestParam(defaultValue = "0") int offset,
+            @RequestParam(defaultValue = "30") int limit,
+            @AuthenticationPrincipal UserDetailsImpl userDetails
+    ) {
+        if (userDetails == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        try {
+            List<UserDTO> users = userService.getAllUsersPaginated(offset, limit, userDetails.getId());
+            return ResponseEntity.ok(users);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
 }
 

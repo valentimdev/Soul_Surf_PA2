@@ -1,16 +1,15 @@
 import api from "../axios";
 import { userRoutes } from "../routes/user";
-import type {MessageResponse} from "@/api/services/postService.ts";
-import type {BeachDTO} from "@/api/services/beachService.ts";
+import type { MessageResponse } from "@/api/services/postService.ts";
+import type { BeachDTO } from "@/api/services/beachService.ts";
 
-class CommentDTO {
-}
+class CommentDTO {}
 
 // DTOs do backend
 export type PostDTO = {
     id: number;
     descricao: string;
-    caminhoFoto: string; // não opcional
+    caminhoFoto: string;
     data: string;
     usuario: UserDTO;
     publico: boolean;
@@ -28,6 +27,7 @@ export type UserDTO = {
     seguidoresCount: number;
     seguindoCount: number;
     posts: PostDTO[];
+    isFollowing?: boolean;
 };
 
 export const UserService = {
@@ -44,7 +44,7 @@ export const UserService = {
     updateProfile: async (formData: FormData): Promise<UserDTO> => {
         const { data } = await api.put<UserDTO>(userRoutes.updateProfile(), formData, {
             headers: {
-                'Content-Type': 'multipart/form-data',
+                "Content-Type": "multipart/form-data",
                 Authorization: `Bearer ${localStorage.getItem("token")}`,
             },
         });
@@ -68,6 +68,11 @@ export const UserService = {
 
     getFollowing: async (id: number): Promise<UserDTO[]> => {
         const { data } = await api.get<UserDTO[]>(userRoutes.getFollowing(id));
+        return data;
+    },
+
+    getAllUsersPaginated: async (offset = 0, limit = 30): Promise<UserDTO[]> => {
+        const { data } = await api.get<UserDTO[]>(`${userRoutes.base}?offset=${offset}&limit=${limit}`);
         return data;
     },
 

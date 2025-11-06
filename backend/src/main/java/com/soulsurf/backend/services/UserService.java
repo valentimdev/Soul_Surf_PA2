@@ -3,6 +3,7 @@ package com.soulsurf.backend.services;
 import com.soulsurf.backend.dto.SignupRequest;
 import com.soulsurf.backend.dto.UserDTO;
 import com.soulsurf.backend.entities.User;
+import com.soulsurf.backend.repository.FollowRepository;
 import com.soulsurf.backend.repository.UserRepository;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -21,12 +22,20 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final PostService postService;
     private final java.util.Optional<BlobStorageService> blobStorageService;
+    private final FollowRepository followRepository;
 
-    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder, PostService postService, java.util.Optional<BlobStorageService> blobStorageService) {
+    public UserService(
+            UserRepository userRepository,
+            PasswordEncoder passwordEncoder,
+            PostService postService,
+            java.util.Optional<BlobStorageService> blobStorageService,
+            FollowRepository followRepository
+    ) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.postService = postService;
         this.blobStorageService = blobStorageService;
+        this.followRepository = followRepository;
     }
 
     public boolean existsByEmail(String email) {
@@ -63,7 +72,7 @@ public class UserService {
         if (follower.getId().equals(userToFollow.getId())) {
             throw new IllegalArgumentException("Você não pode seguir a si mesmo.");
         }
-        
+
         // Verifica se já está seguindo para evitar duplicatas
         if (!follower.getSeguindo().contains(userToFollow)) {
             // Com o relacionamento bidirecional, só precisamos adicionar em uma direção
@@ -80,7 +89,7 @@ public class UserService {
 
         User userToUnfollow = userRepository.findById(followedId)
                 .orElseThrow(() -> new UsernameNotFoundException("Usuário a ser deixado de seguir não encontrado."));
-        
+
         // Com o relacionamento bidirecional, só precisamos remover de uma direção
         // O JPA automaticamente atualiza a lista de seguidores do userToUnfollow
         follower.getSeguindo().remove(userToUnfollow);
@@ -97,16 +106,16 @@ public class UserService {
     public List<UserDTO> getUserFollowing(Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado com o ID: " + userId));
-        
+
         return user.getSeguindo().stream()
                 .map(this::convertToDtoWithoutPosts)
                 .collect(Collectors.toList());
     }
- 
+
     public List<UserDTO> getUserFollowers(Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado com o ID: " + userId));
-        
+
         return user.getSeguidores().stream()
                 .map(this::convertToDtoWithoutPosts)
 
@@ -264,5 +273,31 @@ public class UserService {
     }
 
     return userDTO;
-}
+    }
+
+    public List<UserDTO> getAllUsersPaginated(int offset, int limit, Long loggedUserId) {
+        List<User> users = userRepository.findAllWithPagination(offset, limit);
+
+        return users.stream()
+                .map(this::convertToDtoWithoutPosts)
+                .peek(dto -> dto.setFollowing(followRepository.existsByFollowerIdAndFollowingId(loggedUserId, dto.getId())))
+                .collect(Collectors.toList());
+    }
+
+    public List<UserDTO> searchUsers(String query, Long loggedUserId) {
+        List<User> users = userRepository.searchUsers(query);
+
+        return users.stream()
+                .filter(u -> !u.getId().equals(loggedUserId))
+                .collect(Collectors.collectingAndThen(
+                        Collectors.toMap(User::getId, u -> u, (a, b) -> a),
+                        map -> map.values().stream()
+                ))
+                .map(this::convertToDtoWithoutPosts)
+                .peek(dto -> dto.setFollowing(
+                        followRepository.existsByFollowerIdAndFollowingId(loggedUserId, dto.getId())
+                ))
+                .collect(Collectors.toList());
+    }
+
 }
