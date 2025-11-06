@@ -68,6 +68,8 @@ function HomePage() {
                         loggedUserId={me.id}
                         isFollowing={followingIds.includes(post.usuario.id)}
                         onToggleFollow={handleToggleFollow}
+                        likesCount={post.likesCount || 0}
+                        likedByCurrentUser={post.likedByCurrentUser || false}
                     />
                 ))}
             </div>

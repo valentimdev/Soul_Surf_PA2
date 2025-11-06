@@ -16,6 +16,8 @@ export type PostDTO = {
         localizacao: string;
         caminhoFoto?: string;
     };
+    likesCount?: number;
+    likedByCurrentUser?: boolean;
 };
 
 export type MessageResponse = {
