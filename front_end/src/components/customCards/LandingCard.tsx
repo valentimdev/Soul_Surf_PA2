@@ -1,10 +1,15 @@
 import soulSurfIcon from '@/assets/header/SoulSurfIconAzul.png';
 import { Button, Card, CardContent } from '@/components/ui/application';
+import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import { CheckCircle2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useState } from 'react';
+import TermsOfServiceCard from './TermsOfServiceCard';
 
 function LandingCard() {
   const navigate = useNavigate();
+  const [isTermsOpen, setIsTermsOpen] = useState(false);
+
   return (
     <div className="h-full flex items-center justify-center py-10">
       <Card className="w-full max-w-md shadow-none border-0 mt-[-50px]">
@@ -52,6 +57,21 @@ function LandingCard() {
           >
             Sobre
           </Button>
+
+          {/* Dialog de Termos de Uso */}
+          <Dialog open={isTermsOpen} onOpenChange={setIsTermsOpen}>
+            <DialogTrigger asChild>
+              <Button
+                variant="ghost"
+                className="w-full py-2 text-sm text-gray-500 hover:text-gray-700"
+              >
+                Termos de Uso
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-4xl max-h-[90vh] p-0">
+              <TermsOfServiceCard onClose={() => setIsTermsOpen(false)} />
+            </DialogContent>
+          </Dialog>
         </CardContent>
       </Card>
     </div>
