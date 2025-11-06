@@ -191,4 +191,16 @@ public class PostService {
 
         return postDTO;
     }
+
+    @Transactional
+    public void deletePost(Long id, String userEmail) {
+        Post post = postRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Post não encontrado"));
+
+        if (!post.getUsuario().getEmail().equals(userEmail)) {
+            throw new SecurityException("Usuário não tem permissão para excluir este post");
+        }
+
+        postRepository.delete(post);
+    }
 }

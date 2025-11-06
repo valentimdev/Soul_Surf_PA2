@@ -84,9 +84,16 @@ public class NotificationController {
     public ResponseEntity<?> createMentionNotification(
             @RequestParam String recipientUsername,
             @RequestParam Long postId,
-            @RequestParam(value = "commentId", required = false) Long commentId) {
+            @RequestParam(value = "commentId", required = false) Long commentId,
+            @AuthenticationPrincipal UserDetails userDetails) {
+
+        if (userDetails == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(new MessageResponse("Usuário não autenticado"));
+        }
 
         notificationService.createMentionNotification(
+                userDetails.getUsername(),
                 recipientUsername,
                 postId,
                 commentId
