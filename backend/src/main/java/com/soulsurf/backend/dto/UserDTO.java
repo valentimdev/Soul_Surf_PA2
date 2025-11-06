@@ -18,6 +18,7 @@ public class UserDTO {
     private List<PostDTO> posts;
     private boolean admin;
     private boolean banned;
+    private boolean isFollowing;
 
     public UserDTO() {
     }
