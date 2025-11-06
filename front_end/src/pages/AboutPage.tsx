@@ -1,156 +1,192 @@
-// src/pages/AboutPage.tsx
-import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Globe, Instagram, Mail } from 'lucide-react'; // Ícones, se você usa lucide-react
+import { Button } from '@/components/ui/button';
+import { Waves, Users, MapPin, Camera, Heart, ArrowLeft } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import soulSurfIcon from '@/assets/header/SoulSurfIconAzul.png';
 
 function AboutPage() {
-    return (
-        <div className="container mx-auto py-8 px-4 sm:px-6 lg:px-8">
-            <h1 className="text-4xl font-extrabold text-center text-primary mb-10 animate-fade-in-down">
-                Sobre o Soul Surf
-            </h1>
+  const navigate = useNavigate();
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
-                {/* Seção 1: Nossa Missão */}
-                <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300">
-                    <CardHeader>
-                        <CardTitle className="text-2xl font-bold text-secondary">Nossa Missão</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
-                            No Soul Surf, nossa missão é conectar entusiastas do surf de todo o Brasil, criando uma comunidade vibrante e inspiradora. Acreditamos que o surf é mais do que um esporte; é um estilo de vida que une as pessoas à natureza e entre si.
-                            Queremos ser a plataforma onde você pode compartilhar suas ondas, descobrir novos picos, conectar-se com outros surfistas e organizar seus registros de surf, tudo em um só lugar.
-                        </p>
-                    </CardContent>
-                </Card>
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white dark:from-gray-900 dark:to-gray-800">
+      {/* Header */}
+      <div className="container mx-auto px-4 py-8">
+        <Button
+          variant="ghost"
+          onClick={() => navigate('/')}
+          className="mb-6 hover:bg-blue-100 dark:hover:bg-gray-700"
+        >
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Voltar para Home
+        </Button>
 
-                {/* Seção 2: O Que Oferecemos */}
-                <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300">
-                    <CardHeader>
-                        <CardTitle className="text-2xl font-bold text-secondary">O Que Oferecemos</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <ul className="list-disc list-inside text-gray-700 dark:text-gray-300 space-y-2">
-                            <li>
-                                <span className="font-semibold">Comunidade:</span> Conecte-se com surfistas, compartilhe experiências e encontre parceiros para sua próxima sessão.
-                            </li>
-                            <li>
-                                <span className="font-semibold">Registros de Surf:</span> Organize e visualize seus registros de surf com detalhes como data, local, condições e desempenho.
-                            </li>
-                            <li>
-                                <span className="font-semibold">Descoberta de Praias:</span> Explore informações sobre praias, suas ondas e dicas da comunidade.
-                            </li>
-                            <li>
-                                <span className="font-semibold">Compartilhamento de Posts:</span> Publique fotos e vídeos de suas ondas e interaja com os posts de outros.
-                            </li>
-                        </ul>
-                    </CardContent>
-                </Card>
-            </div>
-
-            <Separator className="my-12 bg-accent" />
-
-            <h2 className="text-3xl font-bold text-center text-secondary mb-8 animate-fade-in-up">
-                Nossa Equipe (Exemplo)
-            </h2>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 justify-items-center">
-                {/* Membro da Equipe 1 */}
-                <Card className="flex flex-col items-center p-6 shadow-md hover:shadow-lg transition-shadow duration-300 w-full max-w-xs text-center">
-                    <Avatar className="w-24 h-24 mb-4">
-                        {/* Você pode substituir esta imagem por uma real */}
-                        <AvatarImage src="https://example.com/thiago_avatar.jpg" alt="Thiago Dev" />
-                        <AvatarFallback className="bg-primary text-primary-foreground text-xl">TD</AvatarFallback>
-                    </Avatar>
-                    <h3 className="text-xl font-semibold mb-2">Thiago Silva</h3>
-                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">Desenvolvedor Líder & Visionário</p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">
-                        Apaixonado por surf e tecnologia, Thiago idealizou o Soul Surf para unir suas duas grandes paixões.
-                    </p>
-                    <div className="flex gap-3">
-                        <a href="https://www.instagram.com/seuinstagram" target="_blank" rel="noopener noreferrer" className="text-gray-500 hover:text-pink-500 transition-colors">
-                            <Instagram size={20} />
-                        </a>
-                        <a href="mailto:thiago.dev@example.com" className="text-gray-500 hover:text-blue-500 transition-colors">
-                            <Mail size={20} />
-                        </a>
-                    </div>
-                </Card>
-
-                {/* Membro da Equipe 2 (Exemplo) */}
-                <Card className="flex flex-col items-center p-6 shadow-md hover:shadow-lg transition-shadow duration-300 w-full max-w-xs text-center">
-                    <Avatar className="w-24 h-24 mb-4">
-                        <AvatarImage src="https://example.com/ana_avatar.jpg" alt="Ana Marketing" />
-                        <AvatarFallback className="bg-green-500 text-white text-xl">AA</AvatarFallback>
-                    </Avatar>
-                    <h3 className="text-xl font-semibold mb-2">Ana Almeida</h3>
-                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">Estrategista de Comunidade</p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">
-                        Responsável por engajar nossa comunidade e espalhar a paixão pelo surf online e offline.
-                    </p>
-                    <div className="flex gap-3">
-                        <a href="https://www.instagram.com/ana.soul" target="_blank" rel="noopener noreferrer" className="text-gray-500 hover:text-pink-500 transition-colors">
-                            <Instagram size={20} />
-                        </a>
-                        <a href="mailto:ana.almeida@example.com" className="text-gray-500 hover:text-blue-500 transition-colors">
-                            <Mail size={20} />
-                        </a>
-                    </div>
-                </Card>
-
-                {/* Membro da Equipe 3 (Exemplo) */}
-                <Card className="flex flex-col items-center p-6 shadow-md hover:shadow-lg transition-shadow duration-300 w-full max-w-xs text-center">
-                    <Avatar className="w-24 h-24 mb-4">
-                        <AvatarImage src="https://example.com/carlos_avatar.jpg" alt="Carlos Designer" />
-                        <AvatarFallback className="bg-blue-500 text-white text-xl">CS</AvatarFallback>
-                    </Avatar>
-                    <h3 className="text-xl font-semibold mb-2">Carlos Souza</h3>
-                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">Designer de UX/UI</p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">
-                        O gênio por trás da interface intuitiva e visualmente deslumbrante do Soul Surf.
-                    </p>
-                    <div className="flex gap-3">
-                        <a href="https://www.instagram.com/carlos.ux" target="_blank" rel="noopener noreferrer" className="text-gray-500 hover:text-pink-500 transition-colors">
-                            <Instagram size={20} />
-                        </a>
-                        <a href="mailto:carlos.souza@example.com" className="text-gray-500 hover:text-blue-500 transition-colors">
-                            <Mail size={20} />
-                        </a>
-                    </div>
-                </Card>
-            </div>
-
-            <Separator className="my-12 bg-accent" />
-
-            <Card className="p-6 text-center shadow-lg hover:shadow-xl transition-shadow duration-300">
-                <CardTitle className="text-2xl font-bold text-secondary mb-4">Entre em Contato</CardTitle>
-                <CardContent className="flex flex-col items-center justify-center p-0">
-                    <p className="text-gray-700 dark:text-gray-300 mb-4">
-                        Tem alguma dúvida, sugestão ou quer saber mais? Adoraríamos ouvir você!
-                    </p>
-                    <a
-                        href="mailto:contato@soulsurf.com.br"
-                        className="inline-flex items-center gap-2 text-primary hover:text-primary/80 transition-colors text-lg font-semibold"
-                    >
-                        <Mail size={20} /> contato@soulsurf.com.br
-                    </a>
-                    <p className="mt-4 text-sm text-gray-500 dark:text-gray-400">
-                        Siga-nos nas redes sociais para ficar por dentro das últimas ondas!
-                    </p>
-                    <div className="flex gap-4 mt-2">
-                        <a href="https://www.instagram.com/soulsurf" target="_blank" rel="noopener noreferrer" className="text-gray-500 hover:text-pink-500 transition-colors">
-                            <Instagram size={28} />
-                        </a>
-                        <a href="https://www.soulsurf.com.br" target="_blank" rel="noopener noreferrer" className="text-gray-500 hover:text-blue-600 transition-colors">
-                            <Globe size={28} />
-                        </a>
-                    </div>
-                </CardContent>
-            </Card>
+        {/* Hero Section */}
+        <div className="text-center mb-16">
+          <div className="flex justify-center mb-6">
+            <img
+              src={soulSurfIcon}
+              alt="Soul Surf Logo"
+              className="h-20 w-auto"
+            />
+          </div>
+          <h1 className="text-5xl font-bold text-gray-900 dark:text-white mb-4">
+            Soul Surf
+          </h1>
+          <p className="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+            A rede social definitiva para surfistas apaixonados. Conecte-se,
+            compartilhe e viva o surf como nunca antes.
+          </p>
         </div>
-    );
+
+        {/* Features Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
+          <Card className="text-center p-6 hover:shadow-lg transition-shadow border-blue-100 dark:border-gray-700">
+            <div className="bg-blue-100 dark:bg-blue-900 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Users className="h-8 w-8 text-blue-600 dark:text-blue-300" />
+            </div>
+            <h3 className="font-semibold text-lg mb-2 text-gray-900 dark:text-white">
+              Comunidade
+            </h3>
+            <p className="text-gray-600 dark:text-gray-300 text-sm">
+              Conecte-se com surfistas locais e encontre parceiros para suas
+              sessões
+            </p>
+          </Card>
+
+          <Card className="text-center p-6 hover:shadow-lg transition-shadow border-blue-100 dark:border-gray-700">
+            <div className="bg-green-100 dark:bg-green-900 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Waves className="h-8 w-8 text-green-600 dark:text-green-300" />
+            </div>
+            <h3 className="font-semibold text-lg mb-2 text-gray-900 dark:text-white">
+              Registros
+            </h3>
+            <p className="text-gray-600 dark:text-gray-300 text-sm">
+              Organize suas sessões de surf e acompanhe seu progresso
+            </p>
+          </Card>
+
+          <Card className="text-center p-6 hover:shadow-lg transition-shadow border-blue-100 dark:border-gray-700">
+            <div className="bg-purple-100 dark:bg-purple-900 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+              <MapPin className="h-8 w-8 text-purple-600 dark:text-purple-300" />
+            </div>
+            <h3 className="font-semibold text-lg mb-2 text-gray-900 dark:text-white">
+              Praias
+            </h3>
+            <p className="text-gray-600 dark:text-gray-300 text-sm">
+              Descubra novos picos e compartilhe informações sobre ondas
+            </p>
+          </Card>
+
+          <Card className="text-center p-6 hover:shadow-lg transition-shadow border-blue-100 dark:border-gray-700">
+            <div className="bg-orange-100 dark:bg-orange-900 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Camera className="h-8 w-8 text-orange-600 dark:text-orange-300" />
+            </div>
+            <h3 className="font-semibold text-lg mb-2 text-gray-900 dark:text-white">
+              Compartilhe
+            </h3>
+            <p className="text-gray-600 dark:text-gray-300 text-sm">
+              Publique fotos e vídeos das suas melhores ondas
+            </p>
+          </Card>
+        </div>
+
+        {/* Main Content */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-16">
+          {/* Nossa História */}
+          <Card className="lg:col-span-2 p-8 border-blue-100 dark:border-gray-700">
+            <CardHeader className="p-0 mb-6">
+              <CardTitle className="text-3xl font-bold text-gray-900 dark:text-white flex items-center">
+                <Heart className="mr-3 h-8 w-8 text-red-500" />
+                Nossa História
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-0">
+              <div className="space-y-4 text-gray-600 dark:text-gray-300 leading-relaxed">
+                <p>
+                  O Soul Surf nasceu da paixão de surfistas que queriam algo
+                  mais que apenas redes sociais comuns. Queríamos um lugar onde
+                  a cultura do surf pudesse florescer, onde cada onda contasse
+                  uma história e cada surfista pudesse encontrar sua tribo.
+                </p>
+                <p>
+                  Desenvolvido especialmente para a vibrante cena do surf em
+                  Fortaleza e região, o Soul Surf se tornou o ponto de encontro
+                  digital dos amantes das ondas. Aqui, você não apenas
+                  compartilha fotos - você constrói memórias, planeja sessões e
+                  fortalece os laços da comunidade surfista.
+                </p>
+                <p>
+                  Nossa missão é simples: manter vivo o espírito do surf,
+                  conectar pessoas que compartilham a mesma paixão e criar um
+                  espaço onde cada onda é celebrada.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Estatísticas */}
+          <Card className="p-8 bg-gradient-to-br from-blue-500 to-blue-600 text-white border-0">
+            <CardHeader className="p-0 mb-6">
+              <CardTitle className="text-2xl font-bold">
+                Por que escolher o Soul Surf?
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-0">
+              <div className="space-y-6">
+                <div className="text-center">
+                  <div className="text-3xl font-bold">100%</div>
+                  <div className="text-blue-100">Focado no Surf</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-3xl font-bold">24/7</div>
+                  <div className="text-blue-100">Comunidade Ativa</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-3xl font-bold">Local</div>
+                  <div className="text-blue-100">Feito para Fortaleza</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-3xl font-bold">Gratuito</div>
+                  <div className="text-blue-100">Sempre será</div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Call to Action */}
+        <Card className="text-center p-12 bg-gradient-to-r from-blue-600 to-purple-600 text-white border-0">
+          <CardContent className="p-0">
+            <h2 className="text-3xl font-bold mb-4">
+              Pronto para entrar nessa onda?
+            </h2>
+            <p className="text-xl mb-8 text-blue-100">
+              Junte-se à maior comunidade de surfistas do Ceará e comece a
+              compartilhar suas ondas hoje mesmo!
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Button
+                size="lg"
+                variant="secondary"
+                onClick={() => navigate('/cadastro')}
+                className="bg-white text-blue-600 hover:bg-gray-100"
+              >
+                Criar Conta Gratuita
+              </Button>
+              <Button
+                size="lg"
+                variant="secondary"
+                onClick={() => navigate('/login')}
+               className="bg-white text-blue-600 hover:bg-gray-100"
+              >
+                Já tenho conta
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
 }
 
 export default AboutPage;
