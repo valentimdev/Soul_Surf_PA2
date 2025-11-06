@@ -62,6 +62,14 @@ public class ChatService {
 
     @Transactional
     public Message sendMessage(String conversationId, String senderId, String content, String attachmentUrl) {
+        // valida se o remetente participa da conversa
+        var participantId = new ConversationParticipantId();
+        participantId.setConversationId(conversationId);
+        participantId.setUserId(senderId);
+        if (partRepo.findById(participantId).isEmpty()) {
+            throw new org.springframework.security.access.AccessDeniedException("Usuário não participa da conversa");
+        }
+
         var msg = new Message();
         msg.setConversationId(conversationId);
         msg.setSenderId(senderId);
@@ -69,8 +77,7 @@ public class ChatService {
         msg.setAttachmentUrl(attachmentUrl);
         msg = msgRepo.save(msg);
         // atualizar last_read do remetente, opcional
-        var pid = new ConversationParticipantId(); pid.setConversationId(conversationId); pid.setUserId(senderId);
-        partRepo.findById(pid).ifPresent(p -> { p.setLastReadAt(Instant.now()); partRepo.save(p); });
+        partRepo.findById(participantId).ifPresent(p -> { p.setLastReadAt(Instant.now()); partRepo.save(p); });
         return msg;
     }
 
