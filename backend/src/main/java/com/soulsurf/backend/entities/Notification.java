@@ -26,8 +26,9 @@ public class Notification {
     @JoinColumn(name = "sender_id", nullable = false)
     private User sender;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private String type;  // "MENTION", "LIKE", etc.
+    private NotificationType type;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "post_id")

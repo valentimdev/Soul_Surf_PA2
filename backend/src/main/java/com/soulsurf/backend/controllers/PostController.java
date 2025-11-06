@@ -149,4 +149,34 @@ public class PostController {
                     .body(new MessageResponse("Erro ao atualizar o post: " + e.getMessage()));
         }
     }
+
+    @Operation(
+            summary = "Exclui um post existente",
+            description = "Remove um post do banco de dados. Apenas o dono pode excluir. Requer autenticação JWT.",
+            security = @SecurityRequirement(name = "bearerAuth")
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Post excluído com sucesso"),
+            @ApiResponse(responseCode = "403", description = "Acesso negado - não é dono do post"),
+            @ApiResponse(responseCode = "404", description = "Post não encontrado")
+    })
+    @DeleteMapping("/{id}")
+    public ResponseEntity<MessageResponse> deletePost(
+            @Parameter(description = "ID do post a ser excluído") @PathVariable Long id,
+            @AuthenticationPrincipal UserDetails userDetails) {
+
+        try {
+            postService.deletePost(id, userDetails.getUsername());
+            return ResponseEntity.ok(new MessageResponse("Post excluído com sucesso!"));
+        } catch (SecurityException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(new MessageResponse("Você não tem permissão para excluir este post"));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new MessageResponse("Post não encontrado"));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                    .body(new MessageResponse("Erro ao excluir o post: " + e.getMessage()));
+        }
+    }
 }
