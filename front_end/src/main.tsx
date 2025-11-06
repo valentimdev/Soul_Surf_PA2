@@ -1,7 +1,7 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
-
+import MessagesPage from './pages/MessagesPage';
 import RootLayout from './layouts/RootLayout';
 import App from './App';
 import LoginPage from './pages/LoginPage';
@@ -39,6 +39,7 @@ const router = createBrowserRouter([
           { path: "posts/:id/comments", element: <PostCommentsPage /> },
 
           { path: "chat/:conversationId", element: <ChatPage /> },
+          { path: "mensagens", element: <MessagesPage /> },
         ],
       },
 

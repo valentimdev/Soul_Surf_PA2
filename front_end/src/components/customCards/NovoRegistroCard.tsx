@@ -11,6 +11,7 @@ import {PostService} from "@/api/services/postService";
 import {MencoesService} from "@/api/services/mencoesService";
 import {type PostDTO, type UserDTO, UserService} from "@/api/services/userService";
 import { DialogClose } from "@radix-ui/react-dialog";
+import {NotificationService} from "@/api/services/notificationService.ts";
 
 interface NovoRegistroCardProps {
     onSuccess?: (newPost: PostDTO) => void;
@@ -116,6 +117,16 @@ function NovoRegistroCard({ onSuccess }: NovoRegistroCardProps) {
                 foto: foto ?? undefined,
             });
 
+            const mentionMatches = descricao.match(/@([\w]+)/g) || [];
+            for (const mention of mentionMatches) {
+                const username = mention.substring(1);
+                try {
+                    await NotificationService.mention(username, createdPost.id);
+                } catch (err) {
+                    console.error(`Erro ao notificar ${username}:`, err);
+                }
+            }
+
             const me = await UserService.getMe();
 
             const selectedBeach =
@@ -125,17 +136,18 @@ function NovoRegistroCard({ onSuccess }: NovoRegistroCardProps) {
                     descricao: "",
                     localizacao: "",
                     caminhoFoto: "",
+                    nivelExperiencia: ""
                 };
 
             const tempPost: PostDTO = {
-                id: createdPost.id ?? Math.random(), // temporário
+                id: createdPost.id ?? Math.random(),
                 descricao,
-                caminhoFoto: foto ? URL.createObjectURL(foto) : "", // nunca null
+                caminhoFoto: foto ? URL.createObjectURL(foto) : "",
                 data: new Date().toISOString(),
                 usuario: createdPost.usuario ?? me,
                 publico: true,
                 beach: selectedBeach,
-                comments: [], // inicializa vazio
+                comments: [],
             };
 
             setDescricao("");

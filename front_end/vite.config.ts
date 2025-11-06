@@ -14,4 +14,18 @@ export default defineConfig({
   define: {
     global: {}, // ✅ Corrige erro "global is not defined" no sockjs-client
   },
+  server: {
+    proxy: {
+      "/api": {
+        target: "http://localhost:8080", // ✅ envia /api → backend Spring Boot
+        changeOrigin: true,
+        secure: false,
+      },
+      "/ws": {
+        target: "http://localhost:8080", // ✅ envia /ws → WebSocket
+        ws: true,
+        changeOrigin: true,
+      },
+    },
+  },
 })

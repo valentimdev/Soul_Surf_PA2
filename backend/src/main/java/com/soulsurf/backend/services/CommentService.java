@@ -10,7 +10,6 @@ import com.soulsurf.backend.repository.PostRepository;
 import com.soulsurf.backend.repository.UserRepository;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.regex.Matcher;
@@ -56,13 +55,30 @@ public class CommentService {
         // Processa menções após salvar o comentário
         processarMencoes(comment, usuario.getUsername());
 
+        // Cria notificação para o dono do post (se não for ele mesmo comentando)
+        if (parentId == null) {
+            // É um comentário direto no post
+            notificationService.createCommentNotification(
+                usuario.getUsername(),
+                postId,
+                comment.getId()
+            );
+        } else {
+            // É uma resposta a outro comentário
+            notificationService.createReplyNotification(
+                usuario.getUsername(),
+                postId,
+                comment.getId(),
+                parentId
+            );
+        }
+
         return convertToDto(comment);
     }
 
     /**
      * Processa menções em um comentário e cria notificações para os usuários mencionados
      */
-    @Transactional
     public void processarMencoes(Comment comment, String senderUsername) {
         // Padrão regex para encontrar menções (@username)
         Pattern pattern = Pattern.compile("@(\\w+)");

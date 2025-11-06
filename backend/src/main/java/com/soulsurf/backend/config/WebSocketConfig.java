@@ -26,6 +26,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         registry.addEndpoint("/ws").setAllowedOriginPatterns(allowedOrigins.split(",")).withSockJS();
     }
 
+
     @Override
     public void configureClientInboundChannel(ChannelRegistration registration) {
         // aplica o interceptor em CONNECT/SUBSCRIBE/SEND do cliente

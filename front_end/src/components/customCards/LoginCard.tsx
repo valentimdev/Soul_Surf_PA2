@@ -29,8 +29,12 @@ function LoginCard() {
             const response = await AuthService.login({ email, password });
             login(response.token);
             navigate("/home"); //
-        } catch (err: any) {
-            setError(err.response?.data?.message || "Erro ao fazer login");
+        } 
+        catch (err: any) {
+            if (!err.response) {
+        setError("Não foi possível conectar ao servidor. Verifique sua conexão ou tente mais tarde.");
+    }else{
+            setError(err.response?.data?.message || "Email ou senha incorretos");}
         }
     };
 

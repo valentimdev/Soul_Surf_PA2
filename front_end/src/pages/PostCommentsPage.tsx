@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { PostCard } from "@/components/customCards/PostCard";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import api from "@/api/axios.ts";
+import { NotificationService } from "@/api/services/notificationService.ts";
 
 interface Comment {
     id: number;
@@ -108,7 +109,11 @@ function CommentItem({
 
                     {showReplyBox && (
                         <div className="mt-2">
-                            <Textarea placeholder={`Responder a ${comment.usuario.username}...`} value={replyText} onChange={(e) => setReplyText(e.target.value)} />
+                            <Textarea
+                                placeholder={`Responder a ${comment.usuario.username}...`}
+                                value={replyText}
+                                onChange={(e) => setReplyText(e.target.value)}
+                            />
                             <Button className="mt-2" size="sm" onClick={handleReply}>Enviar resposta</Button>
                         </div>
                     )}
@@ -155,27 +160,17 @@ export default function PostCommentsPage() {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const postRes = await api.get(`/posts/${id}`, {
-                    headers: { "Content-Type": "application/json" },
-                });
+                const postRes = await api.get(`/posts/${id}`);
                 const postData = postRes.data;
 
                 setPost({
                     ...postData,
-                    descricao: postData.descricao,
-                    usuario: postData.usuario,
-                    caminhoFoto: postData.caminhoFoto,
-                    beach: postData.beach,
-                    publico: postData.publico,
                     postOwnerId: postData.usuario.id,
                     loggedUserId: postData.loggedUserId || 0,
-                    isFollowing: postData.isFollowing || false,
                     comments: [],
                 });
 
-                const commentsRes = await api.get(`/posts/${id}/comments/`, {
-                    headers: { "Content-Type": "application/json" },
-                });
+                const commentsRes = await api.get(`/posts/${id}/comments/`);
                 setComments(commentsRes.data);
             } catch (e) {
                 console.error("Erro ao carregar post/comentários", e);
@@ -200,16 +195,20 @@ export default function PostCommentsPage() {
                 texto: created.texto,
                 data: created.data,
                 parentId: created.parentId,
-                usuario: {
-                    id: created.usuario.id,
-                    username: created.usuario.username,
-                    fotoPerfil: created.usuario.fotoPerfil,
-                },
+                usuario: created.usuario,
                 replies: [],
             };
 
             setComments((prev) => [newC, ...prev]);
             setNewComment("");
+
+            if (post && post.loggedUserId !== post.postOwnerId) {
+                try {
+                    await NotificationService.comment(post.id, created.id);
+                } catch (err) {
+                    console.error("Erro ao notificar dono do post:", err);
+                }
+            }
         } catch (err) {
             console.error("Erro ao enviar comentário:", err);
         }
@@ -227,11 +226,7 @@ export default function PostCommentsPage() {
                 texto: created.texto,
                 data: created.data,
                 parentId: created.parentId,
-                usuario: {
-                    id: created.usuario.id,
-                    username: created.usuario.username,
-                    fotoPerfil: created.usuario.fotoPerfil,
-                },
+                usuario: created.usuario,
                 replies: [],
             };
 
@@ -242,6 +237,12 @@ export default function PostCommentsPage() {
                         : c
                 )
             );
+
+            try {
+                await NotificationService.reply(Number(id), created.id, parentId);
+            } catch (err) {
+                console.error("Erro ao notificar autor da resposta:", err);
+            }
         } catch (err) {
             console.error("Erro ao enviar resposta:", err);
         }
