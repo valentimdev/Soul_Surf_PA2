@@ -1,6 +1,7 @@
 package com.soulsurf.backend.config;
 
 import com.soulsurf.backend.security.websocket.JwtChatChannelInterceptor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.simp.config.ChannelRegistration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
@@ -11,6 +12,8 @@ import org.springframework.web.socket.config.annotation.*;
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     private final JwtChatChannelInterceptor jwtChatChannelInterceptor;
+    @Value("${app.cors.allowed-origins:*}")
+    private String allowedOrigins;
 
     public WebSocketConfig(JwtChatChannelInterceptor jwtChatChannelInterceptor) {
         this.jwtChatChannelInterceptor = jwtChatChannelInterceptor;
@@ -18,9 +21,9 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
-        registry.addEndpoint("/ws")
-                .setAllowedOriginPatterns("http://localhost:5173") // evite "*" em prod
-                .withSockJS();
+        // endpoint do handshake
+        registry.addEndpoint("/ws").setAllowedOriginPatterns(allowedOrigins.split(","));
+        registry.addEndpoint("/ws").setAllowedOriginPatterns(allowedOrigins.split(",")).withSockJS();
     }
 
 

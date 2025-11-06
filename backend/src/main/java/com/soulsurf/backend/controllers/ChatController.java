@@ -13,6 +13,8 @@ import com.soulsurf.backend.security.AuthUtils;
 import com.soulsurf.backend.services.ChatService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import jakarta.validation.Valid;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.Instant;
@@ -20,6 +22,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
+@Validated
 @RequestMapping("/api/chat")
 public class ChatController {
     private final ChatService chat;
@@ -110,8 +113,11 @@ public class ChatController {
     }
 
     @PostMapping("/conversations/{id}/messages")
-    public ChatMessageResponse send(@PathVariable String id, @RequestBody SendMessageRequest req) {
+    public ChatMessageResponse send(@PathVariable String id, @Valid @RequestBody SendMessageRequest req) {
         var me = AuthUtils.currentUserId();
+        if ((req.getContent() == null || req.getContent().isBlank()) && (req.getAttachmentUrl() == null || req.getAttachmentUrl().isBlank())) {
+            throw new IllegalArgumentException("Mensagem vazia: informe conteúdo ou anexo");
+        }
         Message saved = chat.sendMessage(id, me, req.getContent(), req.getAttachmentUrl());
         ChatMessageResponse payload = toResp(saved);
         // WebSocket

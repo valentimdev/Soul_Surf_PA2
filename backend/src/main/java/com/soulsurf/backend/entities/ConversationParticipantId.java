@@ -14,6 +14,8 @@ public class ConversationParticipantId implements Serializable {
     private String userId;
 
     public ConversationParticipantId(String conversationId, String me) {
+        this.conversationId = conversationId;
+        this.userId = me;
     }
     // equals/hashCode
 
