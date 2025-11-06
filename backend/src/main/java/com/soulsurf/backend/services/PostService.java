@@ -45,7 +45,7 @@ public class PostService {
     }
 
     @Transactional
-    public void createPost(CreatePostRequest request, MultipartFile foto, String userEmail) {
+    public PostDTO createPost(CreatePostRequest request, MultipartFile foto, String userEmail) {
         try {
             User usuario = userRepository.findByEmail(userEmail)
                     .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado: " + userEmail));
@@ -68,6 +68,8 @@ public class PostService {
             }
 
             postRepository.save(novoPost);
+
+            return convertToDto(novoPost); // <-- retorna o PostDTO
         } catch (IOException e) {
             throw new RuntimeException("Falha ao fazer upload do arquivo.", e);
         }

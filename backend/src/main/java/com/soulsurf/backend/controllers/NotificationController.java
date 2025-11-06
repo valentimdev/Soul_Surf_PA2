@@ -82,22 +82,16 @@ public class NotificationController {
     @ApiResponse(responseCode = "200", description = "Notificação criada com sucesso")
     @PostMapping("/mention")
     public ResponseEntity<?> createMentionNotification(
-            @Parameter(description = "Username do usuário mencionado") @RequestParam String recipientUsername,
-            @Parameter(description = "ID do post") @RequestParam Long postId,
-            @Parameter(description = "ID do comentário") @RequestParam Long commentId,
-            @AuthenticationPrincipal UserDetails userDetails) {
-        try {
-            notificationService.createMentionNotification(
-                userDetails.getUsername(),
+            @RequestParam String recipientUsername,
+            @RequestParam Long postId,
+            @RequestParam(value = "commentId", required = false) Long commentId) {
+
+        notificationService.createMentionNotification(
                 recipientUsername,
                 postId,
                 commentId
-            );
-            return ResponseEntity.ok(new MessageResponse("Notificação de menção criada"));
-        } catch (Exception e) {
-            return ResponseEntity.badRequest()
-                    .body(new MessageResponse("Erro ao criar notificação: " + e.getMessage()));
-        }
+        );
+        return ResponseEntity.ok(new MessageResponse("Notificação de menção criada"));
     }
 
     @Operation(summary = "Criar notificação de comentário", description = "Cria uma notificação quando alguém comenta em um post", security = @SecurityRequirement(name = "bearerAuth"))

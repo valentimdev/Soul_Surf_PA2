@@ -52,7 +52,6 @@ public class CommentService {
 
         comment = commentRepository.save(comment);
 
-        // Processa menções após salvar o comentário
         processarMencoes(comment, usuario.getUsername());
 
         // Cria notificação para o dono do post (se não for ele mesmo comentando)
@@ -76,25 +75,19 @@ public class CommentService {
         return convertToDto(comment);
     }
 
-    /**
-     * Processa menções em um comentário e cria notificações para os usuários mencionados
-     */
     public void processarMencoes(Comment comment, String senderUsername) {
-        // Padrão regex para encontrar menções (@username)
         Pattern pattern = Pattern.compile("@(\\w+)");
         Matcher matcher = pattern.matcher(comment.getTexto());
 
         while (matcher.find()) {
             String mentionedUsername = matcher.group(1);
 
-            // Verifica se o usuário mencionado existe
             userRepository.findByUsername(mentionedUsername).ifPresent(mentionedUser -> {
-                // Cria notificação para o usuário mencionado
                 notificationService.createMentionNotification(
-                    senderUsername,
-                    mentionedUsername,
-                    comment.getPost().getId(),
-                    comment.getId()
+                        senderUsername,
+                        mentionedUsername,
+                        comment.getPost().getId(),
+                        comment.getId()
                 );
             });
         }
