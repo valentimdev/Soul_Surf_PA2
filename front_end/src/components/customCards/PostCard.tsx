@@ -23,7 +23,7 @@ import {
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuTrigger,
-} from "../../../@/components/ui/dropdown-menu.tsx";
+} from "../ui/dropdown-menu.tsx";
 import {
     Dialog,
     DialogContent,
