@@ -7,6 +7,7 @@ import { PostCard } from "@/components/customCards/PostCard";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import api from "@/api/axios.ts";
 import { NotificationService } from "@/api/services/notificationService.ts";
+import { userRoutes } from "@/api/routes/user.ts";
 
 interface Comment {
     id: number;
@@ -93,9 +94,7 @@ function CommentItem({
                     ) : (
                         <p className="text-sm">{comment.texto}</p>
                     )}
-
                     <p className="text-xs text-gray-400 mt-1">{new Date(comment.data).toLocaleString()}</p>
-
                     {!comment.parentId && !isEditing && (
                         <Button
                             variant="link"
@@ -106,7 +105,6 @@ function CommentItem({
                             {showReplyBox ? "Cancelar" : "Responder"}
                         </Button>
                     )}
-
                     {showReplyBox && (
                         <div className="mt-2">
                             <Textarea
@@ -117,7 +115,6 @@ function CommentItem({
                             <Button className="mt-2" size="sm" onClick={handleReply}>Enviar resposta</Button>
                         </div>
                     )}
-
                     {isOwner && !isEditing && (
                         <div className="mt-2 flex gap-2">
                             <Button size="sm" variant="outline" onClick={() => setIsEditing(true)}>Editar</Button>
@@ -126,7 +123,6 @@ function CommentItem({
                     )}
                 </CardContent>
             </Card>
-
             {comment.replies && comment.replies.length > 0 && (
                 <div className="ml-4 mt-2 space-y-2">
                     {comment.replies.map((resp: Comment) => (
@@ -156,17 +152,22 @@ export default function PostCommentsPage() {
     const [comments, setComments] = useState<Comment[]>([]);
     const [newComment, setNewComment] = useState("");
     const [loading, setLoading] = useState(true);
+    const [loggedUserId, setLoggedUserId] = useState<number | null>(null);
 
     useEffect(() => {
         const fetchData = async () => {
             try {
+                const userRes = await api.get(userRoutes.getMe());
+                const userId = userRes.data.id;
+                setLoggedUserId(userId);
+
                 const postRes = await api.get(`/posts/${id}`);
                 const postData = postRes.data;
 
                 setPost({
                     ...postData,
                     postOwnerId: postData.usuario.id,
-                    loggedUserId: postData.loggedUserId || 0,
+                    loggedUserId: userId,
                     comments: [],
                 });
 
@@ -184,12 +185,10 @@ export default function PostCommentsPage() {
 
     const handleAddComment = async () => {
         if (!newComment.trim()) return;
-
         try {
             const params = new URLSearchParams({ texto: newComment });
             const res = await api.post(`/posts/${id}/comments/?${params.toString()}`);
             const created = res.data;
-
             const newC: Comment = {
                 id: created.id,
                 texto: created.texto,
@@ -198,11 +197,9 @@ export default function PostCommentsPage() {
                 usuario: created.usuario,
                 replies: [],
             };
-
             setComments((prev) => [newC, ...prev]);
             setNewComment("");
-
-            if (post && post.loggedUserId !== post.postOwnerId) {
+            if (post && loggedUserId !== post.postOwnerId) {
                 try {
                     await NotificationService.comment(post.id, created.id);
                 } catch (err) {
@@ -220,7 +217,6 @@ export default function PostCommentsPage() {
             const params = new URLSearchParams({ texto: text, parentId: parentId.toString() });
             const res = await api.post(`/posts/${id}/comments/?${params.toString()}`);
             const created = res.data;
-
             const newReply: Comment = {
                 id: created.id,
                 texto: created.texto,
@@ -229,7 +225,6 @@ export default function PostCommentsPage() {
                 usuario: created.usuario,
                 replies: [],
             };
-
             setComments((prev) =>
                 prev.map((c) =>
                     c.id === parentId
@@ -237,7 +232,6 @@ export default function PostCommentsPage() {
                         : c
                 )
             );
-
             try {
                 await NotificationService.reply(Number(id), created.id, parentId);
             } catch (err) {
@@ -282,11 +276,10 @@ export default function PostCommentsPage() {
                 imageUrl={post.caminhoFoto || undefined}
                 praia={post.beach?.nome}
                 postOwnerId={post.postOwnerId}
-                loggedUserId={post.loggedUserId}
+                loggedUserId={loggedUserId ?? 0}
                 isFollowing={post.isFollowing}
                 onToggleFollow={() => {}}
             />
-
             <Card className="p-4">
                 <h3 className="text-lg font-semibold mb-2">Adicionar comentário</h3>
                 <Textarea
@@ -296,13 +289,12 @@ export default function PostCommentsPage() {
                 />
                 <Button onClick={handleAddComment} className="mt-2">Enviar</Button>
             </Card>
-
             <div className="space-y-3">
                 {comments.map((c) => (
                     <CommentItem
                         key={c.id}
                         comment={c}
-                        loggedUserId={post.loggedUserId}
+                        loggedUserId={loggedUserId ?? 0}
                         onReplySubmit={handleReplySubmit}
                         onDelete={handleDeleteComment}
                         onUpdate={handleUpdateComment}
