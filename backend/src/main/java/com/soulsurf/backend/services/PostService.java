@@ -16,6 +16,7 @@ import com.soulsurf.backend.repository.UserRepository;
 
 import jakarta.transaction.Transactional;
 
+import org.springframework.context.annotation.Lazy;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -33,15 +34,18 @@ public class PostService {
     private final UserRepository userRepository;
     private final BeachRepository beachRepository;
     private final Optional<BlobStorageService> blobStorageService;
+    private final LikeService likeService;
 
     public PostService(PostRepository postRepository,
                        UserRepository userRepository,
                        BeachRepository beachRepository,
-                       Optional<BlobStorageService> blobStorageService) {
+                       Optional<BlobStorageService> blobStorageService,
+                       @Lazy LikeService likeService) {
         this.postRepository = postRepository;
         this.userRepository = userRepository;
         this.beachRepository = beachRepository;
         this.blobStorageService = blobStorageService;
+        this.likeService = likeService;
     }
 
     @Transactional
@@ -69,7 +73,7 @@ public class PostService {
 
             postRepository.save(novoPost);
 
-            return convertToDto(novoPost); // <-- retorna o PostDTO
+            return convertToDto(novoPost, userEmail); // <-- retorna o PostDTO
         } catch (IOException e) {
             throw new RuntimeException("Falha ao fazer upload do arquivo.", e);
         }
@@ -77,7 +81,7 @@ public class PostService {
 
     public List<PostDTO> getPublicFeed() {
         return postRepository.findByPublicoIsTrueOrderByDataDesc().stream()
-                .map(this::convertToDto)
+                .map(post -> convertToDto(post, null))
                 .collect(Collectors.toList());
     }
 
@@ -94,7 +98,7 @@ public class PostService {
         List<Post> posts = postRepository.findByUsuarioInOrderByDataDesc(followingUsers);
 
         return posts.stream()
-                .map(this::convertToDto)
+                .map(post -> convertToDto(post, userEmail))
                 .collect(Collectors.toList());
     }
 
@@ -105,7 +109,7 @@ public class PostService {
         List<Post> posts = postRepository.findByUsuarioOrderByDataDesc(usuario);
 
         return posts.stream()
-                .map(this::convertToDto)
+                .map(post -> convertToDto(post, userEmail))
                 .collect(Collectors.toList());
     }
 
@@ -118,7 +122,7 @@ public class PostService {
 
         Post post = postOptional.get();
         if (post.isPublico() || (requesterEmail != null && post.getUsuario().getEmail().equals(requesterEmail))) {
-            return Optional.of(convertToDto(post));
+            return Optional.of(convertToDto(post, requesterEmail));
         }
 
         return Optional.empty();
@@ -160,6 +164,10 @@ public class PostService {
     }
 
     private PostDTO convertToDto(Post post) {
+        return convertToDto(post, null);
+    }
+
+    private PostDTO convertToDto(Post post, String currentUserEmail) {
         PostDTO postDTO = new PostDTO();
         postDTO.setId(post.getId());
         postDTO.setPublico(post.isPublico());
@@ -188,6 +196,14 @@ public class PostService {
                 .map(this::convertCommentToDto)
                 .collect(Collectors.toList());
         postDTO.setComments(commentDTOs);
+
+        // Adicionar contagem de likes e status do like do usuário atual
+        postDTO.setLikesCount(likeService.countLikes(post.getId()));
+        if (currentUserEmail != null) {
+            postDTO.setLikedByCurrentUser(likeService.hasUserLiked(post.getId(), currentUserEmail));
+        } else {
+            postDTO.setLikedByCurrentUser(false);
+        }
 
         return postDTO;
     }

@@ -34,6 +34,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { postRoutes } from "@/api/routes/post.ts";
 import api from "@/api/axios"; // <-- usa o axios configurado
+import { LikeService } from "@/api/services/likeService";
 
 interface PostCardProps {
     postId: number;
@@ -46,6 +47,8 @@ interface PostCardProps {
     loggedUserId: number;
     isFollowing: boolean;
     onToggleFollow: (userId: number, isNowFollowing: boolean) => void;
+    likesCount?: number;
+    likedByCurrentUser?: boolean;
 }
 
 export function PostCard({
@@ -59,13 +62,23 @@ export function PostCard({
                              loggedUserId,
                              isFollowing,
                              onToggleFollow,
+                             likesCount: initialLikesCount = 0,
+                             likedByCurrentUser: initialLiked = false,
                          }: PostCardProps) {
     const navigate = useNavigate();
-    const [liked, setLiked] = useState(false);
+    const [liked, setLiked] = useState(initialLiked);
+    const [likesCount, setLikesCount] = useState(initialLikesCount);
+    const [isLiking, setIsLiking] = useState(false);
     const [editDialogOpen, setEditDialogOpen] = useState(false);
     const [editedContent, setEditedContent] = useState(description);
     const [isDeleting, setIsDeleting] = useState(false);
     const contentRef = useRef<HTMLParagraphElement>(null);
+
+    // Atualizar estado quando props mudarem
+    useEffect(() => {
+        setLiked(initialLiked);
+        setLikesCount(initialLikesCount);
+    }, [initialLiked, initialLikesCount]);
 
     const isOwner =
         postOwnerId && loggedUserId
@@ -128,6 +141,31 @@ export function PostCard({
             alert("Não foi possível excluir o post.");
         } finally {
             setIsDeleting(false);
+        }
+    };
+
+    // 🔹 Toggle Like
+    const handleToggleLike = async () => {
+        if (isLiking) return;
+        setIsLiking(true);
+        
+        // Otimistic update
+        const previousLiked = liked;
+        const previousCount = likesCount;
+        setLiked(!liked);
+        setLikesCount(prev => liked ? prev - 1 : prev + 1);
+
+        try {
+            const response = await LikeService.toggleLike(postId);
+            setLiked(response.liked);
+            setLikesCount(response.likesCount);
+        } catch (err) {
+            // Reverter em caso de erro
+            setLiked(previousLiked);
+            setLikesCount(previousCount);
+            console.error("Erro ao alternar like:", err);
+        } finally {
+            setIsLiking(false);
         }
     };
 
@@ -217,17 +255,29 @@ export function PostCard({
 
                 <CardFooter className="flex flex-col items-start p-4 pt-2">
                     <div className="flex gap-6 w-full items-center">
-                        <Button
-                            variant="ghost"
-                            className="group hover:bg-primary/20 rounded-full h-12 w-12 p-0"
-                            onClick={() => setLiked(!liked)}
-                        >
-                            <HanglooseIcon
-                                className={`size-7 transition-colors ${
-                                    liked ? "text-primary" : "text-muted-foreground"
+                        <div className="flex items-center gap-2">
+                            <Button
+                                variant="ghost"
+                                className={`group hover:bg-primary/20 rounded-full h-12 w-12 p-0 transition-transform ${
+                                    liked ? "scale-110" : ""
                                 }`}
-                            />
-                        </Button>
+                                onClick={handleToggleLike}
+                                disabled={isLiking}
+                            >
+                                <HanglooseIcon
+                                    className={`size-7 transition-all duration-200 ${
+                                        liked 
+                                            ? "text-primary scale-110" 
+                                            : "text-muted-foreground group-hover:text-primary"
+                                    }`}
+                                />
+                            </Button>
+                            {likesCount > 0 && (
+                                <span className="text-sm font-semibold text-foreground min-w-[20px]">
+                                    {likesCount}
+                                </span>
+                            )}
+                        </div>
 
                         <Button
                             variant="ghost"

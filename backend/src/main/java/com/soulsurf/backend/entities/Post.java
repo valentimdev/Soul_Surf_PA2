@@ -47,6 +47,9 @@ public class Post {
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Comment> comments = new ArrayList<>();
 
+    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<com.soulsurf.backend.entities.Like> likes = new ArrayList<>();
+
     @PrePersist
     protected void onCreate() {
         this.data = LocalDateTime.now();
