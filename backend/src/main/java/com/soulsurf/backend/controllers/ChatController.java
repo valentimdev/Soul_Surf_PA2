@@ -11,6 +11,7 @@ import com.soulsurf.backend.repository.MessageRepository;
 import com.soulsurf.backend.repository.UserRepository;
 import com.soulsurf.backend.security.AuthUtils;
 import com.soulsurf.backend.services.ChatService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import jakarta.validation.Valid;
@@ -24,6 +25,7 @@ import java.util.Map;
 @RestController
 @Validated
 @RequestMapping("/api/chat")
+@Slf4j
 public class ChatController {
     private final ChatService chat;
 
@@ -115,13 +117,15 @@ public class ChatController {
     @PostMapping("/conversations/{id}/messages")
     public ChatMessageResponse send(@PathVariable String id, @Valid @RequestBody SendMessageRequest req) {
         var me = AuthUtils.currentUserId();
-        if ((req.getContent() == null || req.getContent().isBlank()) && (req.getAttachmentUrl() == null || req.getAttachmentUrl().isBlank())) {
-            throw new IllegalArgumentException("Mensagem vazia: informe conteúdo ou anexo");
-        }
+        log.info("RECEBENDO MENSAGEM DE: {} | Conv: {}", me, id); // LOG 4
+
         Message saved = chat.sendMessage(id, me, req.getContent(), req.getAttachmentUrl());
         ChatMessageResponse payload = toResp(saved);
-        // WebSocket
+
+        log.info("ENVIANDO VIA WEBSOCKET para /topic/conversations/{}", id); // LOG 5
         messagingTemplate.convertAndSend("/topic/conversations/" + id, payload);
+
+        log.info("MENSAGEM ENVIADA COM SUCESSO: {}", payload.getId()); // LOG 6
         return payload;
     }
 

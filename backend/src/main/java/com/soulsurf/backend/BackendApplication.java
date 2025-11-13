@@ -8,8 +8,7 @@ import org.springframework.cache.annotation.EnableCaching;
 
 @SpringBootApplication
 @OpenAPIDefinition(info = @Info(title = "SoulSurf API", version = "1.0", description = "Documentação completa dos endpoints da API SoulSurf"))
-@EnableCaching
-public class BackendApplication {
+public class 	BackendApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(BackendApplication.class, args);
 	}

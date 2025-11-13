@@ -1,27 +1,54 @@
-// src/services/chatSocket.ts
-import { Client, type IMessage } from "@stomp/stompjs";
+// src/api/services/chatSocket.ts
+import { Client } from '@stomp/stompjs';
 
-const WS_URL = (import.meta.env.VITE_WS_URL as string) || "ws://localhost:8080/ws";
-// NOTE: com WebSocket nativo use ws:// (ou wss:// em produção)
-
-export function connectChat(
+export const connectChat = (
   token: string,
   conversationId: string,
-  onMessage: (parsedBody: any, raw: IMessage) => void
-) {
+  onMessageReceived: (msg: any) => void,
+  onError?: (error: any) => void
+) => {
+  if (!token) {
+    console.error('Token JWT não encontrado');
+    return null;
+  }
+
+  // USE ws:// E WebSocket NATIVO
+  const socket = new WebSocket(`ws://localhost:8080/ws?access_token=${token}`);
+
   const client = new Client({
-    brokerURL: WS_URL, // nativo, sem webSocketFactory/SockJS
-    connectHeaders: { Authorization: `Bearer ${token}` },
+    webSocketFactory: () => socket,
     reconnectDelay: 5000,
+    heartbeatIncoming: 4000,
+    heartbeatOutgoing: 4000,
+    debug: (str) => console.log('[STOMP]', str),
+
     onConnect: () => {
-      client.subscribe(`/topic/conversations/${conversationId}`, (msg) => {
-        const payload = JSON.parse(msg.body);
-        onMessage(payload, msg);
+      console.log('STOMP CONECTADO! Assinando:', conversationId);
+      client.subscribe(`/topic/conversations/${conversationId}`, (message) => {
+        try {
+          const payload = JSON.parse(message.body);
+          onMessageReceived(payload);
+        } catch (e) {
+          console.error('Erro ao parsear mensagem:', e);
+        }
       });
     },
-    onStompError: (f) => console.error("STOMP error:", f.headers["message"]),
+
+    onStompError: (frame) => {
+      console.error('Erro STOMP:', frame.headers['message']);
+      onError?.(frame);
+    },
+
+    onWebSocketError: (error) => {
+      console.error('Erro WebSocket:', error);
+      onError?.(error);
+    },
+
+    onWebSocketClose: (event) => {
+      console.log('WebSocket fechado:', event.code, event.reason);
+    },
   });
 
   client.activate();
   return client;
-}
+};
