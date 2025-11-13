@@ -1,12 +1,9 @@
-import { Navigate, Outlet } from "react-router-dom";
-import { useAuth } from "@/contexts/AuthContext.tsx";
+import { Navigate, Outlet } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function ProtectedRoute() {
-    const { isAuthenticated } = useAuth();
+    const { isAuthenticated, loading } = useAuth();
 
-    if (!isAuthenticated) {
-        return <Navigate to="/login" replace />;
-    }
-
-    return <Outlet />; // renderiza as rotas filhas normalmente
+    if (loading) return <div>Carregando...</div>;
+    return isAuthenticated ? <Outlet /> : <Navigate to="/login" replace />;
 }

@@ -8,6 +8,8 @@ import com.soulsurf.backend.entities.User;
 import com.soulsurf.backend.repository.CommentRepository;
 import com.soulsurf.backend.repository.PostRepository;
 import com.soulsurf.backend.repository.UserRepository;
+
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
@@ -31,7 +33,7 @@ public class CommentService {
         this.userRepository = userRepository;
         this.notificationService = notificationService;
     }
-
+     @CacheEvict(value = {"postById"}, allEntries = true)
     public CommentDTO createComment(Long postId, Long parentId, String texto, String userEmail) {
         User usuario = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado"));
@@ -101,7 +103,7 @@ public class CommentService {
                 .map(this::convertToDto)
                 .collect(Collectors.toList());
     }
-
+    @CacheEvict(value = {"postById"}, allEntries = true)
     public CommentDTO updateComment(Long postId, Long commentId, String texto, String userEmail) {
         Comment comment = validateAndGetComment(postId, commentId, userEmail);
 
@@ -115,7 +117,7 @@ public class CommentService {
 
         return convertToDto(comment);
     }
-
+    @CacheEvict(value = {"postById"}, allEntries = true)
     public void deleteComment(Long postId, Long commentId, String userEmail) {
         Comment comment = validateAndGetComment(postId, commentId, userEmail);
         commentRepository.delete(comment);

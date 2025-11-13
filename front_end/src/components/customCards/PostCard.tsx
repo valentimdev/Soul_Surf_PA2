@@ -1,12 +1,8 @@
 import { useNavigate } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import {
-    Card,
-    CardContent,
-    CardFooter,
-    CardHeader,
-} from "@/components/ui/card";
+import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import {
     MessageCircle,
     MapPin,
@@ -17,13 +13,12 @@ import {
 } from "lucide-react";
 import FollowButton from "@/components/FollowButton";
 import { HanglooseIcon } from "@/assets/icons/HanglooseIcon";
-import { useState, useRef, useEffect } from "react";
 import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuTrigger,
-} from "../ui/dropdown-menu.tsx";
+} from "@/components/ui/dropdown-menu";
 import {
     Dialog,
     DialogContent,
@@ -32,9 +27,10 @@ import {
     DialogFooter,
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
-import { postRoutes } from "@/api/routes/post.ts";
-import api from "@/api/axios"; // <-- usa o axios configurado
+import { postRoutes } from "@/api/routes/post";
+import api from "@/api/axios";
 import { LikeService } from "@/api/services/likeService";
+import { UserService } from "@/api/services/userService";
 
 interface PostCardProps {
     postId: number;
@@ -72,20 +68,27 @@ export function PostCard({
     const [editDialogOpen, setEditDialogOpen] = useState(false);
     const [editedContent, setEditedContent] = useState(description);
     const [isDeleting, setIsDeleting] = useState(false);
+    const [isAdmin, setIsAdmin] = useState(false);
     const contentRef = useRef<HTMLParagraphElement>(null);
 
-    // Atualizar estado quando props mudarem
     useEffect(() => {
         setLiked(initialLiked);
         setLikesCount(initialLikesCount);
     }, [initialLiked, initialLikesCount]);
+
+    // ✅ busca o usuário logado e define se é admin
+    useEffect(() => {
+        UserService.getMe()
+            .then((user) => setIsAdmin(user.admin === true))
+            .catch(() => setIsAdmin(false));
+    }, []);
 
     const isOwner =
         postOwnerId && loggedUserId
             ? Number(postOwnerId) === Number(loggedUserId)
             : false;
 
-    // Menções clicáveis
+    // === Mencionar usuários ===
     useEffect(() => {
         if (!contentRef.current) return;
         const spans = contentRef.current.querySelectorAll("span[data-mention]");
@@ -96,9 +99,7 @@ export function PostCard({
             });
         });
         return () => {
-            spans.forEach((span) => {
-                span.replaceWith(span.cloneNode(true));
-            });
+            spans.forEach((span) => span.replaceWith(span.cloneNode(true)));
         };
     }, [description, navigate]);
 
@@ -111,7 +112,7 @@ export function PostCard({
         );
     };
 
-    // 🔹 Atualizar post
+    // === Editar post ===
     const handleUpdate = async () => {
         try {
             const formData = new FormData();
@@ -129,7 +130,7 @@ export function PostCard({
         }
     };
 
-    // 🔹 Excluir post
+    // === Excluir post ===
     const handleDelete = async () => {
         if (!confirm("Tem certeza que deseja excluir este post?")) return;
         setIsDeleting(true);
@@ -144,23 +145,21 @@ export function PostCard({
         }
     };
 
-    // 🔹 Toggle Like
+    // === Curtir/Descurtir ===
     const handleToggleLike = async () => {
         if (isLiking) return;
         setIsLiking(true);
-        
-        // Otimistic update
+
         const previousLiked = liked;
         const previousCount = likesCount;
         setLiked(!liked);
-        setLikesCount(prev => liked ? prev - 1 : prev + 1);
+        setLikesCount((prev) => (liked ? prev - 1 : prev + 1));
 
         try {
             const response = await LikeService.toggleLike(postId);
             setLiked(response.liked);
             setLikesCount(response.likesCount);
         } catch (err) {
-            // Reverter em caso de erro
             setLiked(previousLiked);
             setLikesCount(previousCount);
             console.error("Erro ao alternar like:", err);
@@ -169,6 +168,12 @@ export function PostCard({
         }
     };
 
+    // === Regras de exibição ===
+    const shouldShowFollowButton = !isOwner;
+    const shouldShowMenu = isOwner || isAdmin;
+    const canEdit = isOwner; // admin NÃO edita
+    const canDelete = isOwner || isAdmin; // admin e dono podem excluir
+
     return (
         <>
             <Card className="w-full mx-auto bg-card rounded-lg overflow-hidden shadow-sm mb-4 border border-none">
@@ -176,14 +181,10 @@ export function PostCard({
                     <div className="flex items-center gap-3">
                         <Avatar className="w-10 h-10 border-2 border-transparent hover:border-primary">
                             <AvatarImage src={userAvatarUrl} alt={username} />
-                            <AvatarFallback>
-                                {username?.charAt(0).toUpperCase() ?? "?"}
-                            </AvatarFallback>
+                            <AvatarFallback>{username?.charAt(0).toUpperCase() ?? "?"}</AvatarFallback>
                         </Avatar>
                         <div className="flex flex-col">
-              <span className="font-bold text-card-foreground text-base">
-                {username}
-              </span>
+                            <span className="font-bold text-card-foreground text-base">{username}</span>
                             {praia && (
                                 <div className="flex items-center text-sm text-muted-foreground mt-0.5">
                                     <MapPin className="h-3 w-3 mr-1 text-primary" />
@@ -193,44 +194,51 @@ export function PostCard({
                         </div>
                     </div>
 
-                    {isOwner ? (
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" className="rounded-full h-10 w-10 p-0">
-                                    <MoreVertical className="w-5 h-5 text-muted-foreground" />
-                                </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                                <DropdownMenuItem onClick={() => setEditDialogOpen(true)}>
-                                    <Pencil className="w-4 h-4 mr-2" />
-                                    Editar post
-                                </DropdownMenuItem>
-                                <DropdownMenuItem
-                                    onClick={handleDelete}
-                                    className="text-red-500 focus:text-red-600"
-                                    disabled={isDeleting}
-                                >
-                                    <Trash2 className="w-4 h-4 mr-2" />
-                                    {isDeleting ? "Excluindo..." : "Excluir post"}
-                                </DropdownMenuItem>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
-                    ) : (
-                        <FollowButton
-                            postOwnerId={postOwnerId}
-                            isFollowing={isFollowing}
-                            onToggleFollow={onToggleFollow}
-                        />
-                    )}
+                    <div className="flex items-center gap-2">
+                        {/* Botão de seguir */}
+                        {shouldShowFollowButton && (
+                            <FollowButton
+                                postOwnerId={postOwnerId}
+                                isFollowing={isFollowing}
+                                onToggleFollow={onToggleFollow}
+                            />
+                        )}
+
+                        {/* Menu more options */}
+                        {shouldShowMenu && (
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button variant="ghost" className="rounded-full h-10 w-10 p-0">
+                                        <MoreVertical className="w-5 h-5 text-muted-foreground" />
+                                    </Button>
+                                </DropdownMenuTrigger>
+
+                                <DropdownMenuContent align="end">
+                                    {canEdit && (
+                                        <DropdownMenuItem onClick={() => setEditDialogOpen(true)}>
+                                            <Pencil className="w-4 h-4 mr-2" /> Editar post
+                                        </DropdownMenuItem>
+                                    )}
+                                    {canDelete && (
+                                        <DropdownMenuItem
+                                            onClick={handleDelete}
+                                            className="text-red-500 focus:text-red-600"
+                                            disabled={isDeleting}
+                                        >
+                                            <Trash2 className="w-4 h-4 mr-2" />
+                                            {isDeleting ? "Excluindo..." : "Excluir post"}
+                                        </DropdownMenuItem>
+                                    )}
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+                        )}
+                    </div>
                 </CardHeader>
 
+                {/* Conteúdo */}
                 {imageUrl ? (
                     <CardContent className="p-0">
-                        <img
-                            src={imageUrl}
-                            alt="Post"
-                            className="w-full max-h-[500px] object-cover bg-muted"
-                        />
+                        <img src={imageUrl} alt="Post" className="w-full max-h-[500px] object-cover bg-muted" />
                         <div className="mt-3 px-4 pt-2">
                             <p
                                 ref={contentRef}
@@ -253,6 +261,7 @@ export function PostCard({
                     </CardContent>
                 )}
 
+                {/* Rodapé */}
                 <CardFooter className="flex flex-col items-start p-4 pt-2">
                     <div className="flex gap-6 w-full items-center">
                         <div className="flex items-center gap-2">
@@ -266,16 +275,16 @@ export function PostCard({
                             >
                                 <HanglooseIcon
                                     className={`size-7 transition-all duration-200 ${
-                                        liked 
-                                            ? "text-primary scale-110" 
+                                        liked
+                                            ? "text-primary scale-110"
                                             : "text-muted-foreground group-hover:text-primary"
                                     }`}
                                 />
                             </Button>
                             {likesCount > 0 && (
                                 <span className="text-sm font-semibold text-foreground min-w-[20px]">
-                                    {likesCount}
-                                </span>
+                  {likesCount}
+                </span>
                             )}
                         </div>
 
@@ -304,7 +313,7 @@ export function PostCard({
                 </CardFooter>
             </Card>
 
-            {/* Dialog de Edição */}
+            {/* Modal de edição */}
             <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
                 <DialogContent className="sm:max-w-md">
                     <DialogHeader>

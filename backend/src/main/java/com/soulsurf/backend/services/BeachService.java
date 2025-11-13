@@ -7,6 +7,8 @@ import com.soulsurf.backend.entities.Beach;
 import com.soulsurf.backend.entities.Post;
 import com.soulsurf.backend.repository.BeachRepository;
 import com.soulsurf.backend.repository.PostRepository;
+
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
@@ -55,7 +57,7 @@ public class BeachService {
         return beachRepository.findById(id)
                 .map(this::convertToDto);
     }
-
+    @Cacheable(value = "beachPosts", key = "#beachId + '_' + #page + '_' + #size + '_' + (#currentUserEmail ?: 'anonymous')")
     public List<PostDTO> getBeachPosts(Long beachId, int page, int size, String currentUserEmail) {
         Beach beach = beachRepository.findById(beachId)
                 .orElseThrow(() -> new RuntimeException("Praia não encontrada"));
@@ -76,7 +78,7 @@ public class BeachService {
                     .collect(Collectors.toList());
         }
     }
-
+    @Cacheable(value = "beachPosts", key = "#beachId + '_all_' + (#userEmail ?: 'anonymous')")
     public List<PostDTO> getAllBeachPosts(Long beachId, String userEmail) {
         Beach beach = beachRepository.findById(beachId)
                 .orElseThrow(() -> new RuntimeException("Praia não encontrada"));

@@ -6,6 +6,8 @@ import com.soulsurf.backend.entities.User;
 import com.soulsurf.backend.repository.LikeRepository;
 import com.soulsurf.backend.repository.PostRepository;
 import com.soulsurf.backend.repository.UserRepository;
+
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,6 +27,7 @@ public class LikeService {
         this.userRepository = userRepository;
     }
 
+    @CacheEvict(value = {"postById", "publicFeed", "followingPosts", "userPosts"}, allEntries = true)
     @Transactional
     public boolean toggleLike(Long postId, String userEmail) {
         Post post = postRepository.findById(postId)
