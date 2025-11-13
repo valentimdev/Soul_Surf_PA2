@@ -28,6 +28,7 @@ export type UserDTO = {
     seguindoCount: number;
     posts: PostDTO[];
     isFollowing?: boolean;
+    admin?: boolean;
 };
 
 export const UserService = {

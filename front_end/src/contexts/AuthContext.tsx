@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useState } from "react";
 import api from "@/api/axios";
 
 interface AuthContextType {
@@ -18,27 +18,15 @@ const AuthContext = createContext<AuthContextType>({
 });
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const [token, setToken] = useState<string | null>(null);
-    const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
-    const [loading, setLoading] = useState<boolean>(true);
+    const [token, setToken] = useState<string | null>(() => localStorage.getItem("token"));
+    const [isAuthenticated, setIsAuthenticated] = useState<boolean>(!!token);
+    const [loading] = useState<boolean>(false);
 
-    useEffect(() => {
-        const storedToken = localStorage.getItem("token");
-        if (storedToken) {
-            setToken(storedToken);
-            setIsAuthenticated(true);
-            api.defaults.headers.common["Authorization"] = `Bearer ${storedToken}`;
-        }
-        setLoading(false);
-    }, []);
-
-    useEffect(() => {
-        if (token) {
-            api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-        } else {
-            delete api.defaults.headers.common["Authorization"];
-        }
-    }, [token]);
+    if (token) {
+        api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+    } else {
+        delete api.defaults.headers.common["Authorization"];
+    }
 
     const login = (newToken: string) => {
         localStorage.setItem("token", newToken);
