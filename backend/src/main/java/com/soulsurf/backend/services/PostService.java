@@ -16,6 +16,8 @@ import com.soulsurf.backend.repository.UserRepository;
 
 import jakarta.transaction.Transactional;
 
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
@@ -49,6 +51,7 @@ public class PostService {
     }
 
     @Transactional
+    @CacheEvict(value = {"publicFeed", "userPosts", "followingPosts"}, allEntries = true)
     public PostDTO createPost(CreatePostRequest request, MultipartFile foto, String userEmail) {
         try {
             User usuario = userRepository.findByEmail(userEmail)
@@ -79,12 +82,13 @@ public class PostService {
         }
     }
 
+    @Cacheable(value = "publicFeed", unless = "#result.isEmpty()")
     public List<PostDTO> getPublicFeed() {
         return postRepository.findByPublicoIsTrueOrderByDataDesc().stream()
                 .map(post -> convertToDto(post, null))
                 .collect(Collectors.toList());
     }
-
+    @Cacheable(value = "followingPosts", key = "#userEmail", unless = "#result.isEmpty()")
     public List<PostDTO> getFollowingPosts(String userEmail) {
         User currentUser = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado: " + userEmail));
@@ -102,6 +106,7 @@ public class PostService {
                 .collect(Collectors.toList());
     }
 
+    @Cacheable(value = "userPosts", key = "#userEmail", unless = "#result.isEmpty()")
     public List<PostDTO> getPostsByUserEmail(String userEmail) {
         User usuario = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado com o e-mail: " + userEmail));
@@ -113,6 +118,7 @@ public class PostService {
                 .collect(Collectors.toList());
     }
 
+    @Cacheable(value = "postById", key = "#id + '_' + (#requesterEmail ?: 'anonymous')")
     public Optional<PostDTO> getPostById(Long id, String requesterEmail) {
         Optional<Post> postOptional = postRepository.findById(id);
 
@@ -127,7 +133,7 @@ public class PostService {
 
         return Optional.empty();
     }
-
+    @CacheEvict(value = {"publicFeed", "userPosts", "followingPosts", "postById"}, allEntries = true)
     public void updatePost(Long id, String descricao, String userEmail) {
         Post post = postRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Post não encontrado"));
@@ -208,6 +214,7 @@ public class PostService {
         return postDTO;
     }
 
+    @CacheEvict(value = {"publicFeed", "userPosts", "followingPosts", "postById"}, allEntries = true)
     @Transactional
     public void deletePost(Long id, String userEmail) {
         Post post = postRepository.findById(id)
