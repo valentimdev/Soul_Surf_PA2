@@ -1,5 +1,5 @@
 // src/services/chatApi.ts
-const API = import.meta.env.VITE_API_URL || "http://localhost:8080";
+const API = "/api"; // USA PROXY DO VITE
 
 function authHeaders() {
   const token = localStorage.getItem("token");

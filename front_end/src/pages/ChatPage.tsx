@@ -1,9 +1,10 @@
 // src/pages/ChatPage.tsx
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useMemo } from "react";
 import { useParams } from "react-router-dom";
 import axios from "axios";
-import SockJS from "sockjs-client";
-import { Client, IMessage } from "@stomp/stompjs";
+import { connectChat } from "@/api/services/chatSocket";
+import { format } from "date-fns";
+import { Send, Paperclip, Smile } from "lucide-react";
 
 type ChatMessage = {
   id: string;
@@ -19,78 +20,81 @@ export default function ChatPage() {
   const { conversationId = "" } = useParams();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [content, setContent] = useState("");
-  const clientRef = useRef<Client | null>(null);
-  const subRef = useRef<string | null>(null);
-  const endRef = useRef<HTMLDivElement | null>(null);
+  const [isTyping, setIsTyping] = useState(false);
+  const clientRef = useRef<any>(null);
+  const endRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const token = localStorage.getItem("token") ?? "";
   const userEmail = localStorage.getItem("email") ?? "";
 
-  // auto-scroll
-  const scrollToBottom = () => endRef.current?.scrollIntoView({ behavior: "smooth" });
-
-  // carrega histórico
-  async function loadMessages() {
-    const r = await axios.get(
-      `/api/chat/conversations/${conversationId}/messages?page=0&size=50`,
-      { headers: { Authorization: `Bearer ${token}` } }
+  // Combina mensagens carregadas + em tempo real, evita duplicatas
+  const allMessages = useMemo(() => {
+    const map = new Map<string, ChatMessage>();
+    messages.forEach(msg => map.set(msg.id, msg));
+    return Array.from(map.values()).sort(
+      (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
     );
-    // backend pode devolver Page ou array puro
-    const data = Array.isArray(r.data) ? r.data : (r.data.content ?? []);
-    // se vier DESC, inverte para exibir ascendente
-    setMessages([...data].reverse());
-  }
+  }, [messages]);
 
-  // conecta e assina a conversa
-  function connectAndSubscribe() {
-    // encerra conexão anterior (se houver)
+  // Auto-scroll
+  useEffect(() => {
+    endRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [allMessages]);
+
+  // Carrega histórico
+  const loadMessages = async () => {
+    try {
+      const r = await axios.get(
+        `/api/chat/conversations/${conversationId}/messages?page=0&size=50`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      const data = Array.isArray(r.data) ? r.data : (r.data.content ?? []);
+      setMessages(data.reverse());
+    } catch (err) {
+      console.error("Erro ao carregar mensagens:", err);
+    }
+  };
+
+  // WebSocket
+  const connectAndSubscribe = () => {
     if (clientRef.current) {
-      try { clientRef.current.deactivate(); } catch {}
-      clientRef.current = null;
-      subRef.current = null;
+      clientRef.current.deactivate();
     }
 
-    const sock = new SockJS("/ws"); // use PROXY do Vite para 8080
-    const client = new Client({
-      webSocketFactory: () => sock as any,
-      connectHeaders: { Authorization: `Bearer ${token}` }, // JwtChatChannelInterceptor
-      reconnectDelay: 5000,
-      onConnect: () => {
-        // assina o tópico da conversa
-        const sub = client.subscribe(`/topic/conversations/${conversationId}`, (frame: IMessage) => {
-          const payload: ChatMessage = JSON.parse(frame.body);
-          // evita duplicar se a UI otimista já adicionou (verificamos id)
-          setMessages(prev =>
-            prev.some(m => m.id === payload.id) ? prev : [...prev, payload]
-          );
+    if (!token || !conversationId) return;
+
+    const client = connectChat(
+      token,
+      conversationId,
+      (payload: ChatMessage) => {
+        setMessages(prev => {
+          if (prev.some(m => m.id === payload.id)) return prev;
+          return [...prev, payload];
         });
-        subRef.current = sub.id;
-      },
-      onStompError: f => console.error("STOMP error:", f.headers["message"]),
-      debug: () => {} // silencioso
-    });
+      }
+    );
 
-    client.activate();
     clientRef.current = client;
-  }
+  };
 
-  // envia mensagem (UI otimista)
-  async function sendMessage() {
+  // Envia mensagem com UI otimista
+  const sendMessage = async () => {
     const body = content.trim();
     if (!body) return;
 
-    // opcional: UI otimista
-    const temp: ChatMessage = {
-      id: `tmp-${Date.now()}`,
+    const tempId = `tmp-${Date.now()}`;
+    const tempMessage: ChatMessage = {
+      id: tempId,
       conversationId,
       senderId: userEmail,
       content: body,
-      attachmentUrl: null,
       createdAt: new Date().toISOString(),
-      editedAt: null,
     };
-    setMessages(prev => [...prev, temp]);
+
+    setMessages(prev => [...prev, tempMessage]);
     setContent("");
+    setIsTyping(false);
 
     try {
       const r = await axios.post(
@@ -98,78 +102,138 @@ export default function ChatPage() {
         { content: body },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      const saved: ChatMessage = r.data;
-      // substitui a temp pela salva (mesmo conteúdo, id real)
-      setMessages(prev =>
-        prev.map(m => (m.id === temp.id ? saved : m))
-      );
-      // o push do servidor também chegará; o de-dup acima evita repetição
-    } catch (err) {
-      // rollback da UI otimista
-      setMessages(prev => prev.filter(m => m.id !== temp.id));
-      alert("Não foi possível enviar a mensagem.");
-      console.error(err);
-    }
-  }
 
-  // efeitos
+      const saved: ChatMessage = r.data;
+      setMessages(prev => prev.map(m => (m.id === tempId ? saved : m)));
+    } catch (err: any) {
+      console.error("Erro ao enviar:", err.response?.data || err);
+      setMessages(prev => prev.filter(m => m.id !== tempId));
+      alert("Falha ao enviar. Tente novamente.");
+    }
+  };
+
+  // Efeitos
   useEffect(() => {
-    if (!conversationId) return;
+    if (!conversationId || !token) return;
     loadMessages();
     connectAndSubscribe();
-    return () => {
-      // cleanup ao desmontar/trocar de conversa
-      try { clientRef.current?.deactivate(); } catch {}
-      clientRef.current = null;
-      subRef.current = null;
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [conversationId]);
 
-  useEffect(() => { scrollToBottom(); }, [messages]);
+    return () => {
+      clientRef.current?.deactivate();
+    };
+  }, [conversationId, token]);
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
+  };
 
   return (
-    <div style={styles.container}>
-      <div style={styles.chatBox}>
-        {messages.map(m => {
-          const mine = m.senderId === userEmail;
-          return (
-            <div
-              key={m.id}
-              style={{
-                ...styles.message,
-                alignSelf: mine ? "flex-end" : "flex-start",
-                background: mine ? "#4f46e5" : "#e5e7eb",
-                color: mine ? "#fff" : "#111827",
-              }}
-              title={new Date(m.createdAt).toLocaleString()}
-            >
-              <b>{(m.senderId || "").split("@")[0]}</b>: {m.content}
+    <div className="flex flex-col h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+      {/* Header */}
+      <header className="bg-white border-b border-slate-200 px-6 py-4 shadow-sm">
+        <div className="max-w-4xl mx-auto flex items-center gap-3">
+          {/* Avatar do usuário */}
+          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold text-sm">
+              {userEmail ? userEmail[0].toUpperCase() : "?"}
             </div>
-          );
-        })}
-        <div ref={endRef} />
+          <div>
+            <h1 className="text-lg font-semibold text-slate-800">Chat em Tempo Real</h1>
+            <p className="text-xs text-slate-500">Conversa ativa</p>
+          </div>
+        </div>
+      </header>
+
+      {/* Messages Area */}
+      <div className="flex-1 overflow-y-auto px-4 py-6 max-w-4xl w-full mx-auto">
+        <div className="space-y-4">
+          {allMessages.map((m) => {
+            const isMine = m.senderId === userEmail;
+            return (
+              <div
+                key={m.id}
+                className={`flex ${isMine ? "justify-end" : "justify-start"} animate-in slide-in-from-bottom-2 duration-300`}
+              >
+                <div
+                  className={`
+                    max-w-xs md:max-w-md px-4 py-3 rounded-2xl shadow-sm
+                    ${isMine 
+                      ? "bg-gradient-to-br from-indigo-500 to-purple-600 text-white" 
+                      : "bg-white text-slate-800 border border-slate-200"
+                    }
+                  `}
+                >
+                  {!isMine && (
+                    <p className="text-xs font-medium text-indigo-600 mb-1">
+                      {m.senderId.split("@")[0]}
+                    </p>
+                  )}
+                  <p className="text-sm leading-relaxed">{m.content}</p>
+                  <p className={`text-xs mt-1 ${isMine ? "text-indigo-100" : "text-slate-400"}`}>
+                    {format(new Date(m.createdAt), "HH:mm")}
+                  </p>
+                </div>
+              </div>
+            );
+          })}
+          {isTyping && (
+            <div className="flex justify-start">
+              <div className="bg-white px-4 py-3 rounded-2xl shadow-sm border border-slate-200">
+                <div className="flex gap-1">
+                  <div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: "0ms" }}></div>
+                  <div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: "150ms" }}></div>
+                  <div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: "300ms" }}></div>
+                </div>
+              </div>
+            </div>
+          )}
+          <div ref={endRef} />
+        </div>
       </div>
 
-      <div style={styles.inputArea}>
-        <input
-          value={content}
-          onChange={e => setContent(e.target.value)}
-          onKeyDown={e => e.key === "Enter" && sendMessage()}
-          placeholder="Digite sua mensagem…"
-          style={styles.input}
-        />
-        <button onClick={sendMessage} style={styles.button}>Enviar</button>
+      {/* Input Area */}
+      <div className="border-t border-slate-200 bg-white px-4 py-4">
+        <div className="max-w-4xl mx-auto">
+          <div className="flex items-end gap-2">
+            <button className="p-2 text-slate-500 hover:text-indigo-600 transition-colors">
+              <Paperclip className="w-5 h-5" />
+            </button>
+            
+            <div className="flex-1 relative">
+              <input
+                ref={inputRef}
+                value={content}
+                onChange={(e) => {
+                  setContent(e.target.value);
+                  setIsTyping(e.target.value.length > 0);
+                }}
+                onKeyDown={handleKeyDown}
+                placeholder="Digite sua mensagem..."
+                className="w-full px-4 py-3 pr-12 bg-slate-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
+              />
+              <button className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-indigo-600">
+                <Smile className="w-5 h-5" />
+              </button>
+            </div>
+
+            <button
+              onClick={sendMessage}
+              disabled={!content.trim()}
+              className={`
+                p-3 rounded-xl transition-all duration-200 flex items-center gap-2
+                ${content.trim() 
+                  ? "bg-gradient-to-br from-indigo-500 to-purple-600 text-white shadow-lg hover:shadow-xl transform hover:scale-105" 
+                  : "bg-slate-200 text-slate-400 cursor-not-allowed"
+                }
+              `}
+            >
+              <Send className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );
 }
-
-const styles: Record<string, React.CSSProperties> = {
-  container: { display: "flex", flexDirection: "column", height: "90vh", padding: 20, background: "#f3f4f6" },
-  chatBox: { flex: 1, overflowY: "auto", display: "flex", flexDirection: "column", gap: 10, padding: 10, background: "#fff", borderRadius: 10, boxShadow: "0 2px 8px rgba(0,0,0,0.1)" },
-  message: { maxWidth: "70%", padding: "10px 14px", borderRadius: 12, fontSize: 15, lineHeight: 1.4 },
-  inputArea: { marginTop: 15, display: "flex", gap: 10 },
-  input: { flex: 1, padding: 10, borderRadius: 8, border: "1px solid #ccc", fontSize: 15 },
-  button: { background: "#4f46e5", color: "#fff", padding: "10px 18px", border: "none", borderRadius: 8, cursor: "pointer" },
-};

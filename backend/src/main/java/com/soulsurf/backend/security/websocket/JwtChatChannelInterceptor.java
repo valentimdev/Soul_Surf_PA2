@@ -1,71 +1,110 @@
+// src/main/java/com/soulsurf/backend/security/websocket/JwtChatChannelInterceptor.java
 package com.soulsurf.backend.security.websocket;
 
-import com.soulsurf.backend.entities.ConversationParticipantId;
-import com.soulsurf.backend.repository.ConversationParticipantRepository;
 import com.soulsurf.backend.security.jwt.JwtUtils;
+import com.soulsurf.backend.security.service.UserDetailsServiceImpl;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.simp.stomp.StompCommand;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.messaging.support.ChannelInterceptor;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextImpl;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
 
+@Slf4j
 @Component
 public class JwtChatChannelInterceptor implements ChannelInterceptor {
 
     private final JwtUtils jwtUtils;
-    private final ConversationParticipantRepository participantRepo;
+    private final UserDetailsServiceImpl userDetailsService;
 
-    public JwtChatChannelInterceptor(JwtUtils jwtUtils,
-                                     ConversationParticipantRepository participantRepo) {
+    public JwtChatChannelInterceptor(JwtUtils jwtUtils, UserDetailsServiceImpl userDetailsService) {
         this.jwtUtils = jwtUtils;
-        this.participantRepo = participantRepo;
+        this.userDetailsService = userDetailsService;
     }
 
     @Override
-    public Message<?> preSend(Message<?> message, MessageChannel channel) {
-        StompHeaderAccessor acc = StompHeaderAccessor.wrap(message);
-        StompCommand cmd = acc.getCommand();
+    public Message<?> preSend(Message<?> message, org.springframework.messaging.MessageChannel channel) {
+        StompHeaderAccessor accessor = StompHeaderAccessor.wrap(message);
+        StompCommand command = accessor.getCommand();
 
-        if (StompCommand.CONNECT.equals(cmd)) {
-            // JWT no header nativo STOMP
-            String auth = acc.getFirstNativeHeader("Authorization");
-            if (!StringUtils.hasText(auth) || !auth.startsWith("Bearer ")) {
-                throw new AuthException("Missing Authorization");
-            }
-            String token = auth.substring(7);
-            if (!jwtUtils.validateJwtToken(token)) {
-                throw new AuthException("Invalid token");
-            }
-            // use o método que retorna o identificador do usuário (id ou email)
-            String userId = jwtUtils.getUserNameFromJwtToken(token);
-            acc.setUser(() -> userId); // Principal.getName() = userId
+        if (command == null) {
+            return message;
         }
 
-        if (StompCommand.SUBSCRIBE.equals(cmd)) {
-            String destination = acc.getDestination(); // ex: /topic/conversations/{id}
-            String me = acc.getUser() != null ? acc.getUser().getName() : null;
+        log.info("[STOMP] Comando: {}", command);
 
-            if (destination != null && destination.startsWith("/topic/conversations/")) {
-                String conversationId = destination.substring("/topic/conversations/".length());
-                boolean isParticipant = participantRepo
-                        .findById(new ConversationParticipantId(conversationId, me))
-                        .isPresent();
-                if (!isParticipant) {
-                    throw new AccessDenied("Not a participant of this conversation");
+        // APENAS NO CONNECT: autenticar e configurar o usuário
+        if (StompCommand.CONNECT.equals(command)) {
+            // 1. Tentar token dos session attributes (via HandshakeInterceptor)
+            String token = (String) accessor.getSessionAttributes().get("jwt_token");
+
+            // 2. Se não tiver, tentar header Authorization (opcional)
+            if (token == null) {
+                String authHeader = accessor.getFirstNativeHeader("Authorization");
+                if (authHeader != null && authHeader.startsWith("Bearer ")) {
+                    token = authHeader.substring(7);
                 }
             }
+
+            if (token == null || token.isEmpty()) {
+                log.warn("CONNECT sem token JWT");
+                throw new MessagingException("Token ausente");
+            }
+
+            if (!jwtUtils.validateJwtToken(token)) {
+                log.warn("Token JWT inválido ou expirado");
+                throw new MessagingException("Token inválido");
+            }
+
+            String email = jwtUtils.getUserNameFromJwtToken(token);
+            UserDetails userDetails = userDetailsService.loadUserByUsername(email);
+
+            UsernamePasswordAuthenticationToken auth =
+                    new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+
+            // Define o usuário no accessor
+            accessor.setUser(auth);
+
+            // SALVA O SecurityContext para persistir entre frames (CRÍTICO!)
+            accessor.getSessionAttributes().put(
+                    "SPRING_SECURITY_CONTEXT",
+                    new SecurityContextImpl(auth)
+            );
+
+            log.info("[SUCESSO] CONNECT autenticado como: {}", email);
         }
+
 
         return message;
     }
 
-    private static class AuthException extends MessagingException {
-        public AuthException(String msg) { super(msg); }
-    }
-    private static class AccessDenied extends MessagingException {
-        public AccessDenied(String msg) { super(msg); }
+    @Override
+    public void postSend(Message<?> message, org.springframework.messaging.MessageChannel channel, boolean sent) {
+        if (!sent) return;
+
+        StompHeaderAccessor accessor = StompHeaderAccessor.wrap(message);
+        StompCommand command = accessor.getCommand();
+
+        if (command == null) return;
+
+        if (StompCommand.SUBSCRIBE.equals(command)) {
+            if (accessor.getUser() != null) {
+                log.info("[SUCESSO] SUBSCRIBE autenticado como: {} | Destino: {}",
+                        accessor.getUser().getName(), accessor.getDestination());
+            } else {
+                log.warn("[ERRO] SUBSCRIBE sem usuário autenticado");
+            }
+        }
+
+        if (StompCommand.SEND.equals(command)) {
+            if (accessor.getUser() != null) {
+                log.info("[SUCESSO] SEND autenticado como: {} | Destino: {}",
+                        accessor.getUser().getName(), accessor.getDestination());
+            }
+        }
     }
 }
