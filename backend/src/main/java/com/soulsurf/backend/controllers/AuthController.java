@@ -2,6 +2,7 @@ package com.soulsurf.backend.controllers;
 
 import com.soulsurf.backend.dto.*;
 import com.soulsurf.backend.security.jwt.JwtUtils;
+import com.soulsurf.backend.security.service.UserDetailsImpl;
 import com.soulsurf.backend.services.PasswordResetService;
 import com.soulsurf.backend.services.UserService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -45,8 +46,12 @@ public class AuthController {
 
             SecurityContextHolder.getContext().setAuthentication(authentication);
             String jwt = jwtUtils.generateJwtToken(authentication);
-
-            return ResponseEntity.ok(new JwtResponse(jwt));
+            boolean isAdmin = false;
+            Object principal = authentication.getPrincipal();
+            if (principal instanceof UserDetailsImpl) {
+                isAdmin = ((UserDetailsImpl) principal).isAdmin();
+            }
+            return ResponseEntity.ok(new JwtResponse(jwt, isAdmin));
 
         } catch (Exception e) {
             return ResponseEntity
