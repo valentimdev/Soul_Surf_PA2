@@ -42,12 +42,14 @@ interface Post {
 function CommentItem({
                          comment,
                          loggedUserId,
+                         isAdmin,
                          onReplySubmit,
                          onDelete,
                          onUpdate,
                      }: {
     comment: Comment;
     loggedUserId: number;
+    isAdmin: boolean;
     onReplySubmit: (parentId: number, text: string) => void;
     onDelete: (commentId: number) => void;
     onUpdate: (commentId: number, newText: string) => void;
@@ -71,6 +73,8 @@ function CommentItem({
     };
 
     const isOwner = comment.usuario.id === loggedUserId;
+    const canEdit = isOwner;
+    const canDelete = isOwner || isAdmin;
 
     return (
         <div className="pl-2 border-l border-gray-200">
@@ -82,6 +86,7 @@ function CommentItem({
                     </Avatar>
                     <span className="font-semibold">{comment.usuario.username}</span>
                 </CardHeader>
+
                 <CardContent className="p-0">
                     {isEditing ? (
                         <>
@@ -95,6 +100,7 @@ function CommentItem({
                         <p className="text-sm">{comment.texto}</p>
                     )}
                     <p className="text-xs text-gray-400 mt-1">{new Date(comment.data).toLocaleString()}</p>
+
                     {!comment.parentId && !isEditing && (
                         <Button
                             variant="link"
@@ -105,6 +111,7 @@ function CommentItem({
                             {showReplyBox ? "Cancelar" : "Responder"}
                         </Button>
                     )}
+
                     {showReplyBox && (
                         <div className="mt-2">
                             <Textarea
@@ -115,14 +122,22 @@ function CommentItem({
                             <Button className="mt-2" size="sm" onClick={handleReply}>Enviar resposta</Button>
                         </div>
                     )}
-                    {isOwner && !isEditing && (
-                        <div className="mt-2 flex gap-2">
-                            <Button size="sm" variant="outline" onClick={() => setIsEditing(true)}>Editar</Button>
-                            <Button size="sm" variant="destructive" onClick={() => onDelete(comment.id)}>Apagar</Button>
-                        </div>
-                    )}
+
+                    <div className="mt-2 flex gap-2">
+                        {canEdit && !isEditing && (
+                            <Button size="sm" variant="outline" onClick={() => setIsEditing(true)}>
+                                Editar
+                            </Button>
+                        )}
+                        {canDelete && (
+                            <Button size="sm" variant="destructive" onClick={() => onDelete(comment.id)}>
+                                Apagar
+                            </Button>
+                        )}
+                    </div>
                 </CardContent>
             </Card>
+
             {comment.replies && comment.replies.length > 0 && (
                 <div className="ml-4 mt-2 space-y-2">
                     {comment.replies.map((resp: Comment) => (
@@ -153,28 +168,34 @@ export default function PostCommentsPage() {
     const [newComment, setNewComment] = useState("");
     const [loading, setLoading] = useState(true);
     const [loggedUserId, setLoggedUserId] = useState<number | null>(null);
+    const [isAdmin, setIsAdmin] = useState(false);
 
     useEffect(() => {
         const fetchData = async () => {
             try {
+                // Busca o usuário autenticado
                 const userRes = await api.get(userRoutes.getMe());
-                const userId = userRes.data.id;
-                setLoggedUserId(userId);
+                const userData = userRes.data;
 
+                setLoggedUserId(userData.id);
+                setIsAdmin(userData.admin === true); // ← Verificação direta do backend
+
+                // Carrega o post
                 const postRes = await api.get(`/posts/${id}`);
                 const postData = postRes.data;
 
                 setPost({
                     ...postData,
                     postOwnerId: postData.usuario.id,
-                    loggedUserId: userId,
+                    loggedUserId: userData.id,
                     comments: [],
                 });
 
+                // Carrega os comentários
                 const commentsRes = await api.get(`/posts/${id}/comments/`);
                 setComments(commentsRes.data);
             } catch (e) {
-                console.error("Erro ao carregar post/comentários", e);
+                console.error("Erro ao carregar post/comentários:", e);
             } finally {
                 setLoading(false);
             }
@@ -280,6 +301,7 @@ export default function PostCommentsPage() {
                 isFollowing={post.isFollowing}
                 onToggleFollow={() => {}}
             />
+
             <Card className="p-4">
                 <h3 className="text-lg font-semibold mb-2">Adicionar comentário</h3>
                 <Textarea
@@ -289,12 +311,14 @@ export default function PostCommentsPage() {
                 />
                 <Button onClick={handleAddComment} className="mt-2">Enviar</Button>
             </Card>
+
             <div className="space-y-3">
                 {comments.map((c) => (
                     <CommentItem
                         key={c.id}
                         comment={c}
                         loggedUserId={loggedUserId ?? 0}
+                        isAdmin={isAdmin}
                         onReplySubmit={handleReplySubmit}
                         onDelete={handleDeleteComment}
                         onUpdate={handleUpdateComment}
