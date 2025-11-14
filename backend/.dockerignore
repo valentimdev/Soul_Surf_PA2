@@ -1,0 +1,20 @@
+*
+!backend/
+
+# Dentro de backend, ignorar apenas algumas coisas
+backend/target/
+backend/.mvn/
+backend/HELP.md
+backend/.idea/
+backend/*.iml
+backend/.vscode/
+
+# Ignorar outras pastas
+front_end/
+ansible/
+infrastructure/
+.git/
+.idea/
+.vscode/
+README.md
+package-lock.json
