@@ -29,11 +29,15 @@ public class JwtUtils {
     // 1. Método para gerar o token JWT
     public String generateJwtToken(Authentication authentication) {
         // Pega o nome de usuário (geralmente o email) do objeto de autenticação
-
         String username = authentication.getName();
+
+        // Verifica se o usuário tem a role ADMIN
+        boolean isAdmin = authentication.getAuthorities().stream()
+                .anyMatch(grantedAuthority -> grantedAuthority.getAuthority().equals("ROLE_ADMIN"));
 
         return Jwts.builder()
                 .setSubject(username) // Define o assunto (quem é o dono do token)
+                .claim("admin", isAdmin) // Adiciona claim indicando se é admin
                 .setIssuedAt(new Date()) // Define a data de emissão
                 .setExpiration(new Date((new Date()).getTime() + jwtExpirationMs)) // Define a data de expiração
                 .signWith(key(), SignatureAlgorithm.HS256) // Assina o token com a chave secreta
