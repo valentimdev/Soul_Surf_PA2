@@ -10,6 +10,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
+@CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
 @RequestMapping("/api/admin")
 @Tag(name = "0. Administração", description = "Endpoints de administração do sistema")
@@ -135,5 +136,3 @@ public class AdminController {
         return ResponseEntity.ok(metricsService.getPostsByBeach(s, e));
     }
 }
-
-
