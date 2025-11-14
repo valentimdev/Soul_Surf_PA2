@@ -1,0 +1,40 @@
+# IDEs
+.idea/
+*.iml
+.vscode/
+
+# Backend (Java/Spring Boot)
+backend/target/
+backend/.mvn/
+backend/mvnw
+backend/mvnw.cmd
+*.class
+*.jar
+*.war
+*.ear
+
+# Frontend (Node/React)
+front_end/node_modules/
+front_end/dist/
+front_end/build/
+front_end/.env.local
+front_end/.env.production
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Terraform
+infrastructure/.terraform/
+infrastructure/*.tfstate
+infrastructure/*.tfstate.*
+infrastructure/.terraform.lock.hcl
+
+# Sensitive files
+*.pem
+*.key
+**/application-local.properties
+
