@@ -15,17 +15,19 @@ public class AdminService {
     private final UserRepository userRepository;
     private final PostRepository postRepository;
     private final CommentRepository commentRepository;
-
     private final AdminAuditService adminAuditService;
+    private final NotificationService notificationService;
 
     public AdminService(UserRepository userRepository,
                         PostRepository postRepository,
                         CommentRepository commentRepository,
-                        AdminAuditService adminAuditService) {
+                        AdminAuditService adminAuditService,
+                        NotificationService notificationService) {
         this.userRepository = userRepository;
         this.postRepository = postRepository;
         this.commentRepository = commentRepository;
         this.adminAuditService = adminAuditService;
+        this.notificationService = notificationService;
     }
 
     @Transactional
@@ -40,6 +42,9 @@ public class AdminService {
     public void deletePost(Long postId, String actorEmail) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new IllegalArgumentException("Post não encontrado"));
+
+        notificationService.deleteNotificationsByPost(post);
+
         postRepository.delete(post);
         adminAuditService.log(actorEmail, "DELETE_POST", "POST", postId, null);
     }
@@ -48,6 +53,9 @@ public class AdminService {
     public void deleteComment(Long commentId, String actorEmail) {
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new IllegalArgumentException("Comentário não encontrado"));
+
+        notificationService.deleteNotificationsByComment(comment);
+
         commentRepository.delete(comment);
         adminAuditService.log(actorEmail, "DELETE_COMMENT", "COMMENT", commentId, null);
     }
@@ -88,5 +96,3 @@ public class AdminService {
         adminAuditService.log(actorEmail, "UNBAN_USER", "USER", userId, null);
     }
 }
-
-

@@ -72,4 +72,8 @@ public class JwtUtils {
         }
         return false;
     }
+
+    public Key getKey() {
+        return Keys.hmacShaKeyFor(jwtSecret.getBytes());
+    }
 }
