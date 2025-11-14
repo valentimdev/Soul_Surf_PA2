@@ -7,7 +7,7 @@ export interface WeatherDTO {
     iconCode: string;
 }
 
-const API_URL = "http://localhost:8080/api";
+const API_URL = "https://soulsurfpa2-production.up.railway.app/api";
 
 export class WeatherService {
 

@@ -14,7 +14,6 @@ function ForgotPasswordPage() {
       <ResizablePanelGroup direction="horizontal" className="flex-1">
         <ResizablePanel defaultSize={30}>
           <div className="h-full flex items-center justify-center">
-            <img src={azul2} alt="Foto Surf 1" className="w-full h-full object-cover" />
           </div>
         </ResizablePanel>
 

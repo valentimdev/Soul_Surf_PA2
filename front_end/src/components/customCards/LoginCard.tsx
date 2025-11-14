@@ -89,13 +89,10 @@ function LoginCard() {
                     </form>
                 </CardContent>
                 <CardFooter className="flex-col gap-2">
-                    <Button variant="outline" className="w-full">
-                        Login com o Google
-                    </Button>
                     <div className="flex items-center">
                         <a
                             href="/cadastro"
-                            className="ml-auto inline-block underline-offset-4 hover:underline"
+                            className="ml-auto inline-block underline-offset-4 hover:underline text-sm"
                         >
                             Não possui conta ainda? Registre-se Agora!
                         </a>
