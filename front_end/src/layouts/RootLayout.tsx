@@ -93,7 +93,7 @@ const RootLayout: React.FC = () => {
                         <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
                             <DialogTrigger asChild>
                                 <Button
-                                    className="fixed bottom-8 right-8 h-16 w-16 rounded-full shadow-lg z-50"
+                                    className="fixed bottom-8 right-8 h-16 w-16 rounded-full shadow-lg z-1"
                                     size="icon"
                                 >
                                     <Plus className="h-8 w-8" />

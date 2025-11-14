@@ -147,17 +147,17 @@ function Header() {
 
   return (
     <>
-      <header className="bg-[var(--primary)] h-20 w-full flex items-center justify-center md:justify-between px-6 relative z-100">
-        <div className="flex items-center h-full">
-          {/* Botão hambúrguer - visível apenas no mobile */}
-          <button
+      <header className="bg-[var(--primary)] h-20 w-full flex items-center justify-between md:justify-between px-6 relative z-100">
+                  <button
             onClick={() => setIsMobileMenuOpen(true)}
-            className="md:hidden mr-3 p-2 text-white hover:bg-white/10 rounded-md transition-colors"
+            className="md:hidden  p-2 text-white hover:bg-white/10 rounded-md transition-colors"
             aria-label="Abrir menu"
           >
             <Menu size={24} />
           </button>
 
+    
+        <div className="absolute left-1/2 -translate-x-1/2 md:relative md:left-0 md:translate-x-0 h-full flex items-center">
           <img
             src={soulSurfIcon}
             alt="Soul Surf Logo"
