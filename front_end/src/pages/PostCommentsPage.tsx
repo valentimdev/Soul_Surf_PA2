@@ -8,6 +8,7 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import api from "@/api/axios.ts";
 import { NotificationService } from "@/api/services/notificationService.ts";
 import { userRoutes } from "@/api/routes/user.ts";
+import {AdminService} from "@/api/services/adminService.ts";
 
 interface Comment {
     id: number;
@@ -265,7 +266,12 @@ export default function PostCommentsPage() {
 
     const handleDeleteComment = async (commentId: number) => {
         try {
-            await api.delete(`/posts/${id}/comments/${commentId}`);
+            if (isAdmin) {
+                await AdminService.deleteComment(commentId);
+            } else {
+                await api.delete(`/posts/${id}/comments/${commentId}`);
+            }
+
             setComments((prev) => prev.filter((c) => c.id !== commentId));
         } catch (err) {
             console.error("Erro ao apagar comentário:", err);

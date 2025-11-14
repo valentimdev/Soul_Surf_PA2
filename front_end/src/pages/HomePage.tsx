@@ -16,7 +16,6 @@ function HomePage() {
                 const loggedUser = await UserService.getMe();
                 setMe(loggedUser);
 
-                // pega followings usando o id
                 const followingRes = await api.get<UserDTO[]>(`/users/${loggedUser.id}/following`);
                 setFollowingIds(followingRes.data.map((u) => u.id));
 
@@ -30,6 +29,7 @@ function HomePage() {
         };
 
         fetchData();
+
         const handleNewPost = (e: Event) => {
             const customEvent = e as CustomEvent<PostDTO>;
             setPosts((prev) => [customEvent.detail, ...prev]);
@@ -41,10 +41,12 @@ function HomePage() {
 
     const handleToggleFollow = (userId: number, isNowFollowing: boolean) => {
         setFollowingIds((prev) =>
-            isNowFollowing
-                ? [...prev, userId] // adiciona
-                : prev.filter((id) => id !== userId) // remove
+            isNowFollowing ? [...prev, userId] : prev.filter((id) => id !== userId)
         );
+    };
+
+    const handleDeletePostFromList = (postId: number) => {
+        setPosts(prev => prev.filter(p => p.id !== postId));
     };
 
     if (loading || !me) {
@@ -70,6 +72,7 @@ function HomePage() {
                         onToggleFollow={handleToggleFollow}
                         likesCount={post.likesCount || 0}
                         likedByCurrentUser={post.likedByCurrentUser || false}
+                        onPostDeleted={handleDeletePostFromList}
                     />
                 ))}
             </div>

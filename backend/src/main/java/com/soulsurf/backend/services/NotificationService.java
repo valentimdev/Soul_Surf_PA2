@@ -184,4 +184,14 @@ public class NotificationService {
         dto.setMessage(message);
         return dto;
     }
+
+    @Transactional
+    public void deleteNotificationsByPost(Post post) {
+        notificationRepository.deleteByPost(post);
+    }
+
+    @Transactional
+    public void deleteNotificationsByComment(Comment comment) {
+        notificationRepository.deleteByComment(comment);
+    }
 }

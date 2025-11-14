@@ -27,13 +27,14 @@ public class CommentService {
     private final NotificationService notificationService;
 
     public CommentService(CommentRepository commentRepository, PostRepository postRepository,
-                         UserRepository userRepository, NotificationService notificationService) {
+                          UserRepository userRepository, NotificationService notificationService) {
         this.commentRepository = commentRepository;
         this.postRepository = postRepository;
         this.userRepository = userRepository;
         this.notificationService = notificationService;
     }
-     @CacheEvict(value = {"postById"}, allEntries = true)
+
+    @CacheEvict(value = {"postById"}, allEntries = true)
     public CommentDTO createComment(Long postId, Long parentId, String texto, String userEmail) {
         User usuario = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado"));
@@ -56,21 +57,18 @@ public class CommentService {
 
         processarMencoes(comment, usuario.getUsername());
 
-        // Cria notificação para o dono do post (se não for ele mesmo comentando)
         if (parentId == null) {
-            // É um comentário direto no post
             notificationService.createCommentNotification(
-                usuario.getUsername(),
-                postId,
-                comment.getId()
+                    usuario.getUsername(),
+                    postId,
+                    comment.getId()
             );
         } else {
-            // É uma resposta a outro comentário
             notificationService.createReplyNotification(
-                usuario.getUsername(),
-                postId,
-                comment.getId(),
-                parentId
+                    usuario.getUsername(),
+                    postId,
+                    comment.getId(),
+                    parentId
             );
         }
 
@@ -103,6 +101,7 @@ public class CommentService {
                 .map(this::convertToDto)
                 .collect(Collectors.toList());
     }
+
     @CacheEvict(value = {"postById"}, allEntries = true)
     public CommentDTO updateComment(Long postId, Long commentId, String texto, String userEmail) {
         Comment comment = validateAndGetComment(postId, commentId, userEmail);
@@ -110,13 +109,13 @@ public class CommentService {
         comment.setTexto(texto);
         comment = commentRepository.save(comment);
 
-        // Processa menções após atualizar o comentário
         User usuario = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado"));
         processarMencoes(comment, usuario.getUsername());
 
         return convertToDto(comment);
     }
+
     @CacheEvict(value = {"postById"}, allEntries = true)
     public void deleteComment(Long postId, Long commentId, String userEmail) {
         Comment comment = validateAndGetComment(postId, commentId, userEmail);

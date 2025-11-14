@@ -2,6 +2,8 @@
 
 package com.soulsurf.backend.security.jwt;
 
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jwts;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -10,6 +12,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
@@ -20,6 +24,10 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import com.soulsurf.backend.security.service.UserDetailsServiceImpl;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.fasterxml.jackson.databind.cfg.CoercionInputShape.Boolean;
 
 @Component
 public class AuthTokenFilter extends OncePerRequestFilter {
@@ -49,13 +57,29 @@ public class AuthTokenFilter extends OncePerRequestFilter {
 
                 // Carrega os detalhes do usuário usando o service que você criou
                 UserDetails userDetails = userDetailsService.loadUserByUsername(username);
-                logger.info("=== DEBUG: UserDetails carregado: {}", userDetails != null ? userDetails.getUsername() : "null");
-                // Cria um objeto de autenticação do Spring Security
+
+                // Lê o JWT e extrai os claims
+                Claims claims = Jwts.parserBuilder()
+                        .setSigningKey(jwtUtils.getKey()) // PRECISAMOS expor getKey() no JwtUtils
+                        .build()
+                        .parseClaimsJws(jwt)
+                        .getBody();
+
+                // Copia as roles normais do usuário
+                List<GrantedAuthority> authorities = new ArrayList<>(userDetails.getAuthorities());
+
+                // Se o token tiver admin=true, adiciona ROLE_ADMIN
+                Boolean isAdmin = claims.get("admin", Boolean.class);
+                if (isAdmin != null && isAdmin) {
+                    authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
+                }
+                logger.info("=== AUTHORITIES DO USUÁRIO: {}", userDetails.getAuthorities());
                 UsernamePasswordAuthenticationToken authentication =
                         new UsernamePasswordAuthenticationToken(
                                 userDetails,
                                 null,
-                                userDetails.getAuthorities());
+                                authorities
+                        );
 
                 authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 

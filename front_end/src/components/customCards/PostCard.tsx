@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router-dom";
+import { AdminService } from "@/api/services/adminService";
 import { useEffect, useRef, useState } from "react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -45,6 +46,7 @@ interface PostCardProps {
     onToggleFollow: (userId: number, isNowFollowing: boolean) => void;
     likesCount?: number;
     likedByCurrentUser?: boolean;
+    onPostDeleted: (postId: number) => void;
 }
 
 export function PostCard({
@@ -60,6 +62,7 @@ export function PostCard({
                              onToggleFollow,
                              likesCount: initialLikesCount = 0,
                              likedByCurrentUser: initialLiked = false,
+                             onPostDeleted
                          }: PostCardProps) {
     const navigate = useNavigate();
     const [liked, setLiked] = useState(initialLiked);
@@ -76,7 +79,6 @@ export function PostCard({
         setLikesCount(initialLikesCount);
     }, [initialLiked, initialLikesCount]);
 
-    // ✅ busca o usuário logado e define se é admin
     useEffect(() => {
         UserService.getMe()
             .then((user) => setIsAdmin(user.admin === true))
@@ -88,7 +90,6 @@ export function PostCard({
             ? Number(postOwnerId) === Number(loggedUserId)
             : false;
 
-    // === Mencionar usuários ===
     useEffect(() => {
         if (!contentRef.current) return;
         const spans = contentRef.current.querySelectorAll("span[data-mention]");
@@ -112,7 +113,6 @@ export function PostCard({
         );
     };
 
-    // === Editar post ===
     const handleUpdate = async () => {
         try {
             const formData = new FormData();
@@ -123,20 +123,24 @@ export function PostCard({
             });
 
             setEditDialogOpen(false);
-            window.location.reload();
         } catch (err) {
             console.error("Erro ao editar post:", err);
             alert("Não foi possível atualizar o post.");
         }
     };
 
-    // === Excluir post ===
     const handleDelete = async () => {
         if (!confirm("Tem certeza que deseja excluir este post?")) return;
         setIsDeleting(true);
+
         try {
-            await api.delete(postRoutes.delete(postId));
-            window.location.reload();
+            if (isAdmin && !isOwner) {
+                await AdminService.deletePost(postId);
+            } else {
+                await api.delete(postRoutes.delete(postId));
+            }
+
+            onPostDeleted(postId);
         } catch (err) {
             console.error("Erro ao excluir post:", err);
             alert("Não foi possível excluir o post.");
@@ -145,7 +149,6 @@ export function PostCard({
         }
     };
 
-    // === Curtir/Descurtir ===
     const handleToggleLike = async () => {
         if (isLiking) return;
         setIsLiking(true);
@@ -168,11 +171,10 @@ export function PostCard({
         }
     };
 
-    // === Regras de exibição ===
     const shouldShowFollowButton = !isOwner;
     const shouldShowMenu = isOwner || isAdmin;
-    const canEdit = isOwner; // admin NÃO edita
-    const canDelete = isOwner || isAdmin; // admin e dono podem excluir
+    const canEdit = isOwner;
+    const canDelete = isOwner || isAdmin;
 
     return (
         <>
@@ -195,7 +197,6 @@ export function PostCard({
                     </div>
 
                     <div className="flex items-center gap-2">
-                        {/* Botão de seguir */}
                         {shouldShowFollowButton && (
                             <FollowButton
                                 postOwnerId={postOwnerId}
@@ -204,7 +205,6 @@ export function PostCard({
                             />
                         )}
 
-                        {/* Menu more options */}
                         {shouldShowMenu && (
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
@@ -235,7 +235,6 @@ export function PostCard({
                     </div>
                 </CardHeader>
 
-                {/* Conteúdo */}
                 {imageUrl ? (
                     <CardContent className="p-0">
                         <img src={imageUrl} alt="Post" className="w-full max-h-[500px] object-cover bg-muted" />
@@ -261,7 +260,6 @@ export function PostCard({
                     </CardContent>
                 )}
 
-                {/* Rodapé */}
                 <CardFooter className="flex flex-col items-start p-4 pt-2">
                     <div className="flex gap-6 w-full items-center">
                         <div className="flex items-center gap-2">
@@ -283,8 +281,8 @@ export function PostCard({
                             </Button>
                             {likesCount > 0 && (
                                 <span className="text-sm font-semibold text-foreground min-w-[20px]">
-                  {likesCount}
-                </span>
+                                    {likesCount}
+                                </span>
                             )}
                         </div>
 
@@ -313,7 +311,6 @@ export function PostCard({
                 </CardFooter>
             </Card>
 
-            {/* Modal de edição */}
             <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
                 <DialogContent className="sm:max-w-md">
                     <DialogHeader>
