@@ -49,29 +49,7 @@ function LandingCard() {
           >
             Entrar
           </Button>
-
-          <Button
-            variant="ghost"
-            className="w-full py-4 text-md"
-            onClick={() => navigate('/about')}
-          >
-            Sobre
-          </Button>
-
-          {/* Dialog de Termos de Uso */}
-          <Dialog open={isTermsOpen} onOpenChange={setIsTermsOpen}>
-            <DialogTrigger asChild>
-              <Button
-                variant="ghost"
-                className="w-full py-2 text-sm text-gray-500 hover:text-gray-700"
-              >
-                Termos de Uso
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-4xl max-h-[90vh] p-0">
-              <TermsOfServiceCard onClose={() => setIsTermsOpen(false)} />
-            </DialogContent>
-          </Dialog>
+  
         </CardContent>
       </Card>
     </div>

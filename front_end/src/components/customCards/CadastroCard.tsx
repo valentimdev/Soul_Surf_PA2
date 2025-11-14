@@ -102,9 +102,6 @@ function CadastroCard() {
                 <Button onClick={handleSignup} type="submit" className="w-full">
                     Confirmar Cadastro
                 </Button>
-                <Button variant="outline" className="w-full">
-                    Cancelar
-                </Button>
                 <div className="flex items-center">
                     <a
                         href="/login"

@@ -13,7 +13,7 @@ export const connectChat = (
   }
 
   // USE ws:// E WebSocket NATIVO
-  const socket = new WebSocket(`ws://localhost:8080/ws?access_token=${token}`);
+  const socket = new WebSocket(`ws://soulsurfpa2-production.up.railway.app/ws?access_token=${token}`);
 
   const client = new Client({
     webSocketFactory: () => socket,
