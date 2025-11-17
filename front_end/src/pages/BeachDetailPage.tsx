@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom";
 import { BeachService, type BeachDTO, type PostDTO } from "@/api/services/beachService";
 import { Card } from "@/components/ui/card";
 import { PostCard } from "@/components/customCards/PostCard.tsx";
+import LoadingSpinner from "@/components/LoadingSpinner.tsx";
 
 function BeachDetailPage() {
     const { id } = useParams<{ id: string }>();
@@ -16,7 +17,11 @@ function BeachDetailPage() {
         BeachService.getBeachPosts(id).then(setPosts);
     }, [id]);
 
-    if (!beach) return <div className="p-5 mt-5">Carregando...</div>;
+    if (!beach) return <LoadingSpinner />;
+
+    const handleDeletePostFromList = (postId: number) => {
+        setPosts(prev => prev.filter(p => p.id !== postId));
+    };
 
     return (
         <div className="max-w-4xl mx-auto p-5 space-y-6">
@@ -51,6 +56,7 @@ function BeachDetailPage() {
                         loggedUserId={0}
                         isFollowing={false}
                         onToggleFollow={() => {}}
+                        onPostDeleted={handleDeletePostFromList}
                     />
                 ))}
             </div>

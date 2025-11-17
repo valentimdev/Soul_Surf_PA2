@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import {useNavigate, useParams} from "react-router-dom";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
@@ -9,6 +9,7 @@ import api from "@/api/axios.ts";
 import { NotificationService } from "@/api/services/notificationService.ts";
 import { userRoutes } from "@/api/routes/user.ts";
 import {AdminService} from "@/api/services/adminService.ts";
+import LoadingSpinner from "@/components/LoadingSpinner.tsx";
 
 interface Comment {
     id: number;
@@ -170,6 +171,10 @@ export default function PostCommentsPage() {
     const [loading, setLoading] = useState(true);
     const [loggedUserId, setLoggedUserId] = useState<number | null>(null);
     const [isAdmin, setIsAdmin] = useState(false);
+    const navigate = useNavigate();
+    const handleDeletePostFromList = () => {
+        navigate("/home");
+    };
 
     useEffect(() => {
         const fetchData = async () => {
@@ -290,7 +295,7 @@ export default function PostCommentsPage() {
         }
     };
 
-    if (loading) return <p className="text-center mt-6">Carregando...</p>;
+    if (loading) return <LoadingSpinner />;
     if (!post) return <p className="text-center mt-6">Post não encontrado</p>;
 
     return (
@@ -306,6 +311,7 @@ export default function PostCommentsPage() {
                 loggedUserId={loggedUserId ?? 0}
                 isFollowing={post.isFollowing}
                 onToggleFollow={() => {}}
+                onPostDeleted={handleDeletePostFromList}
             />
 
             <Card className="p-4">

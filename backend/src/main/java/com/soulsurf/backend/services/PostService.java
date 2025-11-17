@@ -6,13 +6,8 @@ import com.soulsurf.backend.dto.CommentDTO;
 import com.soulsurf.backend.dto.CreatePostRequest;
 import com.soulsurf.backend.dto.PostDTO;
 import com.soulsurf.backend.dto.UserDTO;
-import com.soulsurf.backend.entities.Beach;
-import com.soulsurf.backend.entities.Comment;
-import com.soulsurf.backend.entities.Post;
-import com.soulsurf.backend.entities.User;
-import com.soulsurf.backend.repository.BeachRepository;
-import com.soulsurf.backend.repository.PostRepository;
-import com.soulsurf.backend.repository.UserRepository;
+import com.soulsurf.backend.entities.*;
+import com.soulsurf.backend.repository.*;
 
 import jakarta.transaction.Transactional;
 
@@ -37,17 +32,26 @@ public class PostService {
     private final BeachRepository beachRepository;
     private final Optional<BlobStorageService> blobStorageService;
     private final LikeService likeService;
+    private final NotificationRepository notificationRepository;
+    private final CommentRepository commentRepository;
+    private final LikeRepository likeRepository;
 
     public PostService(PostRepository postRepository,
                        UserRepository userRepository,
                        BeachRepository beachRepository,
                        Optional<BlobStorageService> blobStorageService,
-                       @Lazy LikeService likeService) {
+                       @Lazy LikeService likeService,
+                       NotificationRepository notificationRepository,
+                       CommentRepository commentRepository,
+                       LikeRepository likeRepository) {
         this.postRepository = postRepository;
         this.userRepository = userRepository;
         this.beachRepository = beachRepository;
         this.blobStorageService = blobStorageService;
         this.likeService = likeService;
+        this.notificationRepository = notificationRepository;
+        this.commentRepository = commentRepository;
+        this.likeRepository = likeRepository;
     }
 
     @Transactional
@@ -88,6 +92,7 @@ public class PostService {
                 .map(post -> convertToDto(post, null))
                 .collect(Collectors.toList());
     }
+
     @Cacheable(value = "followingPosts", key = "#userEmail", unless = "#result.isEmpty()")
     public List<PostDTO> getFollowingPosts(String userEmail) {
         User currentUser = userRepository.findByEmail(userEmail)
@@ -133,6 +138,7 @@ public class PostService {
 
         return Optional.empty();
     }
+
     @CacheEvict(value = {"publicFeed", "userPosts", "followingPosts", "postById"}, allEntries = true)
     public void updatePost(Long id, String descricao, String userEmail) {
         Post post = postRepository.findById(id)
@@ -216,14 +222,22 @@ public class PostService {
 
     @CacheEvict(value = {"publicFeed", "userPosts", "followingPosts", "postById"}, allEntries = true)
     @Transactional
-    public void deletePost(Long id, String userEmail) {
-        Post post = postRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Post não encontrado"));
+    public void deletePost(Long postId, User requester) {
 
-        if (!post.getUsuario().getEmail().equals(userEmail)) {
-            throw new SecurityException("Usuário não tem permissão para excluir este post");
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new IllegalArgumentException("Post não encontrado"));
+
+        if (!post.getUsuario().getId().equals(requester.getId())) {
+            throw new SecurityException("Não autorizado");
         }
 
+        notificationRepository.deleteByPost(post);
+        List<Comment> comments = commentRepository.findByPostOrderByDataDesc(post);
+        for (Comment c : comments) {
+            notificationRepository.deleteByComment(c);
+        }
+        likeRepository.deleteAllByPost(post);
+        commentRepository.deleteAll(comments);
         postRepository.delete(post);
     }
 }

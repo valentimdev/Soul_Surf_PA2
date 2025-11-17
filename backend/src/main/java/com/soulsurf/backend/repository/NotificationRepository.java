@@ -30,4 +30,7 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
 
     void deleteByPost(Post post);
     void deleteByComment(Comment comment);
+
+    void deleteAllByPost(Post post);
+    void deleteAllByCommentIn(List<Comment> comments);
 }

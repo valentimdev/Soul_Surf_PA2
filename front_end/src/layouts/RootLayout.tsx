@@ -10,6 +10,7 @@ import NovaPraiaCard from '@/components/customCards/NovaPraiaCard';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import { useAuth } from '@/contexts/AuthContext';
+import LoadingSpinner from "@/components/LoadingSpinner.tsx";
 
 type User = {
     id: number;
@@ -55,7 +56,7 @@ const RootLayout: React.FC = () => {
         fetchUser();
     }, [token, logout, navigate]);
 
-    if (showLayout && (loadingUser || authLoading)) return <div>Carregando...</div>;
+    if (showLayout && (loadingUser || authLoading)) return <LoadingSpinner />;
     if (showLayout && !user && !authLoading) return <Navigate to="/login" replace />;
 
     const isPraiasPage = location.pathname === '/praias' || location.pathname === '/beaches';
