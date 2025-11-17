@@ -36,7 +36,7 @@ import { UserService } from "@/api/services/userService";
 interface PostCardProps {
     postId: number;
     username: string;
-    userAvatarUrl?: string;
+    fotoPerfil?: string;
     imageUrl?: string;
     description: string;
     praia?: string;
@@ -52,7 +52,7 @@ interface PostCardProps {
 export function PostCard({
                              postId,
                              username,
-                             userAvatarUrl,
+                             fotoPerfil,
                              imageUrl,
                              description,
                              praia,
@@ -181,12 +181,15 @@ export function PostCard({
             <Card className="w-full mx-auto bg-card rounded-lg overflow-hidden shadow-sm mb-4 border border-none">
                 <CardHeader className="flex flex-row items-center justify-between p-4 pb-2">
                     <div className="flex items-center gap-3">
-                        <Avatar className="w-10 h-10 border-2 border-transparent hover:border-primary">
-                            <AvatarImage src={userAvatarUrl} alt={username} />
+                        <Avatar
+                            className="w-10 h-10 border-2 border-transparent hover:border-primary cursor-pointer"
+                            onClick={() => navigate(`/perfil/${postOwnerId}`)}
+                        >
+                            <AvatarImage src={fotoPerfil} alt={username} />
                             <AvatarFallback>{username?.charAt(0).toUpperCase() ?? "?"}</AvatarFallback>
                         </Avatar>
                         <div className="flex flex-col">
-                            <span className="font-bold text-card-foreground text-base">{username}</span>
+                            <span className="font-bold text-card-foreground text-base" onClick={() => navigate(`/perfil/${postOwnerId}`)}>{username}</span>
                             {praia && (
                                 <div className="flex items-center text-sm text-muted-foreground mt-0.5">
                                     <MapPin className="h-3 w-3 mr-1 text-primary" />
