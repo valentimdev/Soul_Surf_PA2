@@ -18,6 +18,10 @@ public interface PostRepository extends JpaRepository<Post, Long> {
 
     List<Post> findByUsuarioInOrderByDataDesc(List<User> usuarios);
 
+    Page<Post> findByPublicoIsTrue(Pageable pageable);
+    Page<Post> findByUsuario(User usuario, Pageable pageable);
+    Page<Post> findByUsuarioIn(List<User> usuarios, Pageable pageable);
+
     @Query("SELECT p FROM Post p WHERE p.beach = ?1 AND (p.publico = true OR p.usuario.email = ?2)")
     Page<Post> findByBeachAndPublicoIsTrueOrUsuarioEmail(Beach beach, String userEmail, Pageable pageable);
 
