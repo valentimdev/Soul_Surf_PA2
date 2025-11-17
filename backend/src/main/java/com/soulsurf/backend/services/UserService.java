@@ -1,10 +1,14 @@
 package com.soulsurf.backend.services;
 
+import com.soulsurf.backend.dto.PostDTO;
 import com.soulsurf.backend.dto.SignupRequest;
 import com.soulsurf.backend.dto.UserDTO;
 import com.soulsurf.backend.entities.User;
 import com.soulsurf.backend.repository.FollowRepository;
 import com.soulsurf.backend.repository.UserRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -249,7 +253,10 @@ public class UserService {
             userDTO.setSeguindoCount(user.getSeguindo().size());
         }
 
-        userDTO.setPosts(postService.getPostsByUserEmail(user.getEmail()));
+        // Para o perfil, pegamos apenas os primeiros 10 posts
+        PageRequest pageRequest = PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "data"));
+        Page<PostDTO> postsPage = postService.getPostsByUserEmail(user.getEmail(), pageRequest);
+        userDTO.setPosts(postsPage.getContent());
 
         return userDTO;
     }
