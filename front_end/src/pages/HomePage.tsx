@@ -3,6 +3,7 @@ import api from "@/api/axios";
 import { PostService, type PostDTO } from "@/api/services/postService";
 import { UserService, type UserDTO } from "@/api/services/userService";
 import { PostCard } from "@/components/customCards/PostCard";
+import LoadingSpinner from "@/components/LoadingSpinner.tsx";
 
 function HomePage() {
     const [posts, setPosts] = useState<PostDTO[]>([]);
@@ -50,7 +51,7 @@ function HomePage() {
     };
 
     if (loading || !me) {
-        return <div className="w-full text-center py-10">Carregando posts...</div>;
+        return <LoadingSpinner />;
     }
 
     return (

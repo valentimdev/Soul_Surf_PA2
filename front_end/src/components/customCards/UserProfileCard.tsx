@@ -2,7 +2,7 @@ import { useState, type ChangeEvent, type FormEvent, useEffect } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card } from '@/components/ui/card';
 import { Pencil } from 'lucide-react';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { Tabs, TabsContent } from '@/components/ui/tabs';
 import {
   Dialog,
   DialogTrigger,
@@ -16,6 +16,7 @@ import { type UserDTO, UserService } from '@/api/services/userService';
 import { toast } from 'sonner';
 import { PostCard } from '@/components/customCards/PostCard.tsx';
 import { Button } from '../ui/button';
+import LoadingSpinner from "@/components/LoadingSpinner.tsx";
 type UserProfileCardProps = {
   user: UserDTO;
 };
@@ -34,8 +35,13 @@ export function UserProfileCard({ user }: UserProfileCardProps) {
   const [showFollowing, setShowFollowing] = useState(false);
   const [followersList, setFollowersList] = useState<UserDTO[]>([]);
   const [followingList, setFollowingList] = useState<UserDTO[]>([]);
+  const [posts, setPosts] = useState(user.posts || []);
 
-  useEffect(() => {
+    const handleDeletePostFromList = (postId: number) => {
+        setPosts(prev => prev.filter(p => p.id !== postId));
+    };
+
+    useEffect(() => {
     UserService.getMe().then((user) => {
       setMe(user);
       UserService.getFollowing(user.id).then((list) => {
@@ -304,13 +310,13 @@ export function UserProfileCard({ user }: UserProfileCardProps) {
               className="mt-4 space-y-4"
             >
               {!me ? (
-                <div className="w-full text-center py-10">Carregando...</div>
+                  <LoadingSpinner />
               ) : user.posts.length === 0 ? (
                 <div className="bg-gray-50 w-full p-6 rounded-md text-center text-gray-600 border border-dashed border-gray-300">
                   Este usuário ainda não postou
                 </div>
               ) : (
-                user.posts.map((post) => (
+                  posts.map((post) => (
                   <PostCard
                     key={post.id}
                     postId={post.id}
@@ -323,6 +329,7 @@ export function UserProfileCard({ user }: UserProfileCardProps) {
                     loggedUserId={me.id}
                     isFollowing={followingIds.includes(post.usuario.id)}
                     onToggleFollow={handleToggleFollow}
+                    onPostDeleted={handleDeletePostFromList}
                   />
                 ))
               )}

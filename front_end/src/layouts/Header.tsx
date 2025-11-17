@@ -161,7 +161,7 @@ function Header() {
           <img
             src={soulSurfIcon}
             alt="Soul Surf Logo"
-            className="h-full w-auto cursor-pointer"
+            className="ml-12 h-full w-auto cursor-pointer"
             onClick={() => (window.location.href = '/home')}
           />
         </div>

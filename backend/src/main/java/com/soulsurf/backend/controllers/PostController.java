@@ -3,6 +3,8 @@ package com.soulsurf.backend.controllers;
 import com.soulsurf.backend.dto.CreatePostRequest;
 import com.soulsurf.backend.dto.MessageResponse;
 import com.soulsurf.backend.dto.PostDTO;
+import com.soulsurf.backend.entities.User;
+import com.soulsurf.backend.repository.UserRepository;
 import com.soulsurf.backend.services.PostService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -10,6 +12,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -27,6 +30,8 @@ import java.util.List;
 public class PostController {
 
     private final PostService postService;
+    @Autowired
+    private UserRepository userRepository;
 
     public PostController(PostService postService) {
         this.postService = postService;
@@ -61,6 +66,7 @@ public class PostController {
             return ResponseEntity.badRequest().build();
         }
     }
+
     @Operation(
             summary = "Lista todos os posts públicos (Feed Principal)",
             description = "Retorna uma lista de todos os posts marcados como públicos, ideal para o feed principal."
@@ -162,18 +168,22 @@ public class PostController {
     })
     @DeleteMapping("/{id}")
     public ResponseEntity<MessageResponse> deletePost(
-            @Parameter(description = "ID do post a ser excluído") @PathVariable Long id,
+            @PathVariable Long id,
             @AuthenticationPrincipal UserDetails userDetails) {
 
         try {
-            postService.deletePost(id, userDetails.getUsername());
+            User user = userRepository.findByUsername(userDetails.getUsername())
+                    .orElseThrow(() -> new IllegalArgumentException("Usuário não encontrado"));
+
+            postService.deletePost(id, user);
+
             return ResponseEntity.ok(new MessageResponse("Post excluído com sucesso!"));
         } catch (SecurityException e) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN)
                     .body(new MessageResponse("Você não tem permissão para excluir este post"));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(new MessageResponse("Post não encontrado"));
+                    .body(new MessageResponse("Post ou usuário não encontrado"));
         } catch (Exception e) {
             return ResponseEntity.badRequest()
                     .body(new MessageResponse("Erro ao excluir o post: " + e.getMessage()));
