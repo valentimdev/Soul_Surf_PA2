@@ -48,7 +48,7 @@ function BeachDetailPage() {
                         key={post.id}
                         postId={post.id}
                         username={post.usuario.username}
-                        userAvatarUrl={post.usuario.fotoPerfil || ""}
+                        fotoPerfil={post.usuario.fotoPerfil || ""}
                         imageUrl={post.caminhoFoto || ""}
                         description={post.descricao}
                         praia={beach.nome}

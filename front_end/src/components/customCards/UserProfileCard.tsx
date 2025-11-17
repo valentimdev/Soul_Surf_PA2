@@ -321,7 +321,7 @@ export function UserProfileCard({ user }: UserProfileCardProps) {
                     key={post.id}
                     postId={post.id}
                     username={user.username}
-                    userAvatarUrl={user.fotoPerfil || ''}
+                    fotoPerfil={user.fotoPerfil || ''}
                     imageUrl={post.caminhoFoto || ''}
                     description={post.descricao}
                     praia={'Praia do Futuro'}

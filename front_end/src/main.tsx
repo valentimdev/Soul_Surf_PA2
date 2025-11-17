@@ -25,11 +25,12 @@ const router = createBrowserRouter([
         element: <RootLayout />,
         children: [
             { index: true, element: <LandingPage /> },
+
             {
                 element: <ProtectedRoute />,
                 children: [
                     { path: 'home', element: <App /> },
-                    { path: 'perfil', element: <ProfilePage /> },
+                    { path: 'perfil/:userId', element: <ProfilePage /> },
                     { path: 'registros', element: <NovoRegistroPage /> },
                     { path: 'praias', element: <BeachsPage /> },
                     { path: 'praias/:id', element: <BeachDetailPage /> },
@@ -39,6 +40,7 @@ const router = createBrowserRouter([
                     { path: 'usuarios', element: <UserTimelinePage /> },
                 ],
             },
+
             { path: 'about', element: <AboutPage /> },
             { path: 'login', element: <LoginPage /> },
             { path: 'cadastro', element: <CadastroPage /> },

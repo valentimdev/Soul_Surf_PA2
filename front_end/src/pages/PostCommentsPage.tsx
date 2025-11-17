@@ -304,7 +304,7 @@ export default function PostCommentsPage() {
                 postId={post.id}
                 description={post.descricao}
                 username={post.usuario.username}
-                userAvatarUrl={post.usuario.fotoPerfil || undefined}
+                fotoPerfil={post.usuario.fotoPerfil || undefined}
                 imageUrl={post.caminhoFoto || undefined}
                 praia={post.beach?.nome}
                 postOwnerId={post.postOwnerId}

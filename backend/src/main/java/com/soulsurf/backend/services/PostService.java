@@ -184,10 +184,16 @@ public class PostService {
         postDTO.setCaminhoFoto(post.getCaminhoFoto());
         postDTO.setData(post.getData());
 
+        User usuario = post.getUsuario();
         UserDTO userDTO = new UserDTO();
-        userDTO.setId(post.getUsuario().getId());
-        userDTO.setUsername(post.getUsuario().getUsername());
-        userDTO.setEmail(post.getUsuario().getEmail());
+        userDTO.setId(usuario.getId());
+        userDTO.setUsername(usuario.getUsername());
+        userDTO.setEmail(usuario.getEmail());
+        userDTO.setFotoPerfil(usuario.getFotoPerfil());
+        userDTO.setFotoCapa(usuario.getFotoCapa());
+        userDTO.setBio(usuario.getBio());
+        userDTO.setSeguidoresCount(usuario.getSeguidores().size());
+        userDTO.setSeguindoCount(usuario.getSeguindo().size());
         postDTO.setUsuario(userDTO);
 
         if (post.getBeach() != null) {
