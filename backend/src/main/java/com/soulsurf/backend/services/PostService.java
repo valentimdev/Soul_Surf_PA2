@@ -14,6 +14,8 @@ import jakarta.transaction.Transactional;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -86,41 +88,36 @@ public class PostService {
         }
     }
 
-    @Cacheable(value = "publicFeed", unless = "#result.isEmpty()")
-    public List<PostDTO> getPublicFeed() {
-        return postRepository.findByPublicoIsTrueOrderByDataDesc().stream()
-                .map(post -> convertToDto(post, null))
-                .collect(Collectors.toList());
+    @Cacheable(value = "publicFeed", key = "#pageable.pageNumber + '_' + #pageable.pageSize", unless = "#result.content.isEmpty()")
+    public Page<PostDTO> getPublicFeed(Pageable pageable) {
+        Page<Post> posts = postRepository.findByPublicoIsTrue(pageable);
+        return posts.map(post -> convertToDto(post, null));
     }
 
-    @Cacheable(value = "followingPosts", key = "#userEmail", unless = "#result.isEmpty()")
-    public List<PostDTO> getFollowingPosts(String userEmail) {
+    @Cacheable(value = "followingPosts", key = "#userEmail + '_' + #pageable.pageNumber + '_' + #pageable.pageSize", unless = "#result.content.isEmpty()")
+    public Page<PostDTO> getFollowingPosts(String userEmail, Pageable pageable) {
         User currentUser = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado: " + userEmail));
 
         List<User> followingUsers = currentUser.getSeguindo();
 
         if (followingUsers.isEmpty()) {
-            return Collections.emptyList();
+            return Page.empty(pageable);
         }
 
-        List<Post> posts = postRepository.findByUsuarioInOrderByDataDesc(followingUsers);
+        Page<Post> posts = postRepository.findByUsuarioIn(followingUsers, pageable);
 
-        return posts.stream()
-                .map(post -> convertToDto(post, userEmail))
-                .collect(Collectors.toList());
+        return posts.map(post -> convertToDto(post, userEmail));
     }
 
-    @Cacheable(value = "userPosts", key = "#userEmail", unless = "#result.isEmpty()")
-    public List<PostDTO> getPostsByUserEmail(String userEmail) {
+    @Cacheable(value = "userPosts", key = "#userEmail + '_' + #pageable.pageNumber + '_' + #pageable.pageSize", unless = "#result.content.isEmpty()")
+    public Page<PostDTO> getPostsByUserEmail(String userEmail, Pageable pageable) {
         User usuario = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado com o e-mail: " + userEmail));
-
-        List<Post> posts = postRepository.findByUsuarioOrderByDataDesc(usuario);
-
-        return posts.stream()
-                .map(post -> convertToDto(post, userEmail))
-                .collect(Collectors.toList());
+    
+        Page<Post> posts = postRepository.findByUsuario(usuario, pageable);
+    
+        return posts.map(post -> convertToDto(post, userEmail));
     }
 
     @Cacheable(value = "postById", key = "#id + '_' + (#requesterEmail ?: 'anonymous')")

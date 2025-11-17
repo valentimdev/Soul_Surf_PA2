@@ -20,7 +20,12 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 
+import java.security.Principal;
 import java.util.List;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
@@ -73,9 +78,15 @@ public class PostController {
     )
     @ApiResponse(responseCode = "200", description = "Posts listados com sucesso")
     @GetMapping("/home")
-    public ResponseEntity<List<PostDTO>> getPublicFeed() {
-        return ResponseEntity.ok(postService.getPublicFeed());
-    }
+        public ResponseEntity<Page<PostDTO>> getPublicFeed(
+                @RequestParam(defaultValue = "0") int page,
+                @RequestParam(defaultValue = "20") int size) {
+            Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "data"));
+            Page<PostDTO> posts = postService.getPublicFeed(pageable);
+            return ResponseEntity.ok(posts);
+        }
+
+    
 
     @Operation(
             summary = "Lista os posts dos usuários que você segue (Feed 'Seguindo')",
@@ -84,11 +95,15 @@ public class PostController {
     )
     @ApiResponse(responseCode = "200", description = "Feed 'seguindo' listado com sucesso")
     @GetMapping("/following")
-    public ResponseEntity<List<PostDTO>> getFollowingFeed(
-            @AuthenticationPrincipal UserDetails userDetails) {
-        List<PostDTO> posts = postService.getFollowingPosts(userDetails.getUsername());
-        return ResponseEntity.ok(posts);
-    }
+        public ResponseEntity<Page<PostDTO>> getFollowingPosts(
+                @RequestParam(defaultValue = "0") int page,
+                @RequestParam(defaultValue = "20") int size,
+                Principal principal) {
+            String userEmail = principal.getName();
+            Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "data"));
+            Page<PostDTO> posts = postService.getFollowingPosts(userEmail, pageable);
+            return ResponseEntity.ok(posts);
+        }
 
     @Operation(
             summary = "Busca um post pelo ID",
@@ -112,17 +127,21 @@ public class PostController {
 
     @Operation(
             summary = "Lista posts de um usuário",
-            description = "Retorna uma lista de todos os posts de um usuário específico pelo e-mail."
+            description = "Retorna uma lista paginada de todos os posts de um usuário específico pelo e-mail."
     )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Posts listados com sucesso"),
             @ApiResponse(responseCode = "404", description = "Usuário não encontrado")
     })
-    @GetMapping("/user/{userEmail}")
-    public ResponseEntity<List<PostDTO>> getPostsByUser(
-            @Parameter(description = "E-mail do usuário") @PathVariable String userEmail) {
+    @GetMapping("/user")
+    public ResponseEntity<Page<PostDTO>> getPostsByUser(
+            @Parameter(description = "E-mail do usuário") @RequestParam String email,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
         try {
-            return ResponseEntity.ok(postService.getPostsByUserEmail(userEmail));
+            Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "data"));
+            Page<PostDTO> posts = postService.getPostsByUserEmail(email, pageable);
+            return ResponseEntity.ok(posts);
         } catch (UsernameNotFoundException e) {
             return ResponseEntity.notFound().build();
         }
