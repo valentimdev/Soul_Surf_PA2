@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Outlet, useLocation, Navigate, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Plus } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import api from '@/api/axios';
 import { userRoutes } from '@/api/routes/user';
 import Header from '@/layouts/Header';
@@ -58,7 +58,6 @@ const RootLayout: React.FC = () => {
     if (showLayout && (loadingUser || authLoading)) return <div>Carregando...</div>;
     if (showLayout && !user && !authLoading) return <Navigate to="/login" replace />;
 
-    const goBack = () => window.history.back();
     const isPraiasPage = location.pathname === '/praias' || location.pathname === '/beaches';
     const isAdmin = user?.admin === true;
 
@@ -76,15 +75,6 @@ const RootLayout: React.FC = () => {
                             </div>
                         </div>
                         <div className="w-full md:w-[60%] relative">
-                            {location.pathname !== '/home' && (
-                                <Button
-                                    onClick={goBack}
-                                    className="absolute top-2 left-2 flex items-center gap-1 bg-white text-black p-2 rounded-full shadow z-10"
-                                >
-                                    <ArrowLeft className="w-5 h-5 text-[#5899c2]" />
-                                    <span className="hidden sm:inline">Voltar</span>
-                                </Button>
-                            )}
                             <Outlet />
                         </div>
                         <div className="hidden md:block w-[20%]" />
