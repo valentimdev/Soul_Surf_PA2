@@ -178,7 +178,7 @@ export function PostCard({
 
     return (
         <>
-            <Card className="w-full mx-auto bg-card rounded-lg overflow-hidden shadow-sm mb-4 border border-none">
+            <Card className="w-full bg-card rounded-lg overflow-hidden shadow-sm mb-4 border border-none">
                 <CardHeader className="flex flex-row items-center justify-between p-4 pb-2">
                     <div className="flex items-center gap-3">
                         <Avatar

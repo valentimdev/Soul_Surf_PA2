@@ -5,6 +5,7 @@ import com.soulsurf.backend.dto.MessageResponse;
 import com.soulsurf.backend.dto.PostDTO;
 import com.soulsurf.backend.entities.User;
 import com.soulsurf.backend.repository.UserRepository;
+import com.soulsurf.backend.security.service.UserDetailsImpl;
 import com.soulsurf.backend.services.PostService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -188,10 +189,10 @@ public class PostController {
     @DeleteMapping("/{id}")
     public ResponseEntity<MessageResponse> deletePost(
             @PathVariable Long id,
-            @AuthenticationPrincipal UserDetails userDetails) {
+            @AuthenticationPrincipal UserDetailsImpl userDetails) {
 
         try {
-            User user = userRepository.findByUsername(userDetails.getUsername())
+            User user = userRepository.findById(userDetails.getId())
                     .orElseThrow(() -> new IllegalArgumentException("Usuário não encontrado"));
 
             postService.deletePost(id, user);
