@@ -4,80 +4,154 @@ import { PostService, type PostDTO } from "@/api/services/postService";
 import { UserService, type UserDTO } from "@/api/services/userService";
 import { PostCard } from "@/components/customCards/PostCard";
 import LoadingSpinner from "@/components/LoadingSpinner.tsx";
+import { Button } from "@/components/ui/button";
+import { usePagination } from "@/hooks/usePagination";
 
 function HomePage() {
-    const [posts, setPosts] = useState<PostDTO[]>([]);
     const [me, setMe] = useState<UserDTO | null>(null);
     const [followingIds, setFollowingIds] = useState<number[]>([]);
-    const [loading, setLoading] = useState(true);
+    const [feedType, setFeedType] = useState<'public' | 'following'>('public');
+    
+    const {
+        data: posts,
+        loading,
+        setLoading,
+        page,
+        size,
+        hasNext,
+        updatePaginationData,
+        loadMore,
+        reset,
+        setData: setPosts
+    } = usePagination<PostDTO>({ initialSize: 20 });
 
+    // Busca dados do usuário logado
     useEffect(() => {
-        const fetchData = async () => {
+        const fetchUserData = async () => {
             try {
                 const loggedUser = await UserService.getMe();
                 setMe(loggedUser);
 
                 const followingRes = await api.get<UserDTO[]>(`/users/${loggedUser.id}/following`);
                 setFollowingIds(followingRes.data.map((u) => u.id));
-
-                const postsData = await PostService.list();
-                setPosts(postsData);
             } catch (error) {
-                console.error("Erro ao buscar dados:", error);
+                console.error("Erro ao buscar dados do usuário:", error);
+            }
+        };
+
+        fetchUserData();
+    }, []);
+
+    // Busca posts baseado no tipo de feed e página
+    useEffect(() => {
+        const fetchPosts = async () => {
+            setLoading(true);
+            try {
+                const endpoint = feedType === 'public' ? '/posts/home' : '/posts/following';
+                const response = await api.get(`${endpoint}?page=${page}&size=${size}`);
+                
+                // Verifica se é primeira página ou carregamento adicional
+                const isFirstLoad = page === 0;
+                updatePaginationData(response.data, !isFirstLoad);
+                
+            } catch (error) {
+                console.error("Erro ao buscar posts:", error);
             } finally {
                 setLoading(false);
             }
         };
 
-        fetchData();
+        if (me) {
+            fetchPosts();
+        }
+    }, [me, feedType, page, size, updatePaginationData, setLoading]);
 
+    // Reset quando muda o tipo de feed
+    const handleFeedTypeChange = (newFeedType: 'public' | 'following') => {
+        if (newFeedType !== feedType) {
+            setFeedType(newFeedType);
+            reset();
+        }
+    };
+
+    // Handler para novos posts
+    useEffect(() => {
         const handleNewPost = (e: Event) => {
             const customEvent = e as CustomEvent<PostDTO>;
             setPosts((prev) => [customEvent.detail, ...prev]);
         };
 
-        window.addEventListener("newPost", handleNewPost);
-        return () => window.removeEventListener("newPost", handleNewPost);
-    }, []);
-
-    const handleToggleFollow = (userId: number, isNowFollowing: boolean) => {
-        setFollowingIds((prev) =>
-            isNowFollowing ? [...prev, userId] : prev.filter((id) => id !== userId)
-        );
-    };
+        window.addEventListener('newPost', handleNewPost);
+        return () => window.removeEventListener('newPost', handleNewPost);
+    }, [setPosts]);
 
     const handleDeletePostFromList = (postId: number) => {
-        setPosts(prev => prev.filter(p => p.id !== postId));
+        setPosts((prev) => prev.filter((p) => p.id !== postId));
     };
 
-    if (loading || !me) {
-        return <LoadingSpinner />;
-    }
+    if (!me && loading) return <LoadingSpinner />;
 
     return (
-        <div className="flex w-full min-h-screen gap-3 px-5 sm:p-0 ">
-            <div className="hidden md:block w-[20%]"></div>
-            <div className="w-full md:w-[60%] border-green-400 py-4 space-y-4">
+        <div className="max-w-2xl mx-auto p-4 space-y-6">
+            {/* Switch para tipo de feed */}
+            <div className="flex gap-4 justify-center mb-6">
+                <Button
+                    variant={feedType === 'public' ? 'default' : 'outline'}
+                    onClick={() => handleFeedTypeChange('public')}
+                >
+                    Feed Público
+                </Button>
+                <Button
+                    variant={feedType === 'following' ? 'default' : 'outline'}
+                    onClick={() => handleFeedTypeChange('following')}
+                >
+                    Seguindo
+                </Button>
+            </div>
+
+            {/* Lista de posts */}
+            <div className="space-y-6">
                 {posts.map((post) => (
                     <PostCard
                         key={post.id}
                         postId={post.id}
                         username={post.usuario.username}
-                        fotoPerfil={post.usuario.fotoPerfil || ""}
-                        imageUrl={post.caminhoFoto || ""}
+                        fotoPerfil={post.usuario.fotoPerfil || ''}
+                        imageUrl={post.caminhoFoto || ''}
                         description={post.descricao}
-                        praia={post.beach?.nome || "Praia desconhecida"}
+                        praia={post.beach?.nome || 'Praia do Futuro'}
                         postOwnerId={post.usuario.id}
-                        loggedUserId={me.id}
+                        loggedUserId={me?.id || 0}
                         isFollowing={followingIds.includes(post.usuario.id)}
-                        onToggleFollow={handleToggleFollow}
-                        likesCount={post.likesCount || 0}
-                        likedByCurrentUser={post.likedByCurrentUser || false}
-                        onPostDeleted={handleDeletePostFromList}
+                        onDelete={handleDeletePostFromList}
                     />
                 ))}
             </div>
-            <div className="hidden md:block w-[20%]"></div>
+
+            {/* Botão carregar mais */}
+            {hasNext && (
+                <div className="flex justify-center mt-6">
+                    <Button 
+                        onClick={loadMore}
+                        disabled={loading}
+                        variant="outline"
+                    >
+                        {loading ? 'Carregando...' : 'Carregar mais'}
+                    </Button>
+                </div>
+            )}
+
+            {/* Estado vazio */}
+            {posts.length === 0 && !loading && (
+                <div className="text-center py-8">
+                    <p className="text-gray-500">
+                        {feedType === 'following' 
+                            ? 'Nenhum post de usuários que você segue' 
+                            : 'Nenhum post encontrado'
+                        }
+                    </p>
+                </div>
+            )}
         </div>
     );
 }

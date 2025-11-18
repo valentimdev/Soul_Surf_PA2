@@ -72,8 +72,13 @@ export const UserService = {
         return data;
     },
 
-    getAllUsersPaginated: async (offset = 0, limit = 30): Promise<UserDTO[]> => {
-        const { data } = await api.get<UserDTO[]>(`${userRoutes.base}?offset=${offset}&limit=${limit}`);
+    getAllUsersPaginated: async (page = 0, size = 30): Promise<{ content: UserDTO[], totalPages: number, totalElements: number, number: number, last: boolean, first: boolean }> => {
+        const { data } = await api.get(`${userRoutes.base}?page=${page}&size=${size}`);
+        return data;
+    },
+
+    searchUsers: async (query: string, page = 0, size = 30): Promise<{ content: UserDTO[], totalPages: number, totalElements: number, number: number, last: boolean, first: boolean }> => {
+        const { data } = await api.get(`${userRoutes.base}/search?query=${query}&page=${page}&size=${size}`);
         return data;
     },
 
