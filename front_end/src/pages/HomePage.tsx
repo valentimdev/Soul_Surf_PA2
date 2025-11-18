@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import api from "@/api/axios";
-import { PostService, type PostDTO } from "@/api/services/postService";
+import { type PostDTO } from "@/api/services/postService";
 import { UserService, type UserDTO } from "@/api/services/userService";
 import { PostCard } from "@/components/customCards/PostCard";
 import LoadingSpinner from "@/components/LoadingSpinner.tsx";
@@ -74,7 +74,13 @@ function HomePage() {
         }
     };
 
-    // Handler para novos posts
+    const handleToggleFollow = (userId: number, isNowFollowing: boolean) => {
+        setFollowingIds((prev) => {
+            if (isNowFollowing) return [...prev, userId];
+            return prev.filter((id) => id !== userId);
+        });
+    };
+
     useEffect(() => {
         const handleNewPost = (e: Event) => {
             const customEvent = e as CustomEvent<PostDTO>;
@@ -92,7 +98,7 @@ function HomePage() {
     if (!me && loading) return <LoadingSpinner />;
 
     return (
-        <div className="max-w-2xl mx-auto p-4 space-y-6">
+        <div className="w-full max-w-2xl mx-auto p-4 flex flex-col gap-6">
             {/* Switch para tipo de feed */}
             <div className="flex gap-4 justify-center mb-6">
                 <Button
@@ -123,7 +129,8 @@ function HomePage() {
                         postOwnerId={post.usuario.id}
                         loggedUserId={me?.id || 0}
                         isFollowing={followingIds.includes(post.usuario.id)}
-                        onDelete={handleDeletePostFromList}
+                        onPostDeleted={handleDeletePostFromList}
+                        onToggleFollow={handleToggleFollow}
                     />
                 ))}
             </div>
