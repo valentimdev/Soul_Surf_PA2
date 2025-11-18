@@ -49,9 +49,18 @@ export const PostService = {
         const { data } = await api.get<PostDTO>(postRoutes.getById(id));
         return data;
     },
+    list: async (page = 0, size = 20): Promise<{ content: PostDTO[], totalPages: number, totalElements: number, number: number, last: boolean, first: boolean }> => {
+        const { data } = await api.get(`${postRoutes.base}/home?page=${page}&size=${size}`);
+        return data;
+    },
 
-    list: async (): Promise<PostDTO[]> => {
-        const { data } = await api.get<PostDTO[]>(postRoutes.list());
+    getFollowingPosts: async (page = 0, size = 20): Promise<{ content: PostDTO[], totalPages: number, totalElements: number, number: number, last: boolean, first: boolean }> => {
+        const { data } = await api.get(`${postRoutes.base}/following?page=${page}&size=${size}`);
+        return data;
+    },
+
+    getPostsByUser: async (email: string, page = 0, size = 20): Promise<{ content: PostDTO[], totalPages: number, totalElements: number, number: number, last: boolean, first: boolean }> => {
+        const { data } = await api.get(`${postRoutes.base}/user?email=${email}&page=${page}&size=${size}`);
         return data;
     },
 };
