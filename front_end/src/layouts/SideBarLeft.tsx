@@ -5,7 +5,6 @@ import {
     Waves,
     Users,
     MessageSquare,
-    Bell,
     User,
     Settings,
     ShieldCheck,
@@ -34,7 +33,6 @@ const navItems: NavItemProps[] = [
     { href: '/praias', icon: Waves, label: 'Praias' },
     { href: '/usuarios', icon: Users, label: 'Usuários' },
     { href: '/mensagens', icon: MessageSquare, label: 'Mensagens' },
-    { href: '/notificacoes', icon: Bell, label: 'Notificações' },
 ];
 
 const SidebarLeft: React.FC = () => {
