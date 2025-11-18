@@ -31,3 +31,7 @@ enable_cdn = false
 app_service_sku = "B1"
 backend_stack = "17"
 frontend_stack = "18-lts"
+
+# Configurações da API de Clima
+weather_api_url = "https://api.openweathermap.org/data/2.5/weather"
+weather_api_key = "SUA_CHAVE_OPENWEATHERMAP_AQUI"

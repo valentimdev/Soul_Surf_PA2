@@ -117,3 +117,15 @@ variable "enable_cdn" {
   default     = false
   description = "Habilitar CDN para o frontend"
 }
+
+variable "weather_api_url" {
+  type        = string
+  default     = "https://api.openweathermap.org/data/2.5/weather"
+  description = "URL da API de clima"
+}
+
+variable "weather_api_key" {
+  type        = string
+  description = "Chave da API de clima (OpenWeatherMap)"
+  sensitive   = true
+}
