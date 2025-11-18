@@ -95,6 +95,7 @@ public class BeachService {
         beachDTO.setDescricao(beach.getDescricao());
         beachDTO.setLocalizacao(beach.getLocalizacao());
         beachDTO.setCaminhoFoto(beach.getCaminhoFoto());
+        beachDTO.setNivelExperiencia(beach.getNivelExperiencia());
         return beachDTO;
     }
 

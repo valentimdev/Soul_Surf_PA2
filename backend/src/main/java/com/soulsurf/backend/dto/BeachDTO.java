@@ -13,4 +13,5 @@ public class BeachDTO {
     private String descricao;
     private String localizacao;
     private String caminhoFoto;
+    private String nivelExperiencia;
 }

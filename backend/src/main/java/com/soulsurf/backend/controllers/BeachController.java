@@ -3,6 +3,7 @@ package com.soulsurf.backend.controllers;
 import com.soulsurf.backend.dto.BeachDTO;
 import com.soulsurf.backend.dto.MessageResponse;
 import com.soulsurf.backend.dto.PostDTO;
+import com.soulsurf.backend.entities.Beach;
 import com.soulsurf.backend.services.BeachService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -32,7 +33,7 @@ public class BeachController {
 
     @Operation(summary = "Lista todas as praias", description = "Retorna uma lista de todas as praias cadastradas.")
     @ApiResponse(responseCode = "200", description = "Praias listadas com sucesso")
-    @GetMapping("/")
+    @GetMapping
     public ResponseEntity<List<BeachDTO>> getAllBeaches() {
         List<BeachDTO> beaches = beachService.getAllBeaches();
         return ResponseEntity.ok(beaches);
@@ -53,16 +54,23 @@ public class BeachController {
     @ApiResponse(responseCode = "400", description = "Erro ao criar a praia")
     @PostMapping("/")
     public ResponseEntity<?> createBeach(
-            @Parameter(description = "Nome da praia") @RequestParam("nome") String nome,
-            @Parameter(description = "Descrição da praia") @RequestParam("descricao") String descricao,
-            @Parameter(description = "Localização da praia") @RequestParam("localizacao") String localizacao,
-            @Parameter(description = "Nível de experiência") @RequestParam("nivelExperiencia") String nivelExperiencia,
-            @Parameter(description = "Foto da praia (opcional)") @RequestParam(value = "foto", required = false) MultipartFile foto) {
+            @RequestParam("nome") String nome,
+            @RequestParam("descricao") String descricao,
+            @RequestParam("localizacao") String localizacao,
+            @RequestParam("nivelExperiencia") String nivelExperiencia,
+            @RequestParam(value = "foto", required = false) MultipartFile foto
+    ) {
         try {
-            beachService.createBeach(nome, descricao, localizacao, nivelExperiencia, foto);
-            return ResponseEntity
-                    .status(HttpStatus.CREATED)
-                    .body(new MessageResponse("Praia criada com sucesso!"));
+            Beach beach = beachService.createBeach(nome, descricao, localizacao, nivelExperiencia, foto);
+            BeachDTO dto = new BeachDTO();
+            dto.setId(beach.getId());
+            dto.setNome(beach.getNome());
+            dto.setDescricao(beach.getDescricao());
+            dto.setLocalizacao(beach.getLocalizacao());
+            dto.setCaminhoFoto(beach.getCaminhoFoto());
+            dto.setNivelExperiencia(beach.getNivelExperiencia());
+            return ResponseEntity.status(HttpStatus.CREATED).body(dto);
+
         } catch (Exception e) {
             return ResponseEntity
                     .badRequest()
