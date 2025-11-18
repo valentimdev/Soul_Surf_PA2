@@ -17,6 +17,18 @@ function BeachDetailPage() {
         BeachService.getBeachPosts(id).then(setPosts);
     }, [id]);
 
+    useEffect(() => {
+        if (!id) return;
+
+        BeachService.getBeachById(id).then((b) => {
+            console.log("Beach recebido:", b);
+            console.log("Nível de experiência:", b.nivelExperiencia);
+            setBeach(b);
+        });
+
+        BeachService.getBeachPosts(id).then(setPosts);
+    }, [id]);
+
     if (!beach) return <LoadingSpinner />;
 
     const handleDeletePostFromList = (postId: number) => {
