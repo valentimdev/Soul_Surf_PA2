@@ -31,7 +31,7 @@ const router = createBrowserRouter([
                 children: [
                     { path: 'home', element: <App /> },
                     { path: 'perfil/:userId', element: <ProfilePage /> },
-                    { path: 'perfil/', element: <ProfilePage /> },
+                    { path: 'perfil', element: <ProfilePage /> },
                     { path: 'registros', element: <NovoRegistroPage /> },
                     { path: 'praias', element: <BeachsPage /> },
                     { path: 'praias/:id', element: <BeachDetailPage /> },
