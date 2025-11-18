@@ -44,3 +44,23 @@ output "resource_group_location" {
   value       = azurerm_resource_group.rg.location
   description = "Localização do resource group"
 }
+
+output "storage_container_name" {
+  value       = azurerm_storage_container.images.name
+  description = "Nome do container de imagens"
+}
+
+output "backend_identity_principal_id" {
+  value       = azurerm_user_assigned_identity.backend_identity.principal_id
+  description = "Principal ID da Managed Identity do backend"
+}
+
+output "log_analytics_workspace_id" {
+  value       = azurerm_log_analytics_workspace.workspace.id
+  description = "ID do Log Analytics Workspace"
+}
+
+output "application_insights_app_id" {
+  value       = azurerm_application_insights.insights.app_id
+  description = "App ID do Application Insights"
+}

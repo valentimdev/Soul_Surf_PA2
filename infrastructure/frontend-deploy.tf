@@ -25,8 +25,9 @@ resource "azurerm_linux_web_app_slot" "frontend_staging" {
   }
 
   app_settings = {
-    "BACKEND_URL" = "https://${azurerm_linux_web_app.backend.default_hostname}"
-    "NODE_ENV"     = "staging"
+    "VITE_BACKEND_URL" = "https://${azurerm_linux_web_app.backend.default_hostname}"
+    "VITE_WS_URL"      = "wss://${azurerm_linux_web_app.backend.default_hostname}/ws"
+    "NODE_ENV"          = "staging"
   }
 
   tags = {
