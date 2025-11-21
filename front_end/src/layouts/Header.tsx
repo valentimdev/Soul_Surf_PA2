@@ -26,7 +26,7 @@ import soulSurfIcon from '../assets/header/SoulSurfIcon.png';
 import { Input } from '@/components/ui/input';
 import { UserService, type UserDTO } from '@/api/services/userService';
 import { WeatherService, type WeatherDTO } from '@/api/services/WeatherService';
-import { useLocation, Link } from 'react-router-dom';
+import {useLocation, Link, useNavigate} from 'react-router-dom';
 
 function Header() {
   const [currentUser, setCurrentUser] = useState<UserDTO | null>(null);
@@ -37,7 +37,7 @@ function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
   const isUserTimeline = location.pathname === '/usertimeline';
-
+  const navigate = useNavigate();
   const surfConditions = {
     vento: '12 km/h NE',
     ondas: '1.8 m',
@@ -172,30 +172,22 @@ function Header() {
               className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
               size={18}
             />
-            <Input
-              type="text"
-              placeholder={
-                isUserTimeline
-                  ? 'Buscar surfistas...'
-                  : 'Buscar praias, surfistas, comunidades...'
-              }
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  if (isUserTimeline) {
-                    window.dispatchEvent(
-                      new CustomEvent('searchUsers', { detail: searchQuery })
-                    );
-                  } else {
-                    window.dispatchEvent(
-                      new CustomEvent('searchGeneric', { detail: searchQuery })
-                    );
+              <Input
+                  type="text"
+                  placeholder={
+                      isUserTimeline
+                          ? 'Buscar surfistas...'
+                          : 'Buscar praias, surfistas, comunidades...'
                   }
-                }
-              }}
-              className="pl-10 pr-4 py-2 rounded-full border border-gray-300 bg-white focus:ring-2 "
-            />
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                          navigate(`/buscar?query=${encodeURIComponent(searchQuery)}`);
+                      }
+                  }}
+                  className="pl-10 pr-4 py-2 rounded-full border border-gray-300 bg-white focus:ring-2 "
+              />
           </div>
         </div>
 

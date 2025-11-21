@@ -7,9 +7,7 @@ import {
     MessageSquare,
     User,
     Settings,
-    ShieldCheck,
     LogOut,
-    Mail,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -89,39 +87,6 @@ const SidebarLeft: React.FC = () => {
                         </DialogHeader>
                         <Card className="border-none shadow-none">
                             <CardContent className="p-2 space-y-1">
-                                <Button
-                                    variant="ghost"
-                                    className="w-full justify-start p-4 text-md hover:cursor-pointer"
-                                    onClick={() => {
-                                        alert("A navegar para Editar Perfil...");
-                                        setIsSettingsOpen(false);
-                                    }}
-                                >
-                                    <User className="mr-3 h-5 w-5" />
-                                    Editar Perfil
-                                </Button>
-                                <Button
-                                    variant="ghost"
-                                    className="w-full justify-start p-4 text-md hover:cursor-pointer"
-                                    onClick={() => {
-                                        alert("A navegar para Mudar Senha...");
-                                        setIsSettingsOpen(false);
-                                    }}
-                                >
-                                    <ShieldCheck className="mr-3 h-5 w-5" />
-                                    Mudar Senha
-                                </Button>
-                                <Button
-                                    variant="ghost"
-                                    className="w-full justify-start p-4 text-md hover:cursor-pointer"
-                                    onClick={() => {
-                                        alert("A navegar para Notificações...");
-                                        setIsSettingsOpen(false);
-                                    }}
-                                >
-                                    <Mail className="mr-3 h-5 w-5" />
-                                    Notificações
-                                </Button>
                                 <Button
                                     variant="ghost"
                                     className="w-full justify-start p-4 text-md text-red-600 hover:text-red-700 hover:bg-red-50 hover:cursor-pointer"
