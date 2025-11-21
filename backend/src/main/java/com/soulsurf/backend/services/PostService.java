@@ -219,6 +219,7 @@ public class PostService {
         } else {
             postDTO.setLikedByCurrentUser(false);
         }
+        postDTO.setCommentsCount(post.getComments().size());
 
         return postDTO;
     }
