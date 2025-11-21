@@ -45,6 +45,7 @@ interface PostCardProps {
     isFollowing: boolean;
     onToggleFollow: (userId: number, isNowFollowing: boolean) => void;
     likesCount?: number;
+    commentsCount?: number;
     likedByCurrentUser?: boolean;
     onPostDeleted: (postId: number) => void;
 }
@@ -60,6 +61,7 @@ export function PostCard({
                              loggedUserId,
                              isFollowing,
                              onToggleFollow,
+                             commentsCount: initialCommentsCount = 0,
                              likesCount: initialLikesCount = 0,
                              likedByCurrentUser: initialLiked = false,
                              onPostDeleted
@@ -72,12 +74,17 @@ export function PostCard({
     const [editedContent, setEditedContent] = useState(description);
     const [isDeleting, setIsDeleting] = useState(false);
     const [isAdmin, setIsAdmin] = useState(false);
+    const [commentsCount, setCommentsCount] = useState(initialCommentsCount);
     const contentRef = useRef<HTMLParagraphElement>(null);
 
     useEffect(() => {
         setLiked(initialLiked);
         setLikesCount(initialLikesCount);
     }, [initialLiked, initialLikesCount]);
+
+    useEffect(() => {
+        setCommentsCount(initialCommentsCount);
+    }, [initialCommentsCount]);
 
     useEffect(() => {
         UserService.getMe()
@@ -289,14 +296,21 @@ export function PostCard({
                             )}
                         </div>
 
-                        <Button
-                            variant="ghost"
-                            className="group hover:bg-primary/20 rounded-full h-12 w-12 p-0"
-                            onClick={() => navigate(`/posts/${postId}/comments`)}
-                        >
-                            <MessageCircle className="size-7 text-muted-foreground group-hover:text-primary" />
-                        </Button>
+                        <div className="flex items-center gap-2">
+                            <Button
+                                variant="ghost"
+                                className="group hover:bg-primary/20 rounded-full h-12 w-12 p-0"
+                                onClick={() => navigate(`/posts/${postId}/comments`)}
+                            >
+                                <MessageCircle className="size-7 text-muted-foreground group-hover:text-primary" />
+                            </Button>
 
+                            {commentsCount > 0 && (
+                                <span className="text-sm font-semibold text-foreground min-w-[20px]">
+                            {commentsCount}
+                        </span>
+                            )}
+                        </div>
                         <Button
                             variant="ghost"
                             className="group hover:bg-primary/20 rounded-full h-12 w-12 p-0"

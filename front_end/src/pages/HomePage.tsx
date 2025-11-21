@@ -95,7 +95,13 @@ function HomePage() {
         setPosts((prev) => prev.filter((p) => p.id !== postId));
     };
 
-    if (!me && loading) return <LoadingSpinner />;
+    if (!me || (loading && posts.length === 0)) {
+        return (
+            <div className="w-full flex justify-center py-10">
+                <LoadingSpinner />
+            </div>
+        );
+    }
 
     return (
         <div className="w-full max-w-2xl mx-auto p-4 flex flex-col gap-6">
@@ -130,6 +136,9 @@ function HomePage() {
                         isFollowing={followingIds.includes(post.usuario.id)}
                         onPostDeleted={handleDeletePostFromList}
                         onToggleFollow={handleToggleFollow}
+                        likesCount={post.likesCount}
+                        commentsCount={post.commentsCount}
+                        likedByCurrentUser={post.likedByCurrentUser}
                     />
                 ))}
             </div>

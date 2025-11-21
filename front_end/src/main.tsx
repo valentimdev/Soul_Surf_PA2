@@ -18,6 +18,7 @@ import PostCommentsPage from '@/pages/PostCommentsPage.tsx';
 import AboutPage from './pages/AboutPage.tsx';
 import ChatPage from './pages/ChatPage';
 import UserTimelinePage from './pages/UserTimelinePage.tsx';
+import SearchResultsPage from "@/pages/SearchResultsPage.tsx";
 
 const router = createBrowserRouter([
     {
@@ -36,6 +37,7 @@ const router = createBrowserRouter([
                     { path: 'praias', element: <BeachsPage /> },
                     { path: 'praias/:id', element: <BeachDetailPage /> },
                     { path: 'posts/:id/comments', element: <PostCommentsPage /> },
+                    { path: 'buscar', element: <SearchResultsPage /> },
                     { path: 'chat/:conversationId', element: <ChatPage /> },
                     { path: 'mensagens', element: <MessagesPage /> },
                     { path: 'usuarios', element: <UserTimelinePage /> },
