@@ -18,5 +18,6 @@ public class PostDTO {
     private BeachDTO beach;
     private List<CommentDTO> comments;
     private long likesCount;
+    private long commentsCount;
     private boolean likedByCurrentUser;
 }
