@@ -6,7 +6,7 @@ import {
   ResizablePanel,
   ResizablePanelGroup,
 } from "@/components/ui/application"
-import ForgotPasswordCard from "../components/ForgotPasswordCard"
+import ForgotPasswordCard from "../components/customCards/ForgotPasswordCard.tsx"
 
 function ForgotPasswordPage() {
   return (

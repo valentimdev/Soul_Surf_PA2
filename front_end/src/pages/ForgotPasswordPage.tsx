@@ -1,6 +1,5 @@
+ import surfzada from "../assets/surfzada.jpg";
  import surf01 from "../assets/login_page/surf01.jpg"
- import surf02 from "../assets/login_page/surf02.jpg"
-//import azul2 from "../assets/azul2.png"
 
 import {
   ResizableHandle,
@@ -14,6 +13,7 @@ function ForgotPasswordPage() {
       <ResizablePanelGroup direction="horizontal" className="flex-1">
         <ResizablePanel defaultSize={30}>
           <div className="h-full flex items-center justify-center">
+              <img src={surf01} alt="Foto Surf 2" className="w-full h-full object-cover" />
           </div>
         </ResizablePanel>
 
@@ -27,7 +27,7 @@ function ForgotPasswordPage() {
 
         <ResizablePanel defaultSize={30}>
           <div className="h-full flex items-center justify-center">
-            <img src={azul2} alt="Foto Surf 2" className="w-full h-full object-cover" />
+            <img src={surfzada} alt="Foto Surf 2" className="w-full h-full object-cover" />
           </div>
         </ResizablePanel>
       </ResizablePanelGroup>
