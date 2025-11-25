@@ -60,8 +60,8 @@ function ForgotPasswordCard() {
                         Insira seu e-mail para receber um link e redefinir sua senha.
                     </CardDescription>
                 </CardHeader>
-                <CardContent>
-                    <form onSubmit={handleSubmit}>
+                <form onSubmit={handleSubmit}>
+                    <CardContent className="space-y-4">
                         <div className="grid gap-2">
                             <Label htmlFor="email">Email</Label>
                             <Input
@@ -77,16 +77,16 @@ function ForgotPasswordCard() {
                         {error && (
                             <p className="text-sm text-red-500 mt-2">{error}</p>
                         )}
-                        <CardFooter className="flex-col gap-4 pt-6">
-                            <Button type="submit" className="w-full" disabled={loading}>
-                                {loading ? "Enviando..." : "Enviar Link"}
-                            </Button>
-                            <Button variant="link" asChild>
-                                <Link to="/login">Voltar para o Login</Link>
-                            </Button>
-                        </CardFooter>
-                    </form>
-                </CardContent>
+                    </CardContent>
+                    <CardFooter className="flex-col gap-4">
+                        <Button type="submit" className="w-full" disabled={loading}>
+                            {loading ? "Enviando..." : "Enviar Link"}
+                        </Button>
+                        <Button variant="link" asChild>
+                            <Link to="/login">Voltar para o Login</Link>
+                        </Button>
+                    </CardFooter>
+                </form>
             </Card>
         </div>
     );
