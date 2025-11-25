@@ -13,17 +13,20 @@ import { Label } from "@/components/ui/label";
 import {AuthService} from "@/api/services/authService";
 import {useNavigate} from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext.tsx";
+import { Loader2 } from "lucide-react";
 
 function LoginCard() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState<string | null>(null);
+    const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
     const { login } =useAuth();
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
         setError(null);
+        setLoading(true);
 
         try {
             const response = await AuthService.login({ email, password });
@@ -39,6 +42,8 @@ function LoginCard() {
             } else {
                 setError(err.response?.data?.message || "Email ou senha incorretos");
             }
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -62,6 +67,7 @@ function LoginCard() {
                                 required
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
+                                disabled={loading}
                             />
                         </div>
                         <div className="grid gap-2">
@@ -80,11 +86,19 @@ function LoginCard() {
                                 required
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
+                                disabled={loading}
                             />
                         </div>
                         {error && <p className="text-red-500 text-sm">{error}</p>}
-                        <Button type="submit" className="w-full">
-                            Login
+                        <Button type="submit" className="w-full" disabled={loading}>
+                            {loading ? (
+                                <>
+                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                    Entrando...
+                                </>
+                            ) : (
+                                "Login"
+                            )}
                         </Button>
                     </form>
                 </CardContent>

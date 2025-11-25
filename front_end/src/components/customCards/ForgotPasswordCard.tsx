@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Loader2 } from "lucide-react";
 
 function ForgotPasswordCard() {
     const [email, setEmail] = useState("");
@@ -80,7 +81,14 @@ function ForgotPasswordCard() {
                     </CardContent>
                     <CardFooter className="flex-col gap-4">
                         <Button type="submit" className="w-full" disabled={loading}>
-                            {loading ? "Enviando..." : "Enviar Link"}
+                            {loading ? (
+                                <>
+                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                    Enviando...
+                                </>
+                            ) : (
+                                "Enviar Link"
+                            )}
                         </Button>
                         <Button variant="link" asChild>
                             <Link to="/login">Voltar para o Login</Link>

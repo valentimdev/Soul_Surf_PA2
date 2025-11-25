@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { AuthService } from "@/api/services/authService";
 import {useNavigate} from "react-router-dom";
+import { Loader2 } from "lucide-react";
 
 function CadastroCard() {
     const [email, setEmail] = useState("");
@@ -20,15 +21,18 @@ function CadastroCard() {
     const [confirmPassword, setConfirmPassword] = useState("");
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState<string | null>(null);
+    const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
 
     const handleSignup = async (e: React.FormEvent) => {
         e.preventDefault();
         setError(null);
         setSuccess(null);
+        setLoading(true);
 
         if (password !== confirmPassword) {
             setError("As senhas não coincidem.");
+            setLoading(false);
             return;
         }
 
@@ -39,6 +43,8 @@ function CadastroCard() {
             navigate("/home");
         } catch (err: any) {
             setError(err.response?.data?.message || "Erro ao cadastrar");
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -61,6 +67,7 @@ function CadastroCard() {
                             required
                             value={username}
                             onChange={(e) => setUsername(e.target.value)}
+                            disabled={loading}
                         />
                     </div>
                     <div className="grid gap-2">
@@ -72,6 +79,7 @@ function CadastroCard() {
                             required
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
+                            disabled={loading}
                         />
                     </div>
                     <div className="grid gap-2">
@@ -82,6 +90,7 @@ function CadastroCard() {
                             required
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
+                            disabled={loading}
                         />
                     </div>
                     <div className="grid gap-2">
@@ -92,16 +101,24 @@ function CadastroCard() {
                             required
                             value={confirmPassword}
                             onChange={(e) => setConfirmPassword(e.target.value)}
+                            disabled={loading}
                         />
                     </div>
                     {error && <p className="text-red-500 text-sm">{error}</p>}
                     {success && <p className="text-green-500 text-sm">{success}</p>}
+                    <Button type="submit" className="w-full" disabled={loading}>
+                        {loading ? (
+                            <>
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                Cadastrando...
+                            </>
+                        ) : (
+                            "Confirmar Cadastro"
+                        )}
+                    </Button>
                 </form>
             </CardContent>
             <CardFooter className="flex-col gap-2 pt-6">
-                <Button onClick={handleSignup} type="submit" className="w-full">
-                    Confirmar Cadastro
-                </Button>
                 <div className="flex items-center">
                     <a
                         href="/login"
