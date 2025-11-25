@@ -1,0 +1,476 @@
+diff --git a/.idea/compiler.xml b/.idea/compiler.xml
+index 5ca21c9..a5f5e09 100644
+--- a/.idea/compiler.xml
++++ b/.idea/compiler.xml
+@@ -13,7 +13,6 @@
+         <outputRelativeToContentRoot value="true" />
+         <processorPath useClasspath="false">
+           <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.38/lombok-1.18.38.jar" />
+-          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.38/lombok-1.18.38.jar" />
+         </processorPath>
+         <module name="backend" />
+       </profile>
+diff --git a/backend/.gitignore b/backend/.gitignore
+index 667aaef..1f9c75c 100644
+--- a/backend/.gitignore
++++ b/backend/.gitignore
+@@ -31,3 +31,4 @@ build/
+ 
+ ### VS Code ###
+ .vscode/
++application.properties
+diff --git a/backend/pom.xml b/backend/pom.xml
+index eeb4595..ad5860c 100644
+--- a/backend/pom.xml
++++ b/backend/pom.xml
+@@ -97,6 +97,11 @@
+ 			<version>0.11.5</version>
+ 			<scope>runtime</scope>
+ 		</dependency>
++		<dependency>
++			<groupId>com.squareup.okhttp3</groupId>
++			<artifactId>okhttp</artifactId>
++			<version>4.12.0</version>
++		</dependency>
+ 		<dependency>
+ 			<groupId>io.jsonwebtoken</groupId>
+ 			<artifactId>jjwt-jackson</artifactId>
+diff --git a/backend/src/main/java/com/soulsurf/backend/services/EmailService.java b/backend/src/main/java/com/soulsurf/backend/services/EmailService.java
+index 7d3bf6e..9cefd99 100644
+--- a/backend/src/main/java/com/soulsurf/backend/services/EmailService.java
++++ b/backend/src/main/java/com/soulsurf/backend/services/EmailService.java
+@@ -1,33 +1,70 @@
++// src/main/java/com/soulsurf/backend/services/EmailService.java
++
+ package com.soulsurf.backend.services;
+ 
+-import org.springframework.beans.factory.annotation.Autowired;
+-import org.springframework.mail.SimpleMailMessage;
+-import org.springframework.mail.javamail.JavaMailSender;
++import okhttp3.*;
++import org.springframework.beans.factory.annotation.Value;
+ import org.springframework.stereotype.Service;
+ 
++import java.io.IOException;
++
+ @Service
+ public class EmailService {
+ 
+-    private final JavaMailSender mailSender;
++    private static final String RESEND_API_URL = "https://api.resend.com/emails";
++    private final OkHttpClient client = new OkHttpClient();
+ 
+-    @Autowired
+-    public EmailService(JavaMailSender mailSender) {
+-        this.mailSender = mailSender;
+-    }
++    @Value("${resend.api.key}")
++    private String apiKey;
+ 
+     public void sendPasswordResetEmail(String toEmail, String token) {
+-        String subject = "Redefinição de Senha";
++        String frontendUrl = System.getenv("FRONTEND_URL");
++        if (frontendUrl == null || frontendUrl.isEmpty()) {
++            frontendUrl = "http://localhost:5173"; // ou 3000, dependendo do seu vite/react
++        }
++
++        String resetLink = frontendUrl + "/reset-password?token=" + token;
++
++        // REMETENTE OBRIGATÓRIO: use um domínio verificado no Resend!
++        // Opção 1 (recomendado): seu domínio verificado → ex: no-reply@soulsurf.app
++        // Opção 2 (rápido pra testar): use o domínio grátis do Resend → @resend.dev
+ 
+-        String url = "http://localhost:3000/reset-password?token=" + token;
++        String jsonBody = """
++            {
++              "from": "Soul Surf <no-reply@valentimdev.resend.dev>",
++              "to": "%s",
++              "subject": "Redefinição de Senha - Soul Surf",
++              "html": "<div style='font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 30px; background:#f8f9fa; border-radius:12px; text-align:center;'>
++                         <h2 style='color:#007bff;'>Ola, surfista!</h2>
++                         <p>Recebemos uma solicitação para redefinir sua senha no <strong>Soul Surf</strong>.</p>
++                         <p>Clique no botão abaixo para criar uma nova senha:</p>
++                         <br>
++                         <a href='%s' style='background:#007bff; color:white; padding:14px 32px; text-decoration:none; border-radius:8px; font-size:16px; font-weight:bold;'>Redefinir Senha</a>
++                         <br><br>
++                         <small style='color:#666;'>Este link expira em 24 horas.</small>
++                         <p style='color:#666; margin-top:30px;'>Se você não solicitou isso, ignore este e-mail.</p>
++                         <p><strong>Boa onda!</strong><br>Equipe Soul Surf</p>
++                       </div>"
++            }
++            """.formatted(toEmail, resetLink);
+ 
+-        String text = "Olá, para redefinir sua senha, clique no link abaixo: \n" + url;
++        RequestBody body = RequestBody.create(jsonBody, MediaType.get("application/json; charset=utf-8"));
+ 
+-        SimpleMailMessage message = new SimpleMailMessage();
+-        message.setFrom("nao-responda@soulsurf.com"); // E-mail do remetente
+-        message.setTo(toEmail);
+-        message.setSubject(subject);
+-        message.setText(text);
++        Request request = new Request.Builder()
++                .url(RESEND_API_URL)
++                .post(body)
++                .addHeader("Authorization", "Bearer " + apiKey)
++                .addHeader("Content-Type", "application/json")
++                .build();
+ 
+-        mailSender.send(message);
++        try (Response response = client.newCall(request).execute()) {
++            if (!response.isSuccessful()) {
++                String error = response.body() != null ? response.body().string() : "sem detalhes";
++                throw new RuntimeException("Erro Resend: " + response.code() + " → " + error);
++            }
++            // Sucesso!
++        } catch (IOException e) {
++            throw new RuntimeException("Erro de conexão com Resend: " + e.getMessage());
++        }
+     }
+ }
+\ No newline at end of file
+diff --git a/backend/src/main/resources/application.properties b/backend/src/main/resources/application.properties
+deleted file mode 100644
+index 43ef1cc..0000000
+--- a/backend/src/main/resources/application.properties
++++ /dev/null
+@@ -1,37 +0,0 @@
+-spring.application.name=backend
+-spring.jpa.hibernate.ddl-auto=update
+-spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect
+-feature.blob.enabled=true
+-azure.storage.container-name=images
+-azure.storage.connection-string=${AZURE_STORAGE_CONNECTION_STRING}
+-spring.datasource.url=${DB_URL}
+-spring.datasource.username=${DB_USER}
+-spring.datasource.password=${DB_PASSWORD}
+-spring.datasource.driver-class-name=org.postgresql.Driver
+-soulsurf.app.jwtSecret=${JWT_SECRET}
+-soulsurf.app.jwtExpirationMs=86400000
+-logging.level.org.springframework.security=DEBUG
+-spring.mail.host=smtp.gmail.com
+-spring.mail.port=587
+-spring.mail.username=${MAIL_USERNAME}
+-spring.mail.password=${MAIL_PASSWORD}
+-spring.mail.properties.mail.smtp.auth=true
+-spring.mail.properties.mail.smtp.starttls.enable=true
+-spring.datasource.hikari.maximum-pool-size=7
+-spring.datasource.hikari.minimum-idle=2
+-spring.datasource.hikari.idle-timeout=600000
+-spring.datasource.hikari.max-lifetime=1800000
+-spring.datasource.hikari.connection-timeout=30000
+-spring.datasource.hikari.pool-name=SpringBootHikariCP
+-spring.jpa.properties.hibernate.connection.provider_disables_autocommit=false
+-spring.jpa.properties.hibernate.connection.pool_size=10
+-spring.jpa.show-sql=false
+-spring.jpa.properties.hibernate.format_sql=true
+-
+-spring.servlet.multipart.enabled=true
+-spring.servlet.multipart.max-file-size=10MB
+-spring.servlet.multipart.max-request-size=10MB
+-spring.servlet.multipart.resolve-lazily=false
+-
+-weather.api.url=https://api.openweathermap.org/data/2.5/weather
+-weather.api.key=${WEATHER_API_KEY}
+\ No newline at end of file
+diff --git a/front_end/src/components/ForgotPasswordCard.tsx b/front_end/src/components/ForgotPasswordCard.tsx
+index 1604b81..a5fed81 100644
+--- a/front_end/src/components/ForgotPasswordCard.tsx
++++ b/front_end/src/components/ForgotPasswordCard.tsx
+@@ -1,5 +1,3 @@
+-import surf01 from "../assets/login_page/surf01.jpg"
+-import surf02 from "../assets/login_page/surf02.jpg"
+ 
+ import {
+   ResizableHandle,
+diff --git a/front_end/src/components/customCards/ForgotPasswordCard.tsx b/front_end/src/components/customCards/ForgotPasswordCard.tsx
+index d01b2a3..1b9e0d3 100644
+--- a/front_end/src/components/customCards/ForgotPasswordCard.tsx
++++ b/front_end/src/components/customCards/ForgotPasswordCard.tsx
+@@ -1,3 +1,5 @@
++// src/components/customCards/ForgotPasswordCard.tsx
++
+ import { useState } from "react";
+ import { Link } from "react-router-dom";
+ import { AuthService } from "@/api/services/authService";
+@@ -5,91 +7,112 @@ import { Button } from "@/components/ui/button";
+ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+ import { Input } from "@/components/ui/input";
+ import { Label } from "@/components/ui/label";
++import { Loader2, CheckCircle } from "lucide-react";
+ 
+-function ForgotPasswordCard() {
+-    const [email, setEmail] = useState("");
+-    const [isSubmitted, setIsSubmitted] = useState(false);
+-    const [error, setError] = useState<string | null>(null);
+-    const [loading, setLoading] = useState(false);
+-
+-    const handleSubmit = async (event: React.FormEvent) => {
+-        event.preventDefault();
+-        setError(null);
+-        setLoading(true);
++export default function ForgotPasswordCard() {
++  const [email, setEmail] = useState("");
++  const [isSubmitted, setIsSubmitted] = useState(false);
++  const [error, setError] = useState<string | null>(null);
++  const [loading, setLoading] = useState(false);
+ 
+-        try {
+-            await AuthService.forgotPassword({ email });
+-            setIsSubmitted(true);
+-        } catch (err: any) {
+-            setError(
+-                err?.response?.data?.message ||
+-                "Não foi possível enviar o link. Tente novamente."
+-            );
+-        } finally {
+-            setLoading(false);
+-        }
+-    };
++  const handleSubmit = async (e: React.FormEvent) => {
++    e.preventDefault();
++    setError(null);
++    setLoading(true);
+ 
+-    if (isSubmitted) {
+-        return (
+-            <div className="h-full flex items-center justify-center">
+-                <Card className="w-full max-w-sm border">
+-                    <CardHeader className="text-center">
+-                        <CardTitle>Link Enviado!</CardTitle>
+-                        <CardDescription>
+-                            Verifique sua caixa de entrada (e a pasta de spam) para encontrar o
+-                            link de redefinição.
+-                        </CardDescription>
+-                    </CardHeader>
+-                    <CardFooter>
+-                        <Button asChild className="w-full">
+-                            <Link to="/login">Voltar para o Login</Link>
+-                        </Button>
+-                    </CardFooter>
+-                </Card>
+-            </div>
+-        );
++    try {
++      await AuthService.forgotPassword({ email });
++      setIsSubmitted(true);
++    } catch (err: any) {
++      setError(
++        err?.response?.data?.message ||
++          "E-mail não encontrado ou erro no servidor. Tente novamente."
++      );
++    } finally {
++      setLoading(false);
+     }
++  };
+ 
++  // TELA DE SUCESSO
++  if (isSubmitted) {
+     return (
+-        <div className="h-full flex items-center justify-center">
+-            <Card className="w-full max-w-sm border">
+-                <CardHeader>
+-                    <CardTitle>Esqueceu a senha?</CardTitle>
+-                    <CardDescription>
+-                        Insira seu e-mail para receber um link e redefinir sua senha.
+-                    </CardDescription>
+-                </CardHeader>
+-                <CardContent>
+-                    <form onSubmit={handleSubmit}>
+-                        <div className="grid gap-2">
+-                            <Label htmlFor="email">Email</Label>
+-                            <Input
+-                                id="email"
+-                                type="email"
+-                                placeholder="exemplo@exemplo.com"
+-                                required
+-                                value={email}
+-                                onChange={(e) => setEmail(e.target.value)}
+-                                disabled={loading}
+-                            />
+-                        </div>
+-                        {error && (
+-                            <p className="text-sm text-red-500 mt-2">{error}</p>
+-                        )}
+-                        <CardFooter className="flex-col gap-4 pt-6">
+-                            <Button type="submit" className="w-full" disabled={loading}>
+-                                {loading ? "Enviando..." : "Enviar Link"}
+-                            </Button>
+-                            <Button variant="link" asChild>
+-                                <Link to="/login">Voltar para o Login</Link>
+-                            </Button>
+-                        </CardFooter>
+-                    </form>
+-                </CardContent>
+-            </Card>
+-        </div>
++      <Card className="w-full max-w-md mx-auto border-0 shadow-2xl">
++        <CardHeader className="text-center pb-8">
++          <div className="mx-auto w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mb-4">
++            <CheckCircle className="w-12 h-12 text-green-600" />
++          </div>
++          <CardTitle className="text-2xl">Link Enviado!</CardTitle>
++          <CardDescription className="text-base">
++            Verifique seu e-mail <span className="font-semibold text-primary">{email}</span>
++            <br />
++            (não esqueça de olhar a pasta de <strong>spam</strong>)
++          </CardDescription>
++        </CardHeader>
++        <CardFooter>
++          <Button asChild className="w-full" size="lg">
++            <Link to="/login">Voltar para o Login</Link>
++          </Button>
++        </CardFooter>
++      </Card>
+     );
+-}
++  }
++
++  // FORMULÁRIO NORMAL
++  return (
++    <Card className="w-full max-w-md mx-auto border-0 shadow-2xl">
++      <CardHeader className="space-y-1 text-center">
++        <CardTitle className="text-2xl font-bold">Esqueceu a senha?</CardTitle>
++        <CardDescription className="text-base">
++          Digite seu e-mail que enviaremos o link para redefinir sua senha
++        </CardDescription>
++      </CardHeader>
++
++      <CardContent>
++        <form onSubmit={handleSubmit} className="space-y-5">
++          <div className="space-y-2">
++            <Label htmlFor="email" className="text-base">E-mail</Label>
++            <Input
++              id="email"
++              type="email"
++              placeholder="seu@email.com"
++              required
++              value={email}
++              onChange={(e) => setEmail(e.target.value)}
++              disabled={loading}
++              className="h-12 text-base"
++            />
++          </div>
++
++          {error && (
++            <p className="text-sm text-red-500 text-center font-medium bg-red-50 py-2 px-4 rounded-lg border border-red-200">
++              {error}
++            </p>
++          )}
++
++          <Button
++            type="submit"
++            className="w-full h-12 text-base font-semibold"
++            disabled={loading || !email}
++          >
++            {loading ? (
++              <>
++                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
++                Enviando link...
++              </>
++            ) : (
++              "Enviar Link de Recuperação"
++            )}
++          </Button>
++        </form>
++      </CardContent>
+ 
+-export default ForgotPasswordCard;
+\ No newline at end of file
++      <CardFooter className="flex justify-center pt-4">
++        <Button variant="link" asChild className="text-base">
++          <Link to="/login" className="flex items-center gap-1">
++            Voltar para o Login
++          </Link>
++        </Button>
++      </CardFooter>
++    </Card>
++  );
++}
+\ No newline at end of file
+diff --git a/front_end/src/main.tsx b/front_end/src/main.tsx
+index f352374..d9b066c 100644
+--- a/front_end/src/main.tsx
++++ b/front_end/src/main.tsx
+@@ -19,6 +19,7 @@ import AboutPage from './pages/AboutPage.tsx';
+ import ChatPage from './pages/ChatPage';
+ import UserTimelinePage from './pages/UserTimelinePage.tsx';
+ import SearchResultsPage from "@/pages/SearchResultsPage.tsx";
++import ResetPasswordPage from './pages/ResetPasswordPage.tsx';
+ 
+ const router = createBrowserRouter([
+     {
+@@ -41,6 +42,7 @@ const router = createBrowserRouter([
+                     { path: 'chat/:conversationId', element: <ChatPage /> },
+                     { path: 'mensagens', element: <MessagesPage /> },
+                     { path: 'usuarios', element: <UserTimelinePage /> },
++                    
+                 ],
+             },
+ 
+@@ -48,6 +50,7 @@ const router = createBrowserRouter([
+             { path: 'login', element: <LoginPage /> },
+             { path: 'cadastro', element: <CadastroPage /> },
+             { path: 'forgot-password', element: <ForgotPasswordPage /> },
++            { path: 'reset-password', element: <ResetPasswordPage /> },
+         ],
+     },
+ ]);
+diff --git a/front_end/src/pages/ForgotPasswordPage.tsx b/front_end/src/pages/ForgotPasswordPage.tsx
+index 951c142..ae59fd5 100644
+--- a/front_end/src/pages/ForgotPasswordPage.tsx
++++ b/front_end/src/pages/ForgotPasswordPage.tsx
+@@ -1,38 +1,20 @@
+- import surf01 from "../assets/login_page/surf01.jpg"
+- import surf02 from "../assets/login_page/surf02.jpg"
+-//import azul2 from "../assets/azul2.png"
++// src/pages/ForgotPasswordPage.tsx
+ 
+-import {
+-  ResizableHandle,
+-  ResizablePanel,
+-  ResizablePanelGroup,
+-} from "@/components/ui/resizable"
+-import ForgotPasswordCard from "../components/customCards/ForgotPasswordCard"
+-function ForgotPasswordPage() {
+-  return (
+-    <div className="h-screen w-full flex flex-col bg-background">
+-      <ResizablePanelGroup direction="horizontal" className="flex-1">
+-        <ResizablePanel defaultSize={30}>
+-          <div className="h-full flex items-center justify-center">
+-          </div>
+-        </ResizablePanel>
+-
+-        <ResizableHandle />
++import surfzada from "@/assets/surfzada.jpg";  // mesma imagem do login (ou outra que preferir)
++import ForgotPasswordCard from "@/components/customCards/ForgotPasswordCard";
+ 
+-        <ResizablePanel defaultSize={40}>
++export default function ForgotPasswordPage() {
++  return (
++    <div
++      className="h-screen w-full flex items-center justify-center bg-cover bg-center bg-no-repeat"
++      style={{ backgroundImage: `url(${surfzada})` }}
++    >
++      {/* Card centralizado, com fundo semi-transparente pra destacar */}
++      <div className="w-full max-w-md px-6">
++        <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-2xl p-8 border border-white/20">
+           <ForgotPasswordCard />
+-        </ResizablePanel>
+-
+-        <ResizableHandle />
+-
+-        <ResizablePanel defaultSize={30}>
+-          <div className="h-full flex items-center justify-center">
+-            <img src={azul2} alt="Foto Surf 2" className="w-full h-full object-cover" />
+-          </div>
+-        </ResizablePanel>
+-      </ResizablePanelGroup>
++        </div>
++      </div>
+     </div>
+   );
+-}
+-export default ForgotPasswordPage;
+-
++}
+\ No newline at end of file
