@@ -1,15 +1,13 @@
 import soulSurfIcon from '@/assets/header/SoulSurfIconAzul.png';
 import { Button, Card, CardContent } from '@/components/ui/application';
-import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
+
 import { CheckCircle2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { useState } from 'react';
-import TermsOfServiceCard from './TermsOfServiceCard';
+
+
 
 function LandingCard() {
   const navigate = useNavigate();
-  const [isTermsOpen, setIsTermsOpen] = useState(false);
-
   return (
     <div className="h-full flex items-center justify-center py-10">
       <Card className="w-full max-w-md shadow-none border-0 mt-[-50px]">

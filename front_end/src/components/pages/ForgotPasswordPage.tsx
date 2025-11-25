@@ -6,7 +6,7 @@ import {
   ResizablePanel,
   ResizablePanelGroup,
 } from "@/components/ui/resizable" // Caminho corrigido aqui
-import ForgotPasswordCard from "../components/ForgotPasswordCard"
+
 
 function ForgotPasswordPage() {
   return (
@@ -21,7 +21,7 @@ function ForgotPasswordPage() {
         <ResizableHandle />
 
         <ResizablePanel defaultSize={40}>
-          <ForgotPasswordCard />
+
         </ResizablePanel>
 
         <ResizableHandle />
