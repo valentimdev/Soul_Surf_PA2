@@ -12,18 +12,25 @@ export const connectChat = (
     return null;
   }
 
-  // USE ws:// E WebSocket NATIVO
-  const socket = new WebSocket(`ws://soulsurfpa2-production.up.railway.app/ws?access_token=${token}`);
+  // Descobre URL base do WS
+  const isLocalhost = window.location.hostname === 'localhost';
+
+  const baseWsUrl = isLocalhost
+    ? 'ws://localhost:8080/ws' // backend local
+    : 'wss://soulsurfpa2-production.up.railway.app/ws'; // backend Railway em produção
+
+  const socketUrl = `${baseWsUrl}?access_token=${encodeURIComponent(token)}`;
 
   const client = new Client({
-    webSocketFactory: () => socket,
+    webSocketFactory: () => new WebSocket(socketUrl),
     reconnectDelay: 5000,
     heartbeatIncoming: 4000,
     heartbeatOutgoing: 4000,
     debug: (str) => console.log('[STOMP]', str),
 
     onConnect: () => {
-      console.log('STOMP CONECTADO! Assinando:', conversationId);
+      console.log('STOMP CONECTADO! Assinando tópico:', `/topic/conversations/${conversationId}`);
+
       client.subscribe(`/topic/conversations/${conversationId}`, (message) => {
         try {
           const payload = JSON.parse(message.body);
