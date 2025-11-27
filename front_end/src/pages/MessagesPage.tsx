@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { api } from "@/api/axios";
 
 type ConversationPreview = {
   id: string;
@@ -17,7 +18,7 @@ type ConversationPreview = {
 };
 
 type UserLite = {
-  id: number;           // seu User usa Long
+  id: number; // seu User usa Long
   email: string;
   username: string;
   fotoPerfil?: string | null;
@@ -46,12 +47,11 @@ export default function MessagesPage() {
     (async () => {
       try {
         setLoadingConvs(true);
-        const r = await fetch("/api/chat/conversations", { headers });
-        if (!r.ok) throw new Error("Falha ao buscar conversas");
-        const data = await r.json();
+        const r = await api.get("/api/chat/conversations", { headers });
+        const data = Array.isArray(r.data) ? r.data : r.data.content ?? [];
         setConvs(data);
       } catch (e) {
-        console.error(e);
+        console.error("Erro ao buscar conversas:", e);
       } finally {
         setLoadingConvs(false);
       }
@@ -59,38 +59,39 @@ export default function MessagesPage() {
   }, [headers]);
 
   // Busca contatos (direita)
-// 1) aceite um termo opcional na função
-async function loadContacts(term?: string) {
-  try {
-    setLoadingContacts(true);
-    const r = await fetch("/api/users/following", { headers });
-    if (!r.ok) throw new Error("Falha ao buscar lista de quem sigo");
-    const data = await r.json();
+  async function loadContacts(term?: string) {
+    try {
+      setLoadingContacts(true);
+      const r = await api.get("/api/users/following", { headers });
+      const data = r.data;
 
-    // mapeia resultado (array puro ou paginado)
-    let list: UserLite[] = (Array.isArray(data) ? data : (data.content ?? [])).map((u: any) => ({
-      id: u.id,
-      email: u.email,
-      username: u.username ?? "Surfista",
-      fotoPerfil: u.fotoPerfil ?? null,
-    }));
-
-    // 2) filtro no front pelo termo (username/email)
-    if (term && term.trim()) {
-      const t = term.trim().toLowerCase();
-      list = list.filter(u =>
-        (u.username?.toLowerCase().includes(t)) ||
-        (u.email?.toLowerCase().includes(t))
+      // mapeia resultado (array puro ou paginado)
+      let list: UserLite[] = (Array.isArray(data) ? data : data.content ?? []).map(
+        (u: any) => ({
+          id: u.id,
+          email: u.email,
+          username: u.username ?? "Surfista",
+          fotoPerfil: u.fotoPerfil ?? null,
+        })
       );
-    }
 
-    setContacts(list);
-  } catch (e) {
-    console.error(e);
-  } finally {
-    setLoadingContacts(false);
+      // filtro no front pelo termo (username/email)
+      if (term && term.trim()) {
+        const t = term.trim().toLowerCase();
+        list = list.filter(
+          (u) =>
+            u.username?.toLowerCase().includes(t) ||
+            u.email?.toLowerCase().includes(t)
+        );
+      }
+
+      setContacts(list);
+    } catch (e) {
+      console.error("Erro ao buscar contatos:", e);
+    } finally {
+      setLoadingContacts(false);
+    }
   }
-}
 
   useEffect(() => {
     loadContacts();
@@ -100,16 +101,15 @@ async function loadContacts(term?: string) {
   // Inicia/abre DM e navega
   async function startDM(otherUserEmail: string) {
     try {
-      const r = await fetch("/api/chat/dm", {
-        method: "POST",
-        headers,
-        body: JSON.stringify({ otherUserId: otherUserEmail }),
-      });
-      if (!r.ok) throw new Error("Falha ao criar/obter DM");
-      const data = await r.json(); // { conversationId }
+      const r = await api.post(
+        "/api/chat/dm",
+        { otherUserId: otherUserEmail },
+        { headers }
+      );
+      const data = r.data; // { conversationId }
       nav(`/chat/${data.conversationId}`);
     } catch (e) {
-      console.error(e);
+      console.error("Erro ao abrir DM:", e);
       alert("Não foi possível abrir a conversa.");
     }
   }
@@ -126,7 +126,9 @@ async function loadContacts(term?: string) {
         {/* Centro: últimas conversas */}
         <section className="md:col-span-2">
           {loadingConvs ? (
-            <Card><p>Carregando conversas…</p></Card>
+            <Card>
+              <p>Carregando conversas…</p>
+            </Card>
           ) : convs.length === 0 ? (
             <Card>
               <p className="text-slate-700">
@@ -196,7 +198,9 @@ async function loadContacts(term?: string) {
                       <Avatar src={u.fotoPerfil} alt={u.username} />
                       <div className="flex flex-1 flex-col text-left">
                         <span className="font-medium">{u.username}</span>
-                        <span className="text-xs text-slate-500">{u.email}</span>
+                        <span className="text-xs text-slate-500">
+                          {u.email}
+                        </span>
                       </div>
                       <span className="text-sky-700">Iniciar</span>
                     </button>
@@ -216,9 +220,14 @@ async function loadContacts(term?: string) {
 function Card({
   children,
   className = "",
-}: { children: any; className?: string }) {
+}: {
+  children: any;
+  className?: string;
+}) {
   return (
-    <div className={`rounded-2xl border border-slate-200 bg-white p-4 shadow-sm ${className}`}>
+    <div
+      className={`rounded-2xl border border-slate-200 bg-white p-4 shadow-sm ${className}`}
+    >
       {children}
     </div>
   );
@@ -246,8 +255,7 @@ function ConversationRow({
   onOpen: () => void;
 }) {
   const name =
-    conv.otherUserName ??
-    (conv.group ? "Grupo" : conv.otherUserId ?? "Conversa");
+    conv.otherUserName ?? (conv.group ? "Grupo" : conv.otherUserId ?? "Conversa");
 
   return (
     <button
