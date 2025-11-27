@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { api } from "@/api/axios";
+import api from "@/api/axios";
 
 type ConversationPreview = {
   id: string;
@@ -47,7 +47,7 @@ export default function MessagesPage() {
     (async () => {
       try {
         setLoadingConvs(true);
-        const r = await api.get("/api/chat/conversations", { headers });
+        const r = await api.get("/chat/conversations", { headers });
         const data = Array.isArray(r.data) ? r.data : r.data.content ?? [];
         setConvs(data);
       } catch (e) {
@@ -102,7 +102,7 @@ export default function MessagesPage() {
   async function startDM(otherUserEmail: string) {
     try {
       const r = await api.post(
-        "/api/chat/dm",
+        "/chat/dm",
         { otherUserId: otherUserEmail },
         { headers }
       );

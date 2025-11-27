@@ -1,7 +1,7 @@
 // src/pages/ChatPage.tsx
 import { useEffect, useRef, useState, useMemo } from "react";
 import { useParams } from "react-router-dom";
-import { api } from "@/api/axios"; // ⬅️ usa seu axios com baseURL
+import api from "@/api/axios"; 
 import { connectChat } from "@/api/services/chatSocket";
 import { format } from "date-fns";
 import { Send, Paperclip, Smile } from "lucide-react";
@@ -51,7 +51,7 @@ export default function ChatPage() {
   const loadMessages = async () => {
     try {
       const r = await api.get(
-        `/api/chat/conversations/${conversationId}/messages?page=0&size=50`,
+        `/chat/conversations/${conversationId}/messages?page=0&size=50`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       const data = Array.isArray(r.data) ? r.data : r.data.content ?? [];
@@ -95,7 +95,7 @@ export default function ChatPage() {
 
     try {
       const r = await api.post(
-        `/api/chat/conversations/${conversationId}/messages`,
+        `/chat/conversations/${conversationId}/messages`,
         { content: body },
         { headers: { Authorization: `Bearer ${token}` } }
       );
