@@ -1,5 +1,4 @@
-// src/assets/icons/HanglooseIcon.tsx
-import React from 'react';
+
 
 // Adicione a prop 'className' para que o Tailwind possa estilizá-la
 export const HanglooseIcon = ({ className }: { className?: string }) => {

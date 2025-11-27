@@ -17,6 +17,7 @@ export type PostDTO = {
         caminhoFoto?: string;
     };
     likesCount?: number;
+    commentsCount: number;
     likedByCurrentUser?: boolean;
 };
 
