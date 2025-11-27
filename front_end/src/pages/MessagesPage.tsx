@@ -62,7 +62,7 @@ export default function MessagesPage() {
   async function loadContacts(term?: string) {
     try {
       setLoadingContacts(true);
-      const r = await api.get("/api/users/following", { headers });
+      const r = await api.get("/users/following", { headers });
       const data = r.data;
 
       // mapeia resultado (array puro ou paginado)
