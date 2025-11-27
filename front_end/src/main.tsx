@@ -19,6 +19,7 @@ import AboutPage from './pages/AboutPage.tsx';
 import ChatPage from './pages/ChatPage';
 import UserTimelinePage from './pages/UserTimelinePage.tsx';
 import SearchResultsPage from "@/pages/SearchResultsPage.tsx";
+import ResetPasswordPage from './pages/ResetPasswordPage.tsx';
 
 const router = createBrowserRouter([
     {
@@ -41,6 +42,7 @@ const router = createBrowserRouter([
                     { path: 'chat/:conversationId', element: <ChatPage /> },
                     { path: 'mensagens', element: <MessagesPage /> },
                     { path: 'usuarios', element: <UserTimelinePage /> },
+                    
                 ],
             },
 
@@ -48,6 +50,7 @@ const router = createBrowserRouter([
             { path: 'login', element: <LoginPage /> },
             { path: 'cadastro', element: <CadastroPage /> },
             { path: 'forgot-password', element: <ForgotPasswordPage /> },
+            { path: 'reset-password', element: <ResetPasswordPage /> },
         ],
     },
 ]);
