@@ -8,8 +8,8 @@ import com.soulsurf.backend.entities.User;
 import com.soulsurf.backend.repository.CommentRepository;
 import com.soulsurf.backend.repository.PostRepository;
 import com.soulsurf.backend.repository.UserRepository;
-
 import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
@@ -25,13 +25,18 @@ public class CommentService {
     private final PostRepository postRepository;
     private final UserRepository userRepository;
     private final NotificationService notificationService;
+    private final SimpMessagingTemplate messagingTemplate; // ★ NOVO
 
-    public CommentService(CommentRepository commentRepository, PostRepository postRepository,
-                          UserRepository userRepository, NotificationService notificationService) {
+    public CommentService(CommentRepository commentRepository,
+                          PostRepository postRepository,
+                          UserRepository userRepository,
+                          NotificationService notificationService,
+                          SimpMessagingTemplate messagingTemplate) { // ★ NOVO
         this.commentRepository = commentRepository;
         this.postRepository = postRepository;
         this.userRepository = userRepository;
         this.notificationService = notificationService;
+        this.messagingTemplate = messagingTemplate; // ★ NOVO
     }
 
     @CacheEvict(value = {"postById"}, allEntries = true)
@@ -72,7 +77,13 @@ public class CommentService {
             );
         }
 
-        return convertToDto(comment);
+        CommentDTO dto = convertToDto(comment);
+
+        // ★★★ Envia novo comentário em tempo real ★★★
+        CommentEvent event = new CommentEvent("CREATED", postId, dto);
+        messagingTemplate.convertAndSend("/topic/posts/" + postId + "/comments", event);
+
+        return dto;
     }
 
     public void processarMencoes(Comment comment, String senderUsername) {
@@ -113,13 +124,28 @@ public class CommentService {
                 .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado"));
         processarMencoes(comment, usuario.getUsername());
 
-        return convertToDto(comment);
+        CommentDTO dto = convertToDto(comment);
+
+        // ★ Enviar evento de atualização
+        CommentEvent event = new CommentEvent("UPDATED", postId, dto);
+        messagingTemplate.convertAndSend("/topic/posts/" + postId + "/comments", event);
+
+        return dto;
     }
 
     @CacheEvict(value = {"postById"}, allEntries = true)
     public void deleteComment(Long postId, Long commentId, String userEmail) {
         Comment comment = validateAndGetComment(postId, commentId, userEmail);
+
         commentRepository.delete(comment);
+
+        // ★ Enviar evento de remoção
+        CommentDTO dto = new CommentDTO();
+        dto.setId(commentId);
+        // front pode usar só o id para remover da lista
+
+        CommentEvent event = new CommentEvent("DELETED", postId, dto);
+        messagingTemplate.convertAndSend("/topic/posts/" + postId + "/comments", event);
     }
 
     private Comment validateAndGetComment(Long postId, Long commentId, String userEmail) {
@@ -164,5 +190,22 @@ public class CommentService {
                 .collect(Collectors.toList()));
 
         return dto;
+    }
+
+    // ★ DTO de evento para o WebSocket
+    public static class CommentEvent {
+        private String type;      // CREATED, UPDATED, DELETED
+        private Long postId;
+        private CommentDTO comment;
+
+        public CommentEvent(String type, Long postId, CommentDTO comment) {
+            this.type = type;
+            this.postId = postId;
+            this.comment = comment;
+        }
+
+        public String getType() { return type; }
+        public Long getPostId() { return postId; }
+        public CommentDTO getComment() { return comment; }
     }
 }

@@ -2,24 +2,43 @@ import api from "../axios";
 import { postRoutes } from "../routes/post";
 import type {UserDTO} from "./userService";
 
-export type PostDTO = {
+export type CommentDTO = {
+  id: number;
+  texto: string;
+  data: string;
+  usuario: {
     id: number;
-    descricao: string;
-    caminhoFoto?: string;
-    data: string;
-    usuario: UserDTO;
-    publico: boolean;
-    beach?: {
-        id: number;
-        nome: string;
-        descricao: string;
-        localizacao: string;
-        caminhoFoto?: string;
-    };
-    likesCount?: number;
-    commentsCount: number;
-    likedByCurrentUser?: boolean;
+    username: string;
+    fotoPerfil?: string | null;
+  };
+  parentId?: number | null;
+  replies?: CommentDTO[];
 };
+
+
+export type PostDTO = {
+  id: number;
+  descricao: string;
+  caminhoFoto?: string;
+  data: string;
+  usuario: UserDTO;
+  publico: boolean;
+
+  beach?: {
+    id: number;
+    nome: string;
+    descricao: string;
+    localizacao: string;
+    caminhoFoto?: string;
+  };
+
+  comments: CommentDTO[];      // 👈 igual ao backend
+
+  likesCount: number;          // 👈 tira o "?"
+  commentsCount: number;       // já era obrigatório, mantém
+  likedByCurrentUser: boolean; // 👈 tira o "?"
+};
+
 
 export type MessageResponse = {
     message: string;
