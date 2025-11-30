@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef } from 'react';
 import { Bell, Check, CheckCheck, X, Loader2 } from 'lucide-react';
 import { useNotifications, getNotificationIcon } from '@/contexts/NotificationContext';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
