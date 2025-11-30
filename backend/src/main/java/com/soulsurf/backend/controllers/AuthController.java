@@ -1,21 +1,33 @@
 package com.soulsurf.backend.controllers;
 
-import com.soulsurf.backend.dto.*;
-import com.soulsurf.backend.security.jwt.JwtUtils;
-import com.soulsurf.backend.security.service.UserDetailsImpl;
-import com.soulsurf.backend.services.PasswordResetService;
-import com.soulsurf.backend.services.UserService;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.soulsurf.backend.dto.ForgotPasswordRequest;
+import com.soulsurf.backend.dto.JwtResponse;
+import com.soulsurf.backend.dto.LoginRequest;
+import com.soulsurf.backend.dto.MessageResponse;
+import com.soulsurf.backend.dto.ResetPasswordRequest;
+import com.soulsurf.backend.dto.SignupRequest;
+import com.soulsurf.backend.dto.UserDTO;
+import com.soulsurf.backend.security.jwt.JwtUtils;
+import com.soulsurf.backend.security.service.UserDetailsImpl;
+import com.soulsurf.backend.services.PasswordResetService;
+import com.soulsurf.backend.services.UserService;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
@@ -69,6 +81,12 @@ public class AuthController {
             return ResponseEntity
                     .badRequest()
                     .body(new MessageResponse("Erro: O e-mail já está em uso!"));
+        }
+
+        if (userService.existsByUsername(signUpRequest.getUsername())) {
+            return ResponseEntity
+                    .badRequest()
+                    .body(new MessageResponse("Erro: O username já está em uso!"));
         }
 
         UserDTO newUser = userService.registerUser(signUpRequest);

@@ -1,11 +1,10 @@
 package com.soulsurf.backend.services;
 
-import com.soulsurf.backend.dto.PostDTO;
-import com.soulsurf.backend.dto.SignupRequest;
-import com.soulsurf.backend.dto.UserDTO;
-import com.soulsurf.backend.entities.User;
-import com.soulsurf.backend.repository.FollowRepository;
-import com.soulsurf.backend.repository.UserRepository;
+import java.util.List;
+import java.util.Optional;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -15,9 +14,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
+import com.soulsurf.backend.dto.PostDTO;
+import com.soulsurf.backend.dto.SignupRequest;
+import com.soulsurf.backend.dto.UserDTO;
+import com.soulsurf.backend.entities.User;
+import com.soulsurf.backend.repository.FollowRepository;
+import com.soulsurf.backend.repository.UserRepository;
 
 @Service
 public class UserService {
@@ -44,6 +46,10 @@ public class UserService {
 
     public boolean existsByEmail(String email) {
         return userRepository.findByEmail(email).isPresent();
+    }
+
+    public boolean existsByUsername(String username) {
+        return userRepository.findByUsername(username).isPresent();
     }
 
     public UserDTO registerUser(SignupRequest signupRequest) {
@@ -152,6 +158,18 @@ public class UserService {
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado com o id: " + userId));
 
         if (username != null) {
+            // Validação do formato do username: apenas letras, números, underscore e hífen
+            Pattern usernamePattern = Pattern.compile("^[a-zA-Z0-9_-]+$");
+            if (!usernamePattern.matcher(username).matches()) {
+                throw new IllegalArgumentException("O username deve conter apenas letras, números, underscore (_) ou hífen (-). Não são permitidos espaços ou acentos.");
+            }
+
+            // Verifica se o username já está em uso por outro usuário
+            Optional<User> existingUser = userRepository.findByUsername(username);
+            if (existingUser.isPresent() && !existingUser.get().getId().equals(userId)) {
+                throw new IllegalArgumentException("O username já está em uso por outro usuário.");
+            }
+
             userToUpdate.setUsername(username);
         }
         if (bio != null) {
