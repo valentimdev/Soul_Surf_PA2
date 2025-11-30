@@ -196,7 +196,7 @@ export function PostCard({
                             <AvatarFallback>{username?.charAt(0).toUpperCase() ?? "?"}</AvatarFallback>
                         </Avatar>
                         <div className="flex flex-col">
-                            <span className="font-bold text-card-foreground text-base" onClick={() => navigate(`/perfil/${postOwnerId}`)}>{username}</span>
+                            <span className="font-bold text-card-foreground hover:border-primary cursor-pointer text-base" onClick={() => navigate(`/perfil/${postOwnerId}`)}>{username}</span>
                             {praia && (
                                 <div className="flex items-center text-sm text-muted-foreground mt-0.5">
                                     <MapPin className="h-3 w-3 mr-1 text-primary" />

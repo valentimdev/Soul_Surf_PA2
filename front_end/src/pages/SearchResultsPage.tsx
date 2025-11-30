@@ -2,27 +2,55 @@ import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import api from "@/api/axios";
 import { Button } from "@/components/ui/button";
-import {BeachCard} from "@/components/customCards/BeachCard";
+import { BeachCard } from "@/components/customCards/BeachCard";
+import { UserService, type UserDTO } from "@/api/services/userService";
 
 export default function SearchResultsPage() {
     const [params] = useSearchParams();
     const query = params.get("query") || "";
 
-    const [users, setUsers] = useState([]);
-    const [beaches, setBeaches] = useState([]);
+    const [me, setMe] = useState<UserDTO | null>(null);
+    const [followingIds, setFollowingIds] = useState<number[]>([]);
+    const [users, setUsers] = useState<any[]>([]);
+    const [beaches, setBeaches] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
 
-    // busca users pela API
+    // ✅ busca usuário logado + quem ele segue
+    useEffect(() => {
+        const fetchMe = async () => {
+            try {
+                const loggedUser = await UserService.getMe();
+                setMe(loggedUser);
+
+                const followingRes = await api.get<UserDTO[]>(
+                    `/users/${loggedUser.id}/following`
+                );
+                setFollowingIds(followingRes.data.map((u) => u.id));
+            } catch (err) {
+                console.error("Erro ao buscar dados do usuário:", err);
+            }
+        };
+
+        fetchMe();
+    }, []);
+
     async function fetchUsers() {
         try {
             const res = await api.get(`/users/search?query=${query}`);
-            setUsers(res.data || []);
+            const result = res.data || [];
+
+            // ✅ injeta isFollowing corretamente
+            const usersWithFollow = result.map((user: any) => ({
+                ...user,
+                isFollowing: followingIds.includes(user.id),
+            }));
+
+            setUsers(usersWithFollow);
         } catch {
             setUsers([]);
         }
     }
 
-    // busca praias (todas) e filtra no front
     async function fetchBeaches() {
         try {
             const res = await api.get(`/beaches`);
@@ -42,11 +70,37 @@ export default function SearchResultsPage() {
     }
 
     useEffect(() => {
+        if (!me) return;
+
         setLoading(true);
         Promise.all([fetchUsers(), fetchBeaches()]).finally(() =>
             setLoading(false)
         );
-    }, [query]);
+    }, [query, me, followingIds]);
+
+    const handleFollowUser = async (userId: number) => {
+        try {
+            const isCurrentlyFollowing = followingIds.includes(userId);
+
+            await api.post(`/users/${userId}/follow`);
+
+            setFollowingIds((prev) =>
+                isCurrentlyFollowing
+                    ? prev.filter((id) => id !== userId)
+                    : [...prev, userId]
+            );
+
+            setUsers((prev) =>
+                prev.map((user) =>
+                    user.id === userId
+                        ? { ...user, isFollowing: !user.isFollowing }
+                        : user
+                )
+            );
+        } catch (err) {
+            console.error("Erro ao seguir/desseguir usuário:", err);
+        }
+    };
 
     if (loading) {
         return (
@@ -58,13 +112,14 @@ export default function SearchResultsPage() {
 
     return (
         <div className="max-w-4xl mx-auto p-6 space-y-10">
-
             {/* USERS */}
             <section>
                 <h2 className="text-xl font-bold mb-4">Usuários</h2>
 
                 {users.length === 0 ? (
-                    <p className="text-gray-500">Não foram encontrados resultados</p>
+                    <p className="text-gray-500">
+                        Não foram encontrados resultados
+                    </p>
                 ) : (
                     <div className="space-y-4">
                         {users.map((user: any) => (
@@ -80,14 +135,16 @@ export default function SearchResultsPage() {
                                             className="w-14 h-14 rounded-full object-cover"
                                         />
                                     ) : (
-                                        <div
-                                            className="w-14 h-14 rounded-full bg-gray-300 flex items-center justify-center text-white font-bold text-xl"
-                                        >
-                                            {user.username?.charAt(0).toUpperCase()}
+                                        <div className="w-14 h-14 rounded-full bg-gray-300 flex items-center justify-center text-white font-bold text-xl">
+                                            {user.username
+                                                ?.charAt(0)
+                                                .toUpperCase()}
                                         </div>
                                     )}
                                     <div>
-                                        <p className="font-semibold">{user.username}</p>
+                                        <p className="font-semibold">
+                                            {user.username}
+                                        </p>
                                         <p className="text-sm text-gray-500">
                                             {user.bio || "Sem bio"}
                                         </p>
@@ -95,8 +152,12 @@ export default function SearchResultsPage() {
                                 </div>
 
                                 <Button
-                                    variant={user.isFollowing ? "secondary" : "default"}
-                                    onClick={() => handleFollowUser(user.id)}
+                                    variant={
+                                        user.isFollowing ? "secondary" : "default"
+                                    }
+                                    onClick={() =>
+                                        handleFollowUser(user.id)
+                                    }
                                 >
                                     {user.isFollowing ? "Seguindo" : "Seguir"}
                                 </Button>
@@ -111,7 +172,9 @@ export default function SearchResultsPage() {
                 <h2 className="text-xl font-bold mb-4">Praias</h2>
 
                 {beaches.length === 0 ? (
-                    <p className="text-gray-500">Não foram encontrados resultados</p>
+                    <p className="text-gray-500">
+                        Não foram encontrados resultados
+                    </p>
                 ) : (
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                         {beaches.map((beach: any) => (
@@ -122,13 +185,4 @@ export default function SearchResultsPage() {
             </section>
         </div>
     );
-}
-
-async function handleFollowUser(id: number) {
-    try {
-        await api.post(`/users/${id}/follow`);
-        window.location.reload();
-    } catch (err) {
-        console.error(err);
-    }
 }
