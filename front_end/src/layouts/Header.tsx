@@ -114,14 +114,59 @@ function Header() {
             <Menu size={24} />
           </button>
 
-    
+
         <div className="absolute left-1/2 -translate-x-1/2 md:relative md:left-0 md:translate-x-0 h-full flex items-center">
           <img
             src={soulSurfIcon}
             alt="Soul Surf Logo"
-            className="ml-12 h-full w-auto cursor-pointer"
+            className="md:ml-12 h-full w-auto cursor-pointer"
             onClick={() => (window.location.href = '/home')}
           />
+        </div>
+
+        {/* Ícone de notificação no mobile */}
+        <div className="md:hidden relative">
+          <button
+            onClick={() => setShowDropdown((prev) => !prev)}
+            className="relative text-white hover:text-yellow-300 transition notification-button"
+          >
+            <Bell size={24} />
+            {unreadCount > 0 && (
+              <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-4 h-4 rounded-full flex items-center justify-center">
+                {unreadCount}
+              </span>
+            )}
+          </button>
+
+          {showDropdown && (
+            <div className="absolute right-0 mt-3 w-80 bg-white shadow-2xl rounded-xl overflow-hidden z-50 notification-dropdown border">
+              <div className="px-4 py-3 border-b font-semibold text-gray-700 bg-gray-50">
+                Notificações
+              </div>
+              <div className="max-h-96 overflow-y-auto">
+                {notifications.length === 0 ? (
+                  <div className="p-4 text-gray-500 text-center">
+                    Nenhuma notificação
+                  </div>
+                ) : (
+                  notifications.map((n) => (
+                    <div
+                      key={n.id}
+                      className={`px-4 py-3 border-b cursor-pointer hover:bg-gray-50 transition ${
+                        !n.read ? 'bg-blue-50' : ''
+                      }`}
+                      onClick={() => handleNotificationClick(n)}
+                    >
+                      <p className="text-sm text-gray-800">{n.message}</p>
+                      <p className="text-xs text-gray-400">
+                        {new Date(n.createdAt).toLocaleString()}
+                      </p>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="hidden md:block absolute w-1/3 left-1/2 -translate-x-1/2">
