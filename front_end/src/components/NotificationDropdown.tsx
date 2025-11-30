@@ -23,12 +23,7 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ className =
   const dropdownRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
 
-  // Animação de entrada
-  useEffect(() => {
-    if (showDropdown && dropdownRef.current) {
-      dropdownRef.current.classList.add('animate-in', 'fade-in-0', 'zoom-in-95');
-    }
-  }, [showDropdown]);
+
 
   const getNotificationColor = (type: string) => {
     switch (type) {
@@ -104,12 +99,12 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ className =
           }}
         >
           {/* Header */}
-          <div className="sticky top-0 px-4 py-3 border-b bg-gradient-to-r from-[var(--primary)] to-blue-500 flex items-center justify-between z-10">
+          <div className="sticky top-0 px-4 py-3 border-b bg-white flex items-center justify-between z-10">
             <div className="flex items-center gap-2">
-              <Bell className="w-5 h-5 text-white" />
-              <h3 className="font-semibold text-white text-lg">Notificações</h3>
+              <Bell className="w-5 h-5 text-[var(--primary)]" />
+              <h3 className="font-semibold text-[var(--primary)] text-lg">Notificações</h3>
               {unreadCount > 0 && (
-                <span className="bg-white/20 text-white text-xs px-2 py-0.5 rounded-full">
+                <span className="bg-blue-100 text-blue-600 text-xs px-2 py-0.5 rounded-full">
                   {unreadCount} nova{unreadCount > 1 ? 's' : ''}
                 </span>
               )}
@@ -121,7 +116,7 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ className =
                     e.stopPropagation();
                     markAllAsRead();
                   }}
-                  className="text-white/80 hover:text-white p-1.5 rounded-lg hover:bg-white/10 transition-colors"
+                  className="text-gray-500 hover:text-green-600 p-1.5 rounded-lg hover:bg-green-50 transition-colors"
                   title="Marcar todas como lidas"
                 >
                   <CheckCheck size={18} />
@@ -129,7 +124,7 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ className =
               )}
               <button
                 onClick={() => setShowDropdown(false)}
-                className="text-white/80 hover:text-white p-1.5 rounded-lg hover:bg-white/10 transition-colors sm:hidden"
+                className="text-gray-500 hover:text-red-600 p-1.5 rounded-lg hover:bg-red-50 transition-colors sm:hidden"
               >
                 <X size={18} />
               </button>
