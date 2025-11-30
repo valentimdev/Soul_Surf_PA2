@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { BeachService, type BeachDTO } from "@/api/services/beachService";
 import { BeachCard } from "@/components/customCards/BeachCard";
 import NovoPraiaCard from "@/components/customCards/NovaPraiaCard";
-import {Button} from "@/components/ui/button.tsx";
 
 function BeachsPage() {
     const [beaches, setBeaches] = useState<BeachDTO[]>([]);
@@ -22,8 +21,6 @@ function BeachsPage() {
         <div className="flex flex-col ml-[10%] mr-[10%] mt-5">
             <div className="flex justify-between items-center">
                 <h1 className="ml-5 text-2xl font-bold">Praias</h1>
-
-                <Button onClick={() => setOpen(true)}>Nova Praia</Button>
             </div>
 
             {open && (
