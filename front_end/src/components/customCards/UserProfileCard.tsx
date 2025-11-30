@@ -337,7 +337,7 @@ export function UserProfileCard({ user }: UserProfileCardProps) {
           >
             <TabsContent
               value="overview"
-              className="mt-4 space-y-4"
+              className="mt-4 space-y-6"
             >
               {!me ? (
                   <LoadingSpinner />
@@ -354,12 +354,15 @@ export function UserProfileCard({ user }: UserProfileCardProps) {
                     fotoPerfil={user.fotoPerfil || ''}
                     imageUrl={post.caminhoFoto || ''}
                     description={post.descricao}
-                    praia={'Praia do Futuro'}
+                    praia={post.beach?.nome || 'Praia do Futuro'}
                     postOwnerId={post.usuario.id}
                     loggedUserId={me.id}
                     isFollowing={followingIds.includes(post.usuario.id)}
                     onToggleFollow={handleToggleFollow}
                     onPostDeleted={handleDeletePostFromList}
+                    likesCount={post.likesCount || 0}
+                    commentsCount={post.commentsCount || 0}
+                    likedByCurrentUser={post.likedByCurrentUser || false}
                   />
                 ))
               )}

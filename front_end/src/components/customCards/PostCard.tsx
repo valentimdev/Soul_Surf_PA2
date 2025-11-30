@@ -247,7 +247,7 @@ export function PostCard({
 
                 {imageUrl ? (
                     <CardContent className="p-0">
-                        <img src={imageUrl} alt="Post" className="w-full max-h-[500px] object-cover bg-muted" />
+                        <img src={imageUrl} alt="Post" className="w-full max-h-[500px] object-cover bg-muted" loading="lazy" />
                         <div className="mt-3 px-4 pt-2">
                             <p
                                 ref={contentRef}
@@ -289,11 +289,9 @@ export function PostCard({
                                     }`}
                                 />
                             </Button>
-                            {likesCount > 0 && (
-                                <span className="text-sm font-semibold text-foreground min-w-[20px]">
-                                    {likesCount}
-                                </span>
-                            )}
+                            <span className="text-sm font-semibold text-foreground min-w-[20px]">
+                                {likesCount || 0}
+                            </span>
                         </div>
 
                         <div className="flex items-center gap-2">
@@ -305,11 +303,9 @@ export function PostCard({
                                 <MessageCircle className="size-7 text-muted-foreground group-hover:text-primary" />
                             </Button>
 
-                            {commentsCount > 0 && (
-                                <span className="text-sm font-semibold text-foreground min-w-[20px]">
-                            {commentsCount}
-                        </span>
-                            )}
+                            <span className="text-sm font-semibold text-foreground min-w-[20px]">
+                                {commentsCount || 0}
+                            </span>
                         </div>
                         <Button
                             variant="ghost"
