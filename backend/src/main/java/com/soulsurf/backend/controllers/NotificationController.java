@@ -70,9 +70,12 @@ public class NotificationController {
             @Parameter(description = "ID da notificação") @PathVariable Long id,
             @AuthenticationPrincipal UserDetails userDetails) {
         try {
+            System.out.println("[DEBUG] markAsRead: id=" + id + ", user=" + (userDetails != null ? userDetails.getUsername() : "null"));
             notificationService.markAsRead(id, userDetails.getUsername());
             return ResponseEntity.ok(new MessageResponse("Notificação marcada como lida"));
         } catch (Exception e) {
+            System.err.println("[ERROR] Erro ao marcar notificação como lida: " + e.getMessage());
+            e.printStackTrace();
             return ResponseEntity.badRequest()
                     .body(new MessageResponse("Erro ao marcar notificação como lida: " + e.getMessage()));
         }
