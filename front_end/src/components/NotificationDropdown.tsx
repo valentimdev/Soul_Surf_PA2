@@ -92,7 +92,7 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ className =
       {showDropdown && (
         <div
           ref={dropdownRef}
-          className="notification-dropdown absolute right-0 mt-3 w-[calc(100vw-1rem)] sm:w-96 max-w-[400px] bg-white shadow-2xl rounded-2xl overflow-hidden z-[9999] border border-gray-100"
+          className="notification-dropdown fixed left-2 right-2 top-20 sm:absolute sm:right-0 sm:top-full sm:left-auto sm:w-96 max-w-[400px] bg-white shadow-2xl rounded-2xl overflow-hidden z-[9999] border border-gray-100"
           style={{
             transformOrigin: 'top right',
             maxHeight: 'calc(100vh - 120px)'
@@ -190,6 +190,8 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ className =
                         </p>
                         <p className="text-xs text-gray-400 mt-1 flex items-center gap-1">
                           {formatTimeAgo(notif.createdAt)}
+                          <span className="text-gray-300">•</span>
+                          {new Date(notif.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                           {!notif.read && (
                             <span className="inline-block w-1.5 h-1.5 bg-blue-500 rounded-full ml-1" />
                           )}
