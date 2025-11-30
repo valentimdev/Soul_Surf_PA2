@@ -61,7 +61,7 @@ export const connectChat = (
       onError?.(error);
     },
 
-    onWebSocketClose: (event) => {
+    onWebSocketClose: (_event) => {
       if (reconnectAttempts >= maxReconnectAttempts) {
         console.warn('WebSocket desabilitado após muitas tentativas.');
       }
@@ -157,7 +157,7 @@ export const connectPostRealtime = (
       handlers.onError?.(error);
     },
 
-    onWebSocketClose: (event) => {
+    onWebSocketClose: (_event) => {
       if (reconnectAttempts >= maxReconnectAttempts) {
         console.warn('[POST] WebSocket desabilitado após muitas tentativas.');
       }
@@ -240,7 +240,7 @@ export const connectNotifications = (
       handlers.onError?.(error);
     },
 
-    onWebSocketClose: (event) => {
+    onWebSocketClose: (_event) => {
       if (reconnectAttempts >= maxReconnectAttempts) {
         console.warn('[NOTIFICATIONS] WebSocket desabilitado após muitas tentativas.');
       }

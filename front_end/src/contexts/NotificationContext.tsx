@@ -199,7 +199,7 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
       onNotification: (notification) => {
         addNotification(notification as NotificationDTO);
       },
-      onError: (error) => {
+      onError: (_error) => {
         setIsConnected(false);
         // Não logar erros repetitivos de conexão
       },

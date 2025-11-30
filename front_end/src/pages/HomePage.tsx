@@ -110,7 +110,7 @@ function HomePage() {
             onStompError: (frame) => {
                 console.error("[HOME] Erro STOMP:", frame.headers["message"]);
             },
-            onWebSocketError: (error) => {
+            onWebSocketError: (_error) => {
                 reconnectAttempts++;
                 if (reconnectAttempts >= maxReconnectAttempts) {
                     console.warn("[HOME] Muitas tentativas de reconexão. Desabilitando WebSocket.");
