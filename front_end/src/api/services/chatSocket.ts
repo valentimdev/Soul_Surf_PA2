@@ -147,3 +147,76 @@ export const connectPostRealtime = (
   client.activate();
   return client;
 };
+
+/**
+ * 🔔 NOVO: conexão em tempo real para NOTIFICAÇÕES do usuário
+ */
+export const connectNotifications = (
+  token: string,
+  username: string,
+  handlers: {
+    onNotification?: (notification: {
+      id: number;
+      sender: any;
+      type: string;
+      postId: number | null;
+      commentId: number | null;
+      read: boolean;
+      createdAt: string;
+      message: string;
+    }) => void;
+    onError?: (error: any) => void;
+  }
+) => {
+  if (!token) {
+    console.error('Token JWT não encontrado');
+    return null;
+  }
+
+  const isLocalhost = window.location.hostname === 'localhost';
+
+  const baseWsUrl = isLocalhost
+    ? 'ws://localhost:8080/ws'
+    : 'wss://soulsurfpa2-production.up.railway.app/ws';
+
+  const socketUrl = `${baseWsUrl}?access_token=${encodeURIComponent(token)}`;
+
+  const client = new Client({
+    webSocketFactory: () => new WebSocket(socketUrl),
+    reconnectDelay: 5000,
+    heartbeatIncoming: 4000,
+    heartbeatOutgoing: 4000,
+    debug: (str) => console.log('[STOMP][NOTIFICATIONS]', str),
+
+    onConnect: () => {
+      console.log('STOMP CONECTADO! Assinando notificações do usuário:', username);
+
+      // 🔔 Notificações em tempo real
+      client.subscribe(`/topic/notifications/${username}`, (message) => {
+        try {
+          const payload = JSON.parse(message.body);
+          handlers.onNotification?.(payload);
+        } catch (e) {
+          console.error('Erro ao parsear notificação:', e);
+        }
+      });
+    },
+
+    onStompError: (frame) => {
+      console.error('[NOTIFICATIONS] Erro STOMP:', frame.headers['message']);
+      handlers.onError?.(frame);
+    },
+
+    onWebSocketError: (error) => {
+      console.error('[NOTIFICATIONS] Erro WebSocket:', error);
+      handlers.onError?.(error);
+    },
+
+    onWebSocketClose: (event) => {
+      console.log('[NOTIFICATIONS] WebSocket fechado:', event.code, event.reason);
+    },
+  });
+
+  client.activate();
+  return client;
+};
