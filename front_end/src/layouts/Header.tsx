@@ -14,7 +14,6 @@ import {
   MessageSquare,
   Settings,
   LogOut,
-  Bell,
 } from 'lucide-react';
 import NotificationDropdown from '@/components/NotificationDropdown';
 import { useNotifications } from '@/contexts/NotificationContext';
@@ -83,7 +82,6 @@ function Header() {
     { href: '/praias', icon: Waves, label: 'Praias' },
     { href: '/usuarios', icon: Users, label: 'Usuários' },
     { href: '/mensagens', icon: MessageSquare, label: 'Mensagens' },
-    { href: '/notificacoes', icon: Bell, label: 'Notificações' },
   ];
 
   const cityName = weatherData ? weatherData.cityName.split(',')[0] : 'Local';
@@ -270,8 +268,8 @@ function Header() {
                     <Link
                       to={item.href}
                       className={`flex items-center gap-3 p-3 rounded-lg transition-colors ${isActive
-                          ? 'bg-[#eae8dc] text-primary font-medium'
-                          : 'text-gray-700 hover:bg-gray-50'
+                        ? 'bg-[#eae8dc] text-primary font-medium'
+                        : 'text-gray-700 hover:bg-gray-50'
                         }`}
                       onClick={() => setIsMobileMenuOpen(false)}
                     >
