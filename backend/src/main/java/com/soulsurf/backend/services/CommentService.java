@@ -25,18 +25,18 @@ public class CommentService {
     private final PostRepository postRepository;
     private final UserRepository userRepository;
     private final NotificationService notificationService;
-    private final SimpMessagingTemplate messagingTemplate; // ★ NOVO
+    private final SimpMessagingTemplate messagingTemplate;
 
     public CommentService(CommentRepository commentRepository,
                           PostRepository postRepository,
                           UserRepository userRepository,
                           NotificationService notificationService,
-                          SimpMessagingTemplate messagingTemplate) { // ★ NOVO
+                          SimpMessagingTemplate messagingTemplate) {
         this.commentRepository = commentRepository;
         this.postRepository = postRepository;
         this.userRepository = userRepository;
         this.notificationService = notificationService;
-        this.messagingTemplate = messagingTemplate; // ★ NOVO
+        this.messagingTemplate = messagingTemplate;
     }
 
     @CacheEvict(value = {"postById"}, allEntries = true)
@@ -79,7 +79,6 @@ public class CommentService {
 
         CommentDTO dto = convertToDto(comment);
 
-        // ★★★ Envia novo comentário em tempo real ★★★
         CommentEvent event = new CommentEvent("CREATED", postId, dto);
         messagingTemplate.convertAndSend("/topic/posts/" + postId + "/comments", event);
 
@@ -126,7 +125,6 @@ public class CommentService {
 
         CommentDTO dto = convertToDto(comment);
 
-        // ★ Enviar evento de atualização
         CommentEvent event = new CommentEvent("UPDATED", postId, dto);
         messagingTemplate.convertAndSend("/topic/posts/" + postId + "/comments", event);
 
@@ -139,10 +137,8 @@ public class CommentService {
 
         commentRepository.delete(comment);
 
-        // ★ Enviar evento de remoção
         CommentDTO dto = new CommentDTO();
         dto.setId(commentId);
-        // front pode usar só o id para remover da lista
 
         CommentEvent event = new CommentEvent("DELETED", postId, dto);
         messagingTemplate.convertAndSend("/topic/posts/" + postId + "/comments", event);
@@ -179,10 +175,17 @@ public class CommentService {
             dto.setParentId(comment.getParentComment().getId());
         }
 
+        var user = comment.getUsuario();
+
         var userDTO = new UserDTO();
-        userDTO.setId(comment.getUsuario().getId());
-        userDTO.setUsername(comment.getUsuario().getUsername());
-        userDTO.setEmail(comment.getUsuario().getEmail());
+        userDTO.setId(user.getId());
+        userDTO.setUsername(user.getUsername());
+        userDTO.setEmail(user.getEmail());
+        userDTO.setFotoPerfil(user.getFotoPerfil());
+        userDTO.setFotoCapa(user.getFotoCapa());
+        userDTO.setAdmin(user.isAdmin());
+        userDTO.setBanned(user.isBanned());
+
         dto.setUsuario(userDTO);
 
         dto.setReplies(comment.getReplies().stream()
@@ -192,9 +195,8 @@ public class CommentService {
         return dto;
     }
 
-    // ★ DTO de evento para o WebSocket
     public static class CommentEvent {
-        private String type;      // CREATED, UPDATED, DELETED
+        private String type;
         private Long postId;
         private CommentDTO comment;
 

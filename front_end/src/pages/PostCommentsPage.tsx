@@ -179,15 +179,22 @@ function CommentItem({
           {comment.replies.map((resp: Comment) => (
             <Card key={resp.id} className="p-3 mb-2">
               <CardHeader className="flex items-center gap-3 p-0 mb-2">
-                <Avatar>
-                  <AvatarImage
-                    src={resp.usuario.fotoPerfil || undefined}
-                    alt={resp.usuario.username}
-                  />
-                  <AvatarFallback>
-                    {resp.usuario.username.charAt(0).toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
+                  <Avatar
+                      className="w-11 h-11 cursor-pointer"
+                      onClick={() => (window.location.href = '/perfil')}
+                  >
+                      {resp.usuario?.fotoPerfil ? (
+                          <AvatarImage
+                              className="rounded-full border border-white"
+                              src={resp.usuario.fotoPerfil}
+                              alt={resp.usuario.username}
+                          />
+                      ) : (
+                          <AvatarFallback>
+                              {resp.usuario?.username ? resp.usuario.username.charAt(0) : '?'}
+                          </AvatarFallback>
+                      )}
+                  </Avatar>
                 <span className="font-semibold">{resp.usuario.username}</span>
               </CardHeader>
               <CardContent className="p-0">
