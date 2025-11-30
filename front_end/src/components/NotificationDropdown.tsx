@@ -92,17 +92,17 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ className =
       {showDropdown && (
         <div
           ref={dropdownRef}
-          className="notification-dropdown absolute right-0 mt-3 w-[calc(100vw-2rem)] sm:w-96 max-w-[400px] bg-white shadow-2xl rounded-2xl overflow-hidden z-50 border border-gray-100"
-          style={{ 
+          className="notification-dropdown absolute right-0 mt-3 w-[calc(100vw-2rem)] sm:w-96 max-w-[400px] bg-white shadow-2xl rounded-2xl overflow-hidden z-[99999] border border-gray-100"
+          style={{
             transformOrigin: 'top right',
             maxHeight: 'calc(100vh - 120px)'
           }}
         >
           {/* Header */}
-          <div className="sticky top-0 px-4 py-3 border-b bg-white flex items-center justify-between z-10">
+          <div className="sticky top-0 px-4 py-3 border-b bg-[var(--primary)] flex items-center justify-between z-10">
             <div className="flex items-center gap-2">
-              <Bell className="w-5 h-5 text-[var(--primary)]" />
-              <h3 className="font-semibold text-[var(--primary)] text-lg">Notificações</h3>
+              <Bell className="w-5 h-5 text-white" />
+              <h3 className="font-semibold text-white text-lg">Notificações</h3>
               {unreadCount > 0 && (
                 <span className="bg-blue-100 text-blue-600 text-xs px-2 py-0.5 rounded-full">
                   {unreadCount} nova{unreadCount > 1 ? 's' : ''}
@@ -116,7 +116,7 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ className =
                     e.stopPropagation();
                     markAllAsRead();
                   }}
-                  className="text-gray-500 hover:text-green-600 p-1.5 rounded-lg hover:bg-green-50 transition-colors"
+                  className="text-white hover:text-yellow-300 p-1.5 rounded-lg hover:bg-white/10 transition-colors"
                   title="Marcar todas como lidas"
                 >
                   <CheckCheck size={18} />
@@ -124,7 +124,7 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ className =
               )}
               <button
                 onClick={() => setShowDropdown(false)}
-                className="text-gray-500 hover:text-red-600 p-1.5 rounded-lg hover:bg-red-50 transition-colors sm:hidden"
+                className="text-white hover:text-yellow-300 p-1.5 rounded-lg hover:bg-white/10 transition-colors sm:hidden"
               >
                 <X size={18} />
               </button>
@@ -154,9 +154,7 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ className =
                   <li
                     key={notif.id}
                     onClick={() => handleNotificationClick(notif)}
-                    className={`relative px-4 py-3 cursor-pointer transition-all duration-200 hover:bg-gray-50 active:bg-gray-100 ${
-                      !notif.read ? 'bg-blue-50/50' : ''
-                    }`}
+                    className={`relative px-4 py-3 cursor-pointer transition-all duration-200 hover:bg-gray-50 active:bg-gray-100 bg-white`}
                     style={{
                       animationDelay: `${index * 50}ms`,
                     }}
@@ -197,17 +195,17 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ className =
                         </p>
                       </div>
 
-                      {/* Indicador de não lida */}
+                      {/* Botão de marcar como lida igual ao de remover */}
                       {!notif.read && (
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
                             markAsRead(notif.id);
                           }}
-                          className="flex-shrink-0 p-1.5 text-gray-400 hover:text-green-500 hover:bg-green-50 rounded-lg transition-colors"
+                          className="flex-shrink-0 p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors"
                           title="Marcar como lida"
                         >
-                          <Check size={16} />
+                          <Check size={18} />
                         </button>
                       )}
                     </div>
@@ -217,20 +215,7 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ className =
             )}
           </div>
 
-          {/* Footer */}
-          {notifications.length > 0 && (
-            <div className="sticky bottom-0 px-4 py-3 border-t bg-gray-50">
-              <button
-                onClick={() => {
-                  setShowDropdown(false);
-                  navigate('/notificacoes');
-                }}
-                className="w-full text-center text-sm font-medium text-[var(--primary)] hover:text-blue-600 transition-colors py-1"
-              >
-                Ver todas as notificações
-              </button>
-            </div>
-          )}
+
         </div>
       )}
     </div>

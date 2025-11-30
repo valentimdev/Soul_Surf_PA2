@@ -14,17 +14,15 @@ import {
   MessageSquare,
   Settings,
   LogOut,
-  Bell,
 } from 'lucide-react';
 import NotificationDropdown from '@/components/NotificationDropdown';
-import { useNotifications } from '@/contexts/NotificationContext';
 import { useEffect, useState } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import soulSurfIcon from '../assets/header/SoulSurfIcon.png';
 import { Input } from '@/components/ui/input';
 import { UserService, type UserDTO } from '@/api/services/userService';
 import { WeatherService, type WeatherDTO } from '@/api/services/WeatherService';
-import {useLocation, Link, useNavigate} from 'react-router-dom';
+import { useLocation, Link, useNavigate } from 'react-router-dom';
 
 function Header() {
   const [currentUser, setCurrentUser] = useState<UserDTO | null>(null);
@@ -34,8 +32,7 @@ function Header() {
   const location = useLocation();
   const isUserTimeline = location.pathname === '/usertimeline';
   const navigate = useNavigate();
-  const { unreadCount } = useNotifications();
-  
+
   const surfConditions = {
     vento: '12 km/h NE',
     ondas: '1.8 m',
@@ -50,7 +47,7 @@ function Header() {
         setCurrentUser(user);
         const weather = await WeatherService.getCurrentWeather('Fortaleza,BR');
         setWeatherData(weather);
-      } catch (error) {}
+      } catch (error) { }
     };
     fetchUserAndWeather();
   }, []);
@@ -83,7 +80,6 @@ function Header() {
     { href: '/praias', icon: Waves, label: 'Praias' },
     { href: '/usuarios', icon: Users, label: 'Usuários' },
     { href: '/mensagens', icon: MessageSquare, label: 'Mensagens' },
-    { href: '/notificacoes', icon: Bell, label: 'Notificações' },
   ];
 
   const cityName = weatherData ? weatherData.cityName.split(',')[0] : 'Local';
@@ -106,15 +102,15 @@ function Header() {
   return (
     <>
       <header className="bg-[var(--primary)] h-20 w-full flex items-center justify-between md:justify-between px-6 relative z-100">
-                  <button
-            onClick={() => setIsMobileMenuOpen(true)}
-            className="md:hidden  p-2 text-white hover:bg-white/10 rounded-md transition-colors"
-            aria-label="Abrir menu"
-          >
-            <Menu size={24} />
-          </button>
+        <button
+          onClick={() => setIsMobileMenuOpen(true)}
+          className="md:hidden  p-2 text-white hover:bg-white/10 rounded-md transition-colors"
+          aria-label="Abrir menu"
+        >
+          <Menu size={24} />
+        </button>
 
-    
+
         <div className="absolute left-1/2 -translate-x-1/2 md:relative md:left-0 md:translate-x-0 h-full flex items-center">
           <img
             src={soulSurfIcon}
@@ -130,22 +126,22 @@ function Header() {
               className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
               size={18}
             />
-              <Input
-                  type="text"
-                  placeholder={
-                      isUserTimeline
-                          ? 'Buscar surfistas...'
-                          : 'Buscar praias, surfistas, comunidades...'
-                  }
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
-                          navigate(`/buscar?query=${encodeURIComponent(searchQuery)}`);
-                      }
-                  }}
-                  className="pl-10 pr-4 py-2 rounded-full border border-gray-300 bg-white focus:ring-2 "
-              />
+            <Input
+              type="text"
+              placeholder={
+                isUserTimeline
+                  ? 'Buscar surfistas...'
+                  : 'Buscar praias, surfistas, comunidades...'
+              }
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  navigate(`/buscar?query=${encodeURIComponent(searchQuery)}`);
+                }
+              }}
+              className="pl-10 pr-4 py-2 rounded-full border border-gray-300 bg-white focus:ring-2 "
+            />
           </div>
         </div>
 
@@ -201,23 +197,20 @@ function Header() {
 
       {/* Menu Mobile Slide */}
       <div
-        className={`fixed inset-0 z-[9999] md:hidden transition-all duration-300 ${
-          isMobileMenuOpen ? 'visible opacity-100' : 'invisible opacity-0'
-        }`}
+        className={`fixed inset-0 z-[9999] md:hidden transition-all duration-300 ${isMobileMenuOpen ? 'visible opacity-100' : 'invisible opacity-0'
+          }`}
       >
         {/* Overlay */}
         <div
-          className={`absolute inset-0 bg-black/50 transition-opacity duration-300 ${
-            isMobileMenuOpen ? 'opacity-100' : 'opacity-0'
-          }`}
+          className={`absolute inset-0 bg-black/50 transition-opacity duration-300 ${isMobileMenuOpen ? 'opacity-100' : 'opacity-0'
+            }`}
           onClick={() => setIsMobileMenuOpen(false)}
         />
 
         {/* Menu Slide */}
         <div
-          className={`absolute left-0 top-0 h-full w-80 max-w-[85vw] bg-white shadow-xl transform transition-transform duration-300 ease-out ${
-            isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
-          }`}
+          className={`absolute left-0 top-0 h-full w-80 max-w-[85vw] bg-white shadow-xl transform transition-transform duration-300 ease-out ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
+            }`}
         >
           {/* Header do menu */}
           <div className="flex items-center justify-between p-4 border-b bg-[var(--primary)]">
@@ -264,32 +257,18 @@ function Header() {
             <ul className="space-y-1">
               {menuItems.map((item) => {
                 const isActive = location.pathname === item.href;
-                const isNotification = item.href === '/notificacoes';
                 return (
                   <li key={item.label}>
                     <Link
                       to={item.href}
-                      className={`flex items-center gap-3 p-3 rounded-lg transition-colors ${
-                        isActive
-                          ? 'bg-[#eae8dc] text-primary font-medium'
-                          : 'text-gray-700 hover:bg-gray-50'
-                      }`}
+                      className={`flex items-center gap-3 p-3 rounded-lg transition-colors ${isActive
+                        ? 'bg-[#eae8dc] text-primary font-medium'
+                        : 'text-gray-700 hover:bg-gray-50'
+                        }`}
                       onClick={() => setIsMobileMenuOpen(false)}
                     >
-                      <div className="relative">
-                        <item.icon size={20} />
-                        {isNotification && unreadCount > 0 && (
-                          <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs min-w-4 h-4 px-1 rounded-full flex items-center justify-center font-medium">
-                            {unreadCount > 99 ? '99+' : unreadCount}
-                          </span>
-                        )}
-                      </div>
+                      <item.icon size={20} />
                       <span className="flex-1">{item.label}</span>
-                      {isNotification && unreadCount > 0 && (
-                        <span className="bg-red-100 text-red-600 text-xs px-2 py-0.5 rounded-full font-medium">
-                          {unreadCount} nova{unreadCount > 1 ? 's' : ''}
-                        </span>
-                      )}
                     </Link>
                   </li>
                 );
@@ -324,7 +303,7 @@ function Header() {
             </button>
           </nav>
         </div>
-      </div>
+      </div >
     </>
   );
 }

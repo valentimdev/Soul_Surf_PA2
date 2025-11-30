@@ -43,7 +43,9 @@ export const NotificationService = {
     },
 
     async markAsRead(id: number): Promise<void> {
-        await api.put(`/notifications/${id}/read`);
+        const url = `/notifications/${id}/read`;
+        console.log('[DEBUG] Calling markAsRead:', url);
+        await api.put(url);
     },
 
     async markAllAsRead(): Promise<void> {

@@ -75,12 +75,12 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
       setIsLoading(true);
       setError(null);
       const notifs = await NotificationService.getMyNotifications();
-      
+
       // Ordenar por data (mais recentes primeiro)
       const sortedNotifs = notifs.sort(
         (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
       );
-      
+
       setNotifications(sortedNotifs);
       isFirstLoad.current = false;
     } catch (err) {
@@ -98,11 +98,11 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
       position: 'top-right',
       action: notif.postId
         ? {
-            label: 'Ver',
-            onClick: () => {
-              window.location.href = `/posts/${notif.postId}/comments`;
-            },
-          }
+          label: 'Ver',
+          onClick: () => {
+            window.location.href = `/posts/${notif.postId}/comments`;
+          },
+        }
         : undefined,
     });
   }, []);
@@ -117,19 +117,23 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
       // Adicionar no início (mais recente)
       return [notif, ...prev];
     });
-    
+
     // Mostrar toast
     showNotificationToast(notif);
   }, [showNotificationToast]);
 
   const markAsRead = useCallback(async (id: number) => {
     try {
+      console.log('[DEBUG] Marcando notificação como lida:', id);
       await NotificationService.markAsRead(id);
       setNotifications((prev) =>
         prev.map((n) => (n.id === id ? { ...n, read: true } : n))
       );
-    } catch (err) {
-      console.error('Erro ao marcar notificação como lida:', err);
+      console.log('[DEBUG] Notificação marcada com sucesso');
+    } catch (err: any) {
+      console.error('[ERROR] Erro ao marcar notificação como lida:', err);
+      console.error('[ERROR] Response:', err.response?.data);
+      console.error('[ERROR] Status:', err.response?.status);
       toast.error('Erro ao marcar como lida');
     }
   }, []);
@@ -137,13 +141,17 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
   const markAllAsRead = useCallback(async () => {
     try {
       const unreadNotifications = notifications.filter((n) => !n.read);
+      console.log('[DEBUG] Marcando todas como lidas:', unreadNotifications.length, 'notificações');
       await Promise.all(
         unreadNotifications.map((n) => NotificationService.markAsRead(n.id))
       );
       setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
       toast.success('Todas marcadas como lidas');
-    } catch (err) {
-      console.error('Erro ao marcar todas como lidas:', err);
+      console.log('[DEBUG] Todas notificações marcadas com sucesso');
+    } catch (err: any) {
+      console.error('[ERROR] Erro ao marcar todas como lidas:', err);
+      console.error('[ERROR] Response:', err.response?.data);
+      console.error('[ERROR] Status:', err.response?.status);
       toast.error('Erro ao marcar todas como lidas');
     }
   }, [notifications]);
@@ -201,7 +209,7 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
 
     if (client) {
       wsClientRef.current = client;
-      
+
       // Verificar conexão após um tempo
       const checkConnection = setTimeout(() => {
         if (client.connected) {
