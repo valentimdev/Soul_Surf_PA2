@@ -37,6 +37,11 @@ export const UserService = {
         return data;
     },
 
+    getUserByUsername: async (username: string): Promise<UserDTO> => {
+        const { data } = await api.get<UserDTO>(userRoutes.getByUsername(username));
+        return data;
+    },
+
     getMe: async (): Promise<UserDTO> => {
         const { data } = await api.get<UserDTO>(userRoutes.getMe());
         return data;

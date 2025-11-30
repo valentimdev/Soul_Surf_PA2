@@ -105,12 +105,12 @@ export default function UsersTimelinePage() {
                                 src={user.fotoPerfil || "/default-avatar.png"}
                                 alt={user.username}
                                 className="w-14 h-14 rounded-full object-cover cursor-pointer hover:opacity-80 transition-opacity"
-                                onClick={() => navigate(`/perfil/${user.id}`)}
+                                onClick={() => navigate(`/perfil/${user.username}`)}
                             />
                             <div>
                                 <p
                                     className="font-semibold cursor-pointer hover:text-primary transition-colors"
-                                    onClick={() => navigate(`/perfil/${user.id}`)}
+                                    onClick={() => navigate(`/perfil/${user.username}`)}
                                 >
                                     {user.username}
                                 </p>

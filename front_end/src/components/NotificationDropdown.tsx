@@ -68,7 +68,7 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ className =
     if (notif.postId) {
       navigate(`/posts/${notif.postId}/comments`);
     } else if (notif.sender?.username) {
-      navigate(`/perfil/${notif.sender.id}`);
+      navigate(`/perfil/${notif.sender.username}`);
     }
   };
 

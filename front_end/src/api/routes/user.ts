@@ -2,6 +2,7 @@ export const userRoutes = {
     base: "/users",
 
     getById: (id: number | string) => `${userRoutes.base}/${id}`,
+    getByUsername: (username: string) => `${userRoutes.base}/username/${encodeURIComponent(username)}`,
     getMe: () => `${userRoutes.base}/me`,
     updateProfile: () => `${userRoutes.base}/me/upload`,
 
