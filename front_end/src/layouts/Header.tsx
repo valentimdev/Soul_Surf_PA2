@@ -1,5 +1,4 @@
 import {
-  Bell,
   CloudRain,
   Wind,
   Waves,
@@ -15,11 +14,10 @@ import {
   MessageSquare,
   Settings,
   LogOut,
+  Bell,
 } from 'lucide-react';
-import {
-  NotificationService,
-  type NotificationDTO,
-} from '@/api/services/notificationService';
+import NotificationDropdown from '@/components/NotificationDropdown';
+import { useNotifications } from '@/contexts/NotificationContext';
 import { useEffect, useState } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import soulSurfIcon from '../assets/header/SoulSurfIcon.png';
@@ -31,13 +29,13 @@ import {useLocation, Link, useNavigate} from 'react-router-dom';
 function Header() {
   const [currentUser, setCurrentUser] = useState<UserDTO | null>(null);
   const [weatherData, setWeatherData] = useState<WeatherDTO | null>(null);
-  const [notifications, setNotifications] = useState<NotificationDTO[]>([]);
-  const [showDropdown, setShowDropdown] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
   const isUserTimeline = location.pathname === '/usertimeline';
   const navigate = useNavigate();
+  const { unreadCount } = useNotifications();
+  
   const surfConditions = {
     vento: '12 km/h NE',
     ondas: '1.8 m',
@@ -55,44 +53,6 @@ function Header() {
       } catch (error) {}
     };
     fetchUserAndWeather();
-  }, []);
-
-  useEffect(() => {
-    const interval = setInterval(async () => {
-      try {
-        const notifs = await NotificationService.getMyNotifications();
-        setNotifications(notifs);
-      } catch {}
-    }, 30000);
-    return () => clearInterval(interval);
-  }, []);
-
-  const handleNotificationClick = async (notif: NotificationDTO) => {
-    try {
-      if (!notif.read) {
-        await NotificationService.markAsRead(notif.id);
-        setNotifications((prev) =>
-          prev.map((n) => (n.id === notif.id ? { ...n, read: true } : n))
-        );
-      }
-      if (notif.postId) {
-        window.location.href = `/posts/${notif.postId}`;
-      }
-    } catch {}
-  };
-
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      const target = e.target as HTMLElement;
-      if (
-        target.closest('.notification-dropdown') ||
-        target.closest('.notification-button')
-      )
-        return;
-      setShowDropdown(false);
-    };
-    document.addEventListener('click', handleClickOutside);
-    return () => document.removeEventListener('click', handleClickOutside);
   }, []);
 
   // Fechar menu mobile ao mudar de página
@@ -142,8 +102,6 @@ function Header() {
       return <span className="text-xl">☀️</span>;
     return <Cloud size={12} />;
   };
-
-  const unreadCount = notifications.filter((n) => !n.read).length;
 
   return (
     <>
@@ -219,52 +177,11 @@ function Header() {
             </div>
           </div>
 
-          <div className="relative">
-            <button
-              onClick={() => setShowDropdown((prev) => !prev)}
-              className="relative text-white hover:text-yellow-300 transition notification-button"
-            >
-              <Bell size={26} />
-              {unreadCount > 0 && (
-                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-4 h-4 rounded-full flex items-center justify-center">
-                  {unreadCount}
-                </span>
-              )}
-            </button>
-
-            {showDropdown && (
-              <div className="absolute right-0 mt-3 w-80 bg-white shadow-2xl rounded-xl overflow-hidden z-50 notification-dropdown border">
-                <div className="px-4 py-3 border-b font-semibold text-gray-700 bg-gray-50">
-                  Notificações
-                </div>
-                <div className="max-h-96 overflow-y-auto">
-                  {notifications.length === 0 ? (
-                    <div className="p-4 text-gray-500 text-center">
-                      Nenhuma notificação
-                    </div>
-                  ) : (
-                    notifications.map((n) => (
-                      <div
-                        key={n.id}
-                        className={`px-4 py-3 border-b cursor-pointer hover:bg-gray-50 transition ${
-                          !n.read ? 'bg-blue-50' : ''
-                        }`}
-                        onClick={() => handleNotificationClick(n)}
-                      >
-                        <p className="text-sm text-gray-800">{n.message}</p>
-                        <p className="text-xs text-gray-400">
-                          {new Date(n.createdAt).toLocaleString()}
-                        </p>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </div>
-            )}
-          </div>
+          {/* Dropdown de Notificações */}
+          <NotificationDropdown />
 
           <Avatar
-            className="w-11 h-11 cursor-pointer"
+            className="w-11 h-11 cursor-pointer hover:ring-2 hover:ring-yellow-300 transition-all"
             onClick={() => (window.location.href = '/perfil')}
           >
             {currentUser?.fotoPerfil ? (
@@ -347,6 +264,7 @@ function Header() {
             <ul className="space-y-1">
               {menuItems.map((item) => {
                 const isActive = location.pathname === item.href;
+                const isNotification = item.href === '/notificacoes';
                 return (
                   <li key={item.label}>
                     <Link
@@ -358,8 +276,20 @@ function Header() {
                       }`}
                       onClick={() => setIsMobileMenuOpen(false)}
                     >
-                      <item.icon size={20} />
-                      {item.label}
+                      <div className="relative">
+                        <item.icon size={20} />
+                        {isNotification && unreadCount > 0 && (
+                          <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs min-w-4 h-4 px-1 rounded-full flex items-center justify-center font-medium">
+                            {unreadCount > 99 ? '99+' : unreadCount}
+                          </span>
+                        )}
+                      </div>
+                      <span className="flex-1">{item.label}</span>
+                      {isNotification && unreadCount > 0 && (
+                        <span className="bg-red-100 text-red-600 text-xs px-2 py-0.5 rounded-full font-medium">
+                          {unreadCount} nova{unreadCount > 1 ? 's' : ''}
+                        </span>
+                      )}
                     </Link>
                   </li>
                 );

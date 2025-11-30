@@ -1,5 +1,6 @@
 import ReactDOM from 'react-dom/client';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
+import { Toaster } from 'sonner';
 import MessagesPage from './pages/MessagesPage';
 import RootLayout from './layouts/RootLayout';
 import App from './App';
@@ -13,12 +14,14 @@ import ProtectedRoute from './components/ProtectedRoute';
 import './index.css';
 import BeachsPage from './pages/BeachsPage.tsx';
 import { AuthProvider } from './contexts/AuthContext.tsx';
+import { NotificationProvider } from './contexts/NotificationContext.tsx';
 import BeachDetailPage from '@/pages/BeachDetailPage.tsx';
 import PostCommentsPage from '@/pages/PostCommentsPage.tsx';
 import AboutPage from './pages/AboutPage.tsx';
 import ChatPage from './pages/ChatPage';
 import UserTimelinePage from './pages/UserTimelinePage.tsx';
 import SearchResultsPage from "@/pages/SearchResultsPage.tsx";
+import NotificationsPage from './pages/NotificationsPage.tsx';
 
 const router = createBrowserRouter([
     {
@@ -41,6 +44,7 @@ const router = createBrowserRouter([
                     { path: 'chat/:conversationId', element: <ChatPage /> },
                     { path: 'mensagens', element: <MessagesPage /> },
                     { path: 'usuarios', element: <UserTimelinePage /> },
+                    { path: 'notificacoes', element: <NotificationsPage /> },
                 ],
             },
 
@@ -53,7 +57,22 @@ const router = createBrowserRouter([
 ]);
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
-        <AuthProvider>
+    <AuthProvider>
+        <NotificationProvider>
+            <Toaster 
+                position="top-right" 
+                richColors 
+                closeButton
+                toastOptions={{
+                    duration: 5000,
+                    style: {
+                        background: 'white',
+                        border: '1px solid #e5e7eb',
+                        boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)',
+                    },
+                }}
+            />
             <RouterProvider router={router} />
-        </AuthProvider>
+        </NotificationProvider>
+    </AuthProvider>
 );

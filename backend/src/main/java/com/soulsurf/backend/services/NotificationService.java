@@ -7,6 +7,7 @@ import com.soulsurf.backend.repository.CommentRepository;
 import com.soulsurf.backend.repository.NotificationRepository;
 import com.soulsurf.backend.repository.PostRepository;
 import com.soulsurf.backend.repository.UserRepository;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,13 +22,28 @@ public class NotificationService {
     private final UserRepository userRepository;
     private final PostRepository postRepository;
     private final CommentRepository commentRepository;
+    private final SimpMessagingTemplate messagingTemplate; // ★ WebSocket para tempo real
 
     public NotificationService(NotificationRepository notificationRepository, UserRepository userRepository,
-                               PostRepository postRepository, CommentRepository commentRepository) {
+                               PostRepository postRepository, CommentRepository commentRepository,
+                               SimpMessagingTemplate messagingTemplate) {
         this.notificationRepository = notificationRepository;
         this.userRepository = userRepository;
         this.postRepository = postRepository;
         this.commentRepository = commentRepository;
+        this.messagingTemplate = messagingTemplate;
+    }
+
+    // ★ Método para enviar notificação em tempo real via WebSocket
+    private void sendRealTimeNotification(Notification notification) {
+        try {
+            NotificationDTO dto = convertToDTO(notification);
+            String destination = "/topic/notifications/" + notification.getRecipient().getUsername();
+            messagingTemplate.convertAndSend(destination, dto);
+        } catch (Exception e) {
+            // Log do erro mas não impede a criação da notificação
+            System.err.println("Erro ao enviar notificação em tempo real: " + e.getMessage());
+        }
     }
 
     @Transactional
@@ -60,7 +76,8 @@ public class NotificationService {
             notification.setComment(comment);
         }
 
-        notificationRepository.save(notification);
+        Notification saved = notificationRepository.save(notification);
+        sendRealTimeNotification(saved); // ★ Enviar em tempo real
     }
 
     @Transactional
@@ -85,7 +102,8 @@ public class NotificationService {
         notification.setPost(post);
         notification.setComment(comment);
 
-        notificationRepository.save(notification);
+        Notification saved = notificationRepository.save(notification);
+        sendRealTimeNotification(saved); // ★ Enviar em tempo real
     }
 
     @Transactional
@@ -113,7 +131,31 @@ public class NotificationService {
         notification.setPost(post);
         notification.setComment(comment);
 
-        notificationRepository.save(notification);
+        Notification saved = notificationRepository.save(notification);
+        sendRealTimeNotification(saved); // ★ Enviar em tempo real
+    }
+
+    @Transactional
+    public void createLikeNotification(String senderUsername, Long postId) {
+        User sender = userRepository.findByUsername(senderUsername)
+                .orElseThrow(() -> new RuntimeException("Usuário remetente não encontrado"));
+
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new RuntimeException("Post não encontrado"));
+
+        // Não notificar se for o próprio usuário curtindo seu post
+        if (sender.getId().equals(post.getUsuario().getId())) {
+            return;
+        }
+
+        Notification notification = new Notification();
+        notification.setSender(sender);
+        notification.setRecipient(post.getUsuario());
+        notification.setType(NotificationType.LIKE);
+        notification.setPost(post);
+
+        Notification saved = notificationRepository.save(notification);
+        sendRealTimeNotification(saved); // ★ Enviar em tempo real
     }
 
     @Transactional
@@ -174,12 +216,12 @@ public class NotificationService {
         dto.setRead(notification.isRead());
         dto.setCreatedAt(notification.getCreatedAt());
 
-        String message = "";
-        switch (notification.getType()) {
-            case MENTION -> message = notification.getSender().getUsername() + " mencionou você em um comentário";
-            case COMMENT -> message = notification.getSender().getUsername() + " comentou em seu post";
-            case REPLY -> message = notification.getSender().getUsername() + " respondeu ao seu comentário";
-        }
+        String message = switch (notification.getType()) {
+            case MENTION -> notification.getSender().getUsername() + " mencionou você em um comentário";
+            case COMMENT -> notification.getSender().getUsername() + " comentou em seu post";
+            case REPLY -> notification.getSender().getUsername() + " respondeu ao seu comentário";
+            case LIKE -> notification.getSender().getUsername() + " curtiu seu post";
+        };
 
         dto.setMessage(message);
         return dto;

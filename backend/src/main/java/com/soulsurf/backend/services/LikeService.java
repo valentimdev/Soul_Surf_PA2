@@ -21,15 +21,18 @@ public class LikeService {
     private final PostRepository postRepository;
     private final UserRepository userRepository;
     private final SimpMessagingTemplate messagingTemplate; // ★ NOVO
+    private final NotificationService notificationService; // ★ Notificações
 
     public LikeService(LikeRepository likeRepository,
                        PostRepository postRepository,
                        UserRepository userRepository,
-                       SimpMessagingTemplate messagingTemplate) { // ★ NOVO
+                       SimpMessagingTemplate messagingTemplate,
+                       NotificationService notificationService) { // ★ NOVO
         this.likeRepository = likeRepository;
         this.postRepository = postRepository;
         this.userRepository = userRepository;
         this.messagingTemplate = messagingTemplate; // ★ NOVO
+        this.notificationService = notificationService;
     }
 
     @CacheEvict(value = {"postById", "publicFeed", "followingPosts", "userPosts"}, allEntries = true)
@@ -55,6 +58,11 @@ public class LikeService {
             like.setUsuario(usuario);
             likeRepository.save(like);
             isLiked = true; // Está curtido
+            
+            // ★ Criar notificação de like (apenas se não for o próprio usuário)
+            if (!usuario.getId().equals(post.getUsuario().getId())) {
+                notificationService.createLikeNotification(usuario.getUsername(), postId);
+            }
         }
 
         long likesCount = likeRepository.countByPost(post);
