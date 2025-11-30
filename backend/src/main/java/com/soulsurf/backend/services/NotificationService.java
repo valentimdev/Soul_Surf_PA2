@@ -177,8 +177,8 @@ public class NotificationService {
     }
 
     @Transactional
-    public void markAsRead(Long notificationId, String username) {
-        User user = userRepository.findByUsername(username)
+    public void markAsRead(Long notificationId, String email) {
+        User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
 
         Notification notification = notificationRepository.findById(notificationId)

@@ -21,7 +21,6 @@ import AboutPage from './pages/AboutPage.tsx';
 import ChatPage from './pages/ChatPage';
 import UserTimelinePage from './pages/UserTimelinePage.tsx';
 import SearchResultsPage from "@/pages/SearchResultsPage.tsx";
-import NotificationsPage from './pages/NotificationsPage.tsx';
 
 const router = createBrowserRouter([
     {
@@ -44,7 +43,6 @@ const router = createBrowserRouter([
                     { path: 'chat/:conversationId', element: <ChatPage /> },
                     { path: 'mensagens', element: <MessagesPage /> },
                     { path: 'usuarios', element: <UserTimelinePage /> },
-                    { path: 'notificacoes', element: <NotificationsPage /> },
                 ],
             },
 
@@ -59,9 +57,9 @@ const router = createBrowserRouter([
 ReactDOM.createRoot(document.getElementById('root')!).render(
     <AuthProvider>
         <NotificationProvider>
-            <Toaster 
-                position="top-right" 
-                richColors 
+            <Toaster
+                position="top-right"
+                richColors
                 closeButton
                 toastOptions={{
                     duration: 5000,
