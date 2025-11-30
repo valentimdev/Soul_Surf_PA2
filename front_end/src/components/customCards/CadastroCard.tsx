@@ -24,11 +24,38 @@ function CadastroCard() {
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
 
+    // Função para remover acentos
+    const removeAccents = (str: string) => {
+        return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    };
+
+    // Função para validar e normalizar username
+    const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
+        // Remove espaços e acentos
+        const normalized = removeAccents(value.replace(/\s/g, ""));
+        setUsername(normalized);
+
+        // Mostra erro se o usuário tentou digitar espaço ou acento
+        if (value !== normalized) {
+            setError("Username não pode conter espaços ou acentos.");
+        } else {
+            setError(null);
+        }
+    };
+
     const handleSignup = async (e: React.FormEvent) => {
         e.preventDefault();
         setError(null);
         setSuccess(null);
         setLoading(true);
+
+        // Validação adicional antes de enviar
+        if (username.includes(" ") || /[àáâãäèéêëìíîïòóôõöùúûüçñ]/.test(username)) {
+            setError("Username não pode conter espaços ou acentos.");
+            setLoading(false);
+            return;
+        }
 
         if (password !== confirmPassword) {
             setError("As senhas não coincidem.");
@@ -63,10 +90,10 @@ function CadastroCard() {
                         <Input
                             id="username"
                             type="text"
-                            placeholder="Digite seu username"
+                            placeholder="Digite seu username (sem espaços ou acentos)"
                             required
                             value={username}
-                            onChange={(e) => setUsername(e.target.value)}
+                            onChange={handleUsernameChange}
                             disabled={loading}
                         />
                     </div>

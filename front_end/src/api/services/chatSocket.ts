@@ -23,16 +23,18 @@ export const connectChat = (
 
   const socketUrl = `${baseWsUrl}?access_token=${encodeURIComponent(token)}`;
 
+  let reconnectAttempts = 0;
+  const maxReconnectAttempts = 3;
+
   const client = new Client({
     webSocketFactory: () => new WebSocket(socketUrl),
     reconnectDelay: 5000,
     heartbeatIncoming: 4000,
     heartbeatOutgoing: 4000,
-    debug: (str) => console.log('[STOMP]', str),
+    debug: () => {}, // Desabilitar logs de debug
 
     onConnect: () => {
-      console.log('STOMP CONECTADO! Assinando tópico:', `/topic/conversations/${conversationId}`);
-
+      reconnectAttempts = 0; // Reset contador ao conectar
       client.subscribe(`/topic/conversations/${conversationId}`, (message) => {
         try {
           const payload = JSON.parse(message.body);
@@ -49,12 +51,20 @@ export const connectChat = (
     },
 
     onWebSocketError: (error) => {
-      console.error('Erro WebSocket:', error);
+      reconnectAttempts++;
+      if (reconnectAttempts >= maxReconnectAttempts) {
+        console.warn('Muitas tentativas de reconexão. Desabilitando WebSocket.');
+        client.deactivate();
+        onError?.(error);
+        return;
+      }
       onError?.(error);
     },
 
     onWebSocketClose: (event) => {
-      console.log('WebSocket fechado:', event.code, event.reason);
+      if (reconnectAttempts >= maxReconnectAttempts) {
+        console.warn('WebSocket desabilitado após muitas tentativas.');
+      }
     },
   });
 
@@ -96,16 +106,18 @@ export const connectPostRealtime = (
 
   const socketUrl = `${baseWsUrl}?access_token=${encodeURIComponent(token)}`;
 
+  let reconnectAttempts = 0;
+  const maxReconnectAttempts = 3;
+
   const client = new Client({
     webSocketFactory: () => new WebSocket(socketUrl),
     reconnectDelay: 5000,
     heartbeatIncoming: 4000,
     heartbeatOutgoing: 4000,
-    debug: (str) => console.log('[STOMP][POST]', str),
+    debug: () => {}, // Desabilitar logs de debug
 
     onConnect: () => {
-      console.log('STOMP CONECTADO! Assinando tópicos de post:', postId);
-
+      reconnectAttempts = 0; // Reset contador ao conectar
       // 👍 Likes em tempo real
       client.subscribe(`/topic/posts/${postId}/likes`, (message) => {
         try {
@@ -135,12 +147,20 @@ export const connectPostRealtime = (
     },
 
     onWebSocketError: (error) => {
-      console.error('[POST] Erro WebSocket:', error);
+      reconnectAttempts++;
+      if (reconnectAttempts >= maxReconnectAttempts) {
+        console.warn('[POST] Muitas tentativas de reconexão. Desabilitando WebSocket.');
+        client.deactivate();
+        handlers.onError?.(error);
+        return;
+      }
       handlers.onError?.(error);
     },
 
     onWebSocketClose: (event) => {
-      console.log('[POST] WebSocket fechado:', event.code, event.reason);
+      if (reconnectAttempts >= maxReconnectAttempts) {
+        console.warn('[POST] WebSocket desabilitado após muitas tentativas.');
+      }
     },
   });
 
@@ -181,16 +201,18 @@ export const connectNotifications = (
 
   const socketUrl = `${baseWsUrl}?access_token=${encodeURIComponent(token)}`;
 
+  let reconnectAttempts = 0;
+  const maxReconnectAttempts = 3;
+
   const client = new Client({
     webSocketFactory: () => new WebSocket(socketUrl),
     reconnectDelay: 5000,
     heartbeatIncoming: 4000,
     heartbeatOutgoing: 4000,
-    debug: (str) => console.log('[STOMP][NOTIFICATIONS]', str),
+    debug: () => {}, // Desabilitar logs de debug
 
     onConnect: () => {
-      console.log('STOMP CONECTADO! Assinando notificações do usuário:', username);
-
+      reconnectAttempts = 0; // Reset contador ao conectar
       // 🔔 Notificações em tempo real
       client.subscribe(`/topic/notifications/${username}`, (message) => {
         try {
@@ -208,12 +230,20 @@ export const connectNotifications = (
     },
 
     onWebSocketError: (error) => {
-      console.error('[NOTIFICATIONS] Erro WebSocket:', error);
+      reconnectAttempts++;
+      if (reconnectAttempts >= maxReconnectAttempts) {
+        console.warn('[NOTIFICATIONS] Muitas tentativas de reconexão. Desabilitando WebSocket.');
+        client.deactivate();
+        handlers.onError?.(error);
+        return;
+      }
       handlers.onError?.(error);
     },
 
     onWebSocketClose: (event) => {
-      console.log('[NOTIFICATIONS] WebSocket fechado:', event.code, event.reason);
+      if (reconnectAttempts >= maxReconnectAttempts) {
+        console.warn('[NOTIFICATIONS] WebSocket desabilitado após muitas tentativas.');
+      }
     },
   });
 
