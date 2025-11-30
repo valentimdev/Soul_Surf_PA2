@@ -147,13 +147,13 @@ function HomePage() {
                             prev.map((p) =>
                                 p.id === event.postId
                                     ? {
-                                          ...p,
-                                          likesCount: event.likesCount,
-                                          likedByCurrentUser:
-                                              me && event.username === me.username
-                                                  ? event.liked
-                                                  : p.likedByCurrentUser,
-                                      }
+                                        ...p,
+                                        likesCount: event.likesCount,
+                                        likedByCurrentUser:
+                                            me && event.username === me.username
+                                                ? event.liked
+                                                : p.likedByCurrentUser,
+                                    }
                                     : p
                             )
                         );
@@ -217,7 +217,7 @@ function HomePage() {
 
     return (
         <div className="w-full max-w-2xl mx-auto p-4 flex flex-col gap-6">
-            <div className="flex gap-4 justify-center mb-6 sticky top-20 bg-background z-2 py-2 border-b border-gray-200">
+            <div className="flex gap-4 justify-center mb-6 sticky top-20 bg-background z-1 py-2 border-b border-gray-200">
                 <Button
                     variant={feedType === "public" ? "default" : "outline"}
                     onClick={() => handleFeedTypeChange("public")}
