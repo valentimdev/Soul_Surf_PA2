@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import api from "@/api/axios";
@@ -12,6 +13,7 @@ interface User {
 }
 
 export default function UsersTimelinePage() {
+    const navigate = useNavigate();
     const [users, setUsers] = useState<User[]>([]);
     const [offset, setOffset] = useState(0);
     const [hasMore, setHasMore] = useState(true);
@@ -102,10 +104,16 @@ export default function UsersTimelinePage() {
                             <img
                                 src={user.fotoPerfil || "/default-avatar.png"}
                                 alt={user.username}
-                                className="w-14 h-14 rounded-full object-cover"
+                                className="w-14 h-14 rounded-full object-cover cursor-pointer hover:opacity-80 transition-opacity"
+                                onClick={() => navigate(`/perfil/${user.id}`)}
                             />
                             <div>
-                                <p className="font-semibold">{user.username}</p>
+                                <p
+                                    className="font-semibold cursor-pointer hover:text-primary transition-colors"
+                                    onClick={() => navigate(`/perfil/${user.id}`)}
+                                >
+                                    {user.username}
+                                </p>
                                 <p className="text-sm text-gray-500">{user.bio || "Sem bio"}</p>
                             </div>
                         </div>

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import api from "@/api/axios";
 import { Button } from "@/components/ui/button";
 import { BeachCard } from "@/components/customCards/BeachCard";
@@ -7,6 +7,7 @@ import { UserService, type UserDTO } from "@/api/services/userService";
 
 export default function SearchResultsPage() {
     const [params] = useSearchParams();
+    const navigate = useNavigate();
     const query = params.get("query") || "";
 
     const [me, setMe] = useState<UserDTO | null>(null);
@@ -132,17 +133,24 @@ export default function SearchResultsPage() {
                                         <img
                                             src={user.fotoPerfil}
                                             alt={user.username}
-                                            className="w-14 h-14 rounded-full object-cover"
+                                            className="w-14 h-14 rounded-full object-cover cursor-pointer hover:opacity-80 transition-opacity"
+                                            onClick={() => navigate(`/perfil/${user.id}`)}
                                         />
                                     ) : (
-                                        <div className="w-14 h-14 rounded-full bg-gray-300 flex items-center justify-center text-white font-bold text-xl">
+                                        <div
+                                            className="w-14 h-14 rounded-full bg-gray-300 flex items-center justify-center text-white font-bold text-xl cursor-pointer hover:opacity-80 transition-opacity"
+                                            onClick={() => navigate(`/perfil/${user.id}`)}
+                                        >
                                             {user.username
                                                 ?.charAt(0)
                                                 .toUpperCase()}
                                         </div>
                                     )}
                                     <div>
-                                        <p className="font-semibold">
+                                        <p
+                                            className="font-semibold cursor-pointer hover:text-primary transition-colors"
+                                            onClick={() => navigate(`/perfil/${user.id}`)}
+                                        >
                                             {user.username}
                                         </p>
                                         <p className="text-sm text-gray-500">
