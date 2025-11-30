@@ -4,15 +4,15 @@ import { UserService, type UserDTO } from "@/api/services/userService";
 import { UserProfileCard } from "@/components/customCards/UserProfileCard";
 
 function ProfilePage() {
-    const { userId } = useParams();
+    const { username } = useParams();
     const [userData, setUserData] = useState<UserDTO | null>(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const loadUser = async () => {
             try {
-                const user = userId
-                    ? await UserService.getUserById(userId)
+                const user = username
+                    ? await UserService.getUserByUsername(username)
                     : await UserService.getMe();
                 setUserData(user);
             } catch {
@@ -22,7 +22,7 @@ function ProfilePage() {
             }
         };
         loadUser();
-    }, [userId]);
+    }, [username]);
 
     if (loading) return <div className="text-center py-10">Carregando perfil...</div>;
     if (!userData) return <div className="text-center py-10">Usuário não encontrado</div>;

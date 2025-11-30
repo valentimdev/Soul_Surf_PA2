@@ -55,6 +55,27 @@ export function UserProfileCard({ user }: UserProfileCardProps) {
     previewPerfil: user.fotoPerfil,
     previewCapa: user.fotoCapa,
   });
+  const [usernameError, setUsernameError] = useState<string | null>(null);
+
+  // Função para remover acentos
+  const removeAccents = (str: string) => {
+    return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  };
+
+  // Função para validar e normalizar username
+  const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    // Remove espaços e acentos
+    const normalized = removeAccents(value.replace(/\s/g, ""));
+    setEditData({ ...editData, username: normalized });
+
+    // Mostra erro se o usuário tentou digitar espaço ou acento
+    if (value !== normalized) {
+      setUsernameError("Username não pode conter espaços ou acentos.");
+    } else {
+      setUsernameError(null);
+    }
+  };
 
   const handleFotoPerfilChange = (e: ChangeEvent<HTMLInputElement>) => {
     if (e.target.files?.[0]) {
@@ -80,6 +101,13 @@ export function UserProfileCard({ user }: UserProfileCardProps) {
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
+
+    // Validação adicional antes de enviar
+    if (editData.username.includes(" ") || /[àáâãäèéêëìíîïòóôõöùúûüçñ]/.test(editData.username)) {
+      setUsernameError("Username não pode conter espaços ou acentos.");
+      return;
+    }
+
     const formData = new FormData();
     formData.append('username', editData.username);
     formData.append('bio', editData.bio);
@@ -93,6 +121,7 @@ export function UserProfileCard({ user }: UserProfileCardProps) {
       setPreviewPerfil(updatedUser.fotoPerfil);
       setPreviewCapa(updatedUser.fotoCapa);
       setIsDialogOpen(false);
+      setUsernameError(null);
       toast.success('Perfil atualizado com sucesso!');
     } catch (error) {
       console.error('Erro ao atualizar perfil:', error);
@@ -204,11 +233,12 @@ export function UserProfileCard({ user }: UserProfileCardProps) {
                   <Input
                     type="text"
                     value={editData.username}
-                    onChange={(e) =>
-                      setEditData({ ...editData, username: e.target.value })
-                    }
-                    placeholder="Digite seu nome"
+                    onChange={handleUsernameChange}
+                    placeholder="Digite seu username (sem espaços ou acentos)"
                   />
+                  {usernameError && (
+                    <p className="text-red-500 text-sm mt-1">{usernameError}</p>
+                  )}
                 </div>
 
                 <div>

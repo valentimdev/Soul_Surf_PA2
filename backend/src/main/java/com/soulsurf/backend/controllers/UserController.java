@@ -67,6 +67,16 @@ public class UserController {
         return followService.listMyFollowing();
     }
 
+    @Operation(summary = "Busca o perfil de um usuário por username", description = "Retorna os detalhes do perfil de um usuário pelo seu username.")
+    @ApiResponse(responseCode = "200", description = "Perfil do usuário encontrado")
+    @ApiResponse(responseCode = "404", description = "Usuário não encontrado")
+    @GetMapping("/username/{username}")
+    public ResponseEntity<UserDTO> getUserProfileByUsername(@Parameter(description = "Username do usuário") @PathVariable String username) {
+        return userService.getUserProfileByUsername(username)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
     @Operation(summary = "Busca o perfil de um usuário", description = "Retorna os detalhes do perfil de um usuário pelo seu ID.")
     @ApiResponse(responseCode = "200", description = "Perfil do usuário encontrado")
     @ApiResponse(responseCode = "404", description = "Usuário não encontrado")

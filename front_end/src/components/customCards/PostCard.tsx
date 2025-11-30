@@ -190,13 +190,13 @@ export function PostCard({
                     <div className="flex items-center gap-3">
                         <Avatar
                             className="w-10 h-10 border-2 border-transparent hover:border-primary cursor-pointer"
-                            onClick={() => navigate(`/perfil/${postOwnerId}`)}
+                            onClick={() => navigate(`/perfil/${username}`)}
                         >
                             <AvatarImage src={fotoPerfil} alt={username} />
                             <AvatarFallback>{username?.charAt(0).toUpperCase() ?? "?"}</AvatarFallback>
                         </Avatar>
                         <div className="flex flex-col">
-                            <span className="font-bold text-card-foreground hover:border-primary cursor-pointer text-base" onClick={() => navigate(`/perfil/${postOwnerId}`)}>{username}</span>
+                            <span className="font-bold text-card-foreground hover:border-primary cursor-pointer text-base" onClick={() => navigate(`/perfil/${username}`)}>{username}</span>
                             {praia && (
                                 <div className="flex items-center text-sm text-muted-foreground mt-0.5">
                                     <MapPin className="h-3 w-3 mr-1 text-primary" />

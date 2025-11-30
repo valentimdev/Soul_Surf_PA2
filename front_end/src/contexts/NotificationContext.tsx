@@ -75,12 +75,12 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
       setIsLoading(true);
       setError(null);
       const notifs = await NotificationService.getMyNotifications();
-      
+
       // Ordenar por data (mais recentes primeiro)
       const sortedNotifs = notifs.sort(
         (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
       );
-      
+
       setNotifications(sortedNotifs);
       isFirstLoad.current = false;
     } catch (err) {
@@ -117,7 +117,7 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
       // Adicionar no início (mais recente)
       return [notif, ...prev];
     });
-    
+
     // Mostrar toast
     showNotificationToast(notif);
   }, [showNotificationToast]);
@@ -181,6 +181,13 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
     if (!token || !username) {
       setNotifications([]);
       setIsConnected(false);
+      // Limpar cliente se existir
+      if (wsClientRef.current) {
+        if (wsClientRef.current.connected) {
+          wsClientRef.current.deactivate();
+        }
+        wsClientRef.current = null;
+      }
       return;
     }
 
@@ -190,18 +197,17 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
     // Conectar WebSocket
     const client = connectNotifications(token, username, {
       onNotification: (notification) => {
-        console.log('Nova notificação recebida:', notification);
         addNotification(notification as NotificationDTO);
       },
-      onError: (error) => {
-        console.error('Erro no WebSocket de notificações:', error);
+      onError: (_error) => {
         setIsConnected(false);
+        // Não logar erros repetitivos de conexão
       },
     });
 
     if (client) {
       wsClientRef.current = client;
-      
+
       // Verificar conexão após um tempo
       const checkConnection = setTimeout(() => {
         if (client.connected) {
@@ -211,7 +217,7 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
 
       return () => {
         clearTimeout(checkConnection);
-        if (client.connected) {
+        if (client && client.connected) {
           client.deactivate();
         }
         wsClientRef.current = null;

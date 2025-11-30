@@ -79,7 +79,6 @@ function HomePage() {
     useEffect(() => {
         const token = localStorage.getItem("token");
         if (!token) {
-            console.warn("Token JWT não encontrado para WebSocket do feed");
             return;
         }
 
@@ -94,23 +93,35 @@ function HomePage() {
 
         const socketUrl = `${baseWsUrl}?access_token=${encodeURIComponent(token)}`;
 
+        let reconnectAttempts = 0;
+        const maxReconnectAttempts = 3;
+
         const client = new Client({
             webSocketFactory: () => new WebSocket(socketUrl),
             reconnectDelay: 5000,
             heartbeatIncoming: 4000,
             heartbeatOutgoing: 4000,
-            debug: (str) => console.log("[STOMP][HOME]", str),
+            debug: () => {}, // Desabilitar logs de debug
             onConnect: () => {
-                console.log("STOMP conectado no feed");
-
+                reconnectAttempts = 0; // Reset contador ao conectar
                 // quando conectar, assina todos os posts que já estão carregados
                 subscribeForPosts(latestPostsRef.current, client);
             },
             onStompError: (frame) => {
                 console.error("[HOME] Erro STOMP:", frame.headers["message"]);
             },
-            onWebSocketError: (error) => {
-                console.error("[HOME] Erro WebSocket:", error);
+            onWebSocketError: (_error) => {
+                reconnectAttempts++;
+                if (reconnectAttempts >= maxReconnectAttempts) {
+                    console.warn("[HOME] Muitas tentativas de reconexão. Desabilitando WebSocket.");
+                    client.deactivate();
+                    wsClientRef.current = null;
+                }
+            },
+            onDisconnect: () => {
+                if (reconnectAttempts >= maxReconnectAttempts) {
+                    wsClientRef.current = null;
+                }
             },
         });
 
@@ -118,7 +129,9 @@ function HomePage() {
         client.activate();
 
         return () => {
-            client.deactivate();
+            if (client.connected) {
+                client.deactivate();
+            }
             wsClientRef.current = null;
             subscribedPostIdsRef.current.clear();
         };

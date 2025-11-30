@@ -84,11 +84,16 @@ function CommentItem({
   const canEdit = isOwner;
   const canDelete = isOwner || isAdmin;
 
+  const navigate = useNavigate();
+
   return (
     <div className="pl-2 border-l border-gray-200">
       <Card className="p-3 mb-2">
         <CardHeader className="flex items-center gap-3 p-0 mb-2">
-          <Avatar>
+          <Avatar
+            className="cursor-pointer hover:opacity-80 transition-opacity"
+            onClick={() => navigate(`/perfil/${comment.usuario.username}`)}
+          >
             <AvatarImage
               src={comment.usuario.fotoPerfil || undefined}
               alt={comment.usuario.username}
@@ -97,7 +102,12 @@ function CommentItem({
               {comment.usuario.username.charAt(0).toUpperCase()}
             </AvatarFallback>
           </Avatar>
-          <span className="font-semibold">{comment.usuario.username}</span>
+          <span
+            className="font-semibold cursor-pointer hover:text-primary transition-colors"
+            onClick={() => navigate(`/perfil/${comment.usuario.username}`)}
+          >
+            {comment.usuario.username}
+          </span>
         </CardHeader>
 
         <CardContent className="p-0">
@@ -180,8 +190,8 @@ function CommentItem({
             <Card key={resp.id} className="p-3 mb-2">
               <CardHeader className="flex items-center gap-3 p-0 mb-2">
                   <Avatar
-                      className="w-11 h-11 cursor-pointer"
-                      onClick={() => (window.location.href = '/perfil')}
+                      className="w-11 h-11 cursor-pointer hover:opacity-80 transition-opacity"
+                      onClick={() => navigate(`/perfil/${resp.usuario.username}`)}
                   >
                       {resp.usuario?.fotoPerfil ? (
                           <AvatarImage
@@ -195,7 +205,12 @@ function CommentItem({
                           </AvatarFallback>
                       )}
                   </Avatar>
-                <span className="font-semibold">{resp.usuario.username}</span>
+                <span
+                  className="font-semibold cursor-pointer hover:text-primary transition-colors"
+                  onClick={() => navigate(`/perfil/${resp.usuario.username}`)}
+                >
+                  {resp.usuario.username}
+                </span>
               </CardHeader>
               <CardContent className="p-0">
                 <p className="text-sm">{resp.texto}</p>
