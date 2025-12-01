@@ -9,12 +9,15 @@ class CommentDTO {}
 export type PostDTO = {
     id: number;
     descricao: string;
-    caminhoFoto: string;
+    caminhoFoto?: string;
     data: string;
     usuario: UserDTO;
     publico: boolean;
-    beach: BeachDTO;
+    beach?: BeachDTO;
     comments: CommentDTO[];
+    likesCount?: number;
+    commentsCount?: number;
+    likedByCurrentUser?: boolean;
 };
 
 export type UserDTO = {

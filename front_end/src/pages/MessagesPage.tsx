@@ -198,9 +198,6 @@ export default function MessagesPage() {
                       <Avatar src={u.fotoPerfil} alt={u.username} />
                       <div className="flex flex-1 flex-col text-left">
                         <span className="font-medium">{u.username}</span>
-                        <span className="text-xs text-slate-500">
-                          {u.email}
-                        </span>
                       </div>
                       <span className="text-sky-700">Iniciar</span>
                     </button>
@@ -267,19 +264,7 @@ function ConversationRow({
       <div className="min-w-0 flex-1">
         <div className="flex items-center justify-between">
           <span className="truncate font-medium">{name}</span>
-          {conv.unreadCount ? (
-            <span className="ml-2 rounded-full bg-sky-600 px-2 py-0.5 text-xs text-white">
-              {conv.unreadCount}
-            </span>
-          ) : null}
         </div>
-        {conv.lastMessage ? (
-          <p className="mt-0.5 line-clamp-1 text-sm text-slate-600">
-            {conv.lastMessage.content}
-          </p>
-        ) : (
-          <p className="mt-0.5 text-sm text-slate-400">Sem mensagens ainda</p>
-        )}
       </div>
     </button>
   );
