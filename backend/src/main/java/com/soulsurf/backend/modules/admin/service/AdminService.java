@@ -1,0 +1,100 @@
+package com.soulsurf.backend.modules.admin.service;
+
+import com.soulsurf.backend.modules.comment.entity.Comment;
+import com.soulsurf.backend.modules.post.entity.Post;
+import com.soulsurf.backend.modules.user.entity.User;
+import com.soulsurf.backend.modules.comment.repository.CommentRepository;
+import com.soulsurf.backend.modules.post.repository.PostRepository;
+import com.soulsurf.backend.modules.user.repository.UserRepository;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import com.soulsurf.backend.modules.notification.service.NotificationService;
+
+@Service
+public class AdminService {
+
+    private final UserRepository userRepository;
+    private final PostRepository postRepository;
+    private final CommentRepository commentRepository;
+    private final AdminAuditService adminAuditService;
+    private final NotificationService notificationService;
+
+    public AdminService(UserRepository userRepository,
+            PostRepository postRepository,
+            CommentRepository commentRepository,
+            AdminAuditService adminAuditService,
+            NotificationService notificationService) {
+        this.userRepository = userRepository;
+        this.postRepository = postRepository;
+        this.commentRepository = commentRepository;
+        this.adminAuditService = adminAuditService;
+        this.notificationService = notificationService;
+    }
+
+    @Transactional
+    public void deleteUser(Long userId, String actorEmail) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("Usuário não encontrado"));
+        userRepository.delete(user);
+        adminAuditService.log(actorEmail, "DELETE_USER", "USER", userId, null);
+    }
+
+    @Transactional
+    public void deletePost(Long postId, String actorEmail) {
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new IllegalArgumentException("Post não encontrado"));
+
+        notificationService.deleteNotificationsByPost(post);
+
+        postRepository.delete(post);
+        adminAuditService.log(actorEmail, "DELETE_POST", "POST", postId, null);
+    }
+
+    @Transactional
+    public void deleteComment(Long commentId, String actorEmail) {
+        Comment comment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new IllegalArgumentException("Comentário não encontrado"));
+
+        notificationService.deleteNotificationsByComment(comment);
+
+        commentRepository.delete(comment);
+        adminAuditService.log(actorEmail, "DELETE_COMMENT", "COMMENT", commentId, null);
+    }
+
+    @Transactional
+    public void promoteToAdmin(Long userId, String actorEmail) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("Usuário não encontrado"));
+        user.setAdmin(true);
+        userRepository.save(user);
+        adminAuditService.log(actorEmail, "PROMOTE_TO_ADMIN", "USER", userId, null);
+    }
+
+    @Transactional
+    public void demoteFromAdmin(Long userId, String actorEmail) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("Usuário não encontrado"));
+        user.setAdmin(false);
+        userRepository.save(user);
+        adminAuditService.log(actorEmail, "DEMOTE_FROM_ADMIN", "USER", userId, null);
+    }
+
+    @Transactional
+    public void banUser(Long userId, String actorEmail) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("Usuário não encontrado"));
+        user.setBanned(true);
+        userRepository.save(user);
+        adminAuditService.log(actorEmail, "BAN_USER", "USER", userId, null);
+    }
+
+    @Transactional
+    public void unbanUser(Long userId, String actorEmail) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("Usuário não encontrado"));
+        user.setBanned(false);
+        userRepository.save(user);
+        adminAuditService.log(actorEmail, "UNBAN_USER", "USER", userId, null);
+    }
+}
+
