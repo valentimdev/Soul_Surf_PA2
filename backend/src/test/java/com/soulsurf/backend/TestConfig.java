@@ -1,6 +1,6 @@
 package com.soulsurf.backend;
 
-import com.soulsurf.backend.services.BlobStorageService;
+import com.soulsurf.backend.core.storage.BlobStorageService;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Profile;
