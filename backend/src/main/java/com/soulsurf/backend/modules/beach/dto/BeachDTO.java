@@ -14,5 +14,6 @@ public class BeachDTO {
     private String localizacao;
     private String caminhoFoto;
     private String nivelExperiencia;
+    private Double latitude;
+    private Double longitude;
 }
-

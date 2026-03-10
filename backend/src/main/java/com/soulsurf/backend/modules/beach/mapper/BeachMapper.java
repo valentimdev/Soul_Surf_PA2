@@ -15,7 +15,8 @@ public class BeachMapper {
         dto.setLocalizacao(beach.getLocalizacao());
         dto.setCaminhoFoto(beach.getCaminhoFoto());
         dto.setNivelExperiencia(beach.getNivelExperiencia());
+        dto.setLatitude(beach.getLatitude());
+        dto.setLongitude(beach.getLongitude());
         return dto;
     }
 }
-

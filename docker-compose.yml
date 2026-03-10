@@ -1,0 +1,29 @@
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: soulsurf-backend
+    restart: always
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./wallet:/app/wallet # Pasta onde você vai colocar os arquivos do Wallet.zip
+    environment:
+      - DB_URL=${DB_URL} # Ex: jdbc:oracle:thin:@soulsurfdb_high?TNS_ADMIN=/app/wallet
+      - DB_USER=ADMIN
+      - DB_PASSWORD=${DB_PASSWORD}
+      - JWT_SECRET=${JWT_SECRET}
+      - WEATHER_API_KEY=${WEATHER_API_KEY}
+      - MAIL_USERNAME=${MAIL_USERNAME}
+      - MAIL_PASSWORD=${MAIL_PASSWORD}
+      - FRONTEND_URL=${FRONTEND_URL}
+      - OCI_REGION=${OCI_REGION}
+      - OCI_NAMESPACE=${OCI_NAMESPACE}
+      - OCI_BUCKET_NAME=${OCI_BUCKET_NAME}
+      - OCI_USER_ID=${OCI_USER_ID}
+      - OCI_TENANCY_ID=${OCI_TENANCY_ID}
+      - OCI_FINGERPRINT=${OCI_FINGERPRINT}
+      - OCI_PRIVATE_KEY=${OCI_PRIVATE_KEY}
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-*}
+      - RESEND_API_KEY=${RESEND_API_KEY}

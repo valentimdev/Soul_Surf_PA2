@@ -29,6 +29,8 @@ public class Beach {
     private String caminhoFoto;
 
     @Column(name = "nivel_experiencia")
-    private String nivelExperiencia;  // Iniciante, Intermediário, Avançado
-}
+    private String nivelExperiencia; // Iniciante, Intermediário, Avançado
 
+    private Double latitude;
+    private Double longitude;
+}

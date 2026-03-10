@@ -16,7 +16,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.soulsurf.backend.modules.post.dto.PostDTO;
 import com.soulsurf.backend.modules.user.controller.SignupRequest;
-import com.soulsurf.backend.core.storage.BlobStorageService;
+import com.soulsurf.backend.core.storage.OracleStorageService;
 import com.soulsurf.backend.modules.user.dto.UserDTO;
 import com.soulsurf.backend.modules.user.entity.User;
 import com.soulsurf.backend.modules.user.mapper.UserMapper;
@@ -30,7 +30,7 @@ public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final PostService postService;
-    private final Optional<BlobStorageService> blobStorageService;
+    private final Optional<OracleStorageService> blobStorageService;
     private final FollowRepository followRepository;
     private final UserMapper userMapper;
 
@@ -38,7 +38,7 @@ public class UserService {
             UserRepository userRepository,
             PasswordEncoder passwordEncoder,
             PostService postService,
-            Optional<BlobStorageService> blobStorageService,
+            Optional<OracleStorageService> blobStorageService,
             FollowRepository followRepository,
             UserMapper userMapper) {
         this.userRepository = userRepository;
@@ -247,4 +247,3 @@ public class UserService {
                 .collect(Collectors.toList());
     }
 }
-
