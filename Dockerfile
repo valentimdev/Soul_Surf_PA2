@@ -1,5 +1,5 @@
-# Estágio de Dependências (Caching)
-FROM eclipse-temurin:17-jdk-alpine AS deps
+# Estágio de Build
+FROM eclipse-temurin:17-jdk-alpine AS builder
 WORKDIR /build
 
 # Copia o wrapper e o pom.xml primeiro para cachear dependências
@@ -10,12 +10,8 @@ COPY backend/pom.xml .
 # Baixa as dependências (cacheável se o pom.xml não mudar)
 RUN chmod +x mvnw && ./mvnw dependency:go-offline -B
 
-# Estágio de Build
-FROM deps AS builder
-# Copia o código fonte
+# Copia o código fonte e compila
 COPY backend/src ./src
-
-# Compila o projeto
 RUN ./mvnw clean package -DskipTests
 
 # Estágio Final (Execução)

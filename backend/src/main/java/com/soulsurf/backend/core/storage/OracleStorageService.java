@@ -12,8 +12,11 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -47,6 +50,11 @@ public class OracleStorageService {
                 .fingerprint(fingerprint)
                 .privateKeySupplier(() -> {
                     try {
+                        // Se o valor começa com /, é um caminho de arquivo
+                        if (privateKey.startsWith("/")) {
+                            return new FileInputStream(privateKey);
+                        }
+                        // Caso contrário, trata como conteúdo direto da chave
                         return new java.io.ByteArrayInputStream(privateKey.getBytes());
                     } catch (Exception e) {
                         throw new RuntimeException("Erro ao ler chave privada OCI", e);
