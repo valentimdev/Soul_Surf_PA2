@@ -1,0 +1,18 @@
+# Docker Ignore for Soul Surf Backend
+backend/target/
+backend/.mvn/
+backend/mvnw
+backend/mvnw.cmd
+backend/.gitignore
+backend/.gitattributes
+
+# Frontend and other irrelevant folders
+front_end/
+infrastructure/
+ansible/
+.git/
+.idea/
+.vscode/
+*.md
+Dockerfile
+docker-compose*
