@@ -1,6 +1,6 @@
 package com.soulsurf.backend.modules.post.service;
 
-import com.azure.core.exception.ResourceNotFoundException;
+import jakarta.persistence.EntityNotFoundException;
 import com.soulsurf.backend.modules.post.controller.CreatePostRequest;
 import com.soulsurf.backend.modules.post.dto.PostDTO;
 import com.soulsurf.backend.modules.post.entity.Post;
@@ -14,7 +14,7 @@ import com.soulsurf.backend.modules.beach.repository.BeachRepository;
 import com.soulsurf.backend.modules.comment.entity.Comment;
 import com.soulsurf.backend.modules.comment.repository.CommentRepository;
 import com.soulsurf.backend.modules.notification.repository.NotificationRepository;
-import com.soulsurf.backend.core.storage.BlobStorageService;
+import com.soulsurf.backend.core.storage.OracleStorageService;
 
 import jakarta.transaction.Transactional;
 
@@ -36,7 +36,7 @@ public class PostService {
     private final PostRepository postRepository;
     private final UserRepository userRepository;
     private final BeachRepository beachRepository;
-    private final Optional<BlobStorageService> blobStorageService;
+    private final Optional<OracleStorageService> blobStorageService;
     private final NotificationRepository notificationRepository;
     private final CommentRepository commentRepository;
     private final LikeRepository likeRepository;
@@ -45,7 +45,7 @@ public class PostService {
     public PostService(PostRepository postRepository,
             UserRepository userRepository,
             BeachRepository beachRepository,
-            Optional<BlobStorageService> blobStorageService,
+            Optional<OracleStorageService> blobStorageService,
             NotificationRepository notificationRepository,
             CommentRepository commentRepository,
             LikeRepository likeRepository,
@@ -80,7 +80,7 @@ public class PostService {
 
             if (request.getBeachId() != null) {
                 Beach beach = beachRepository.findById(request.getBeachId())
-                        .orElseThrow(() -> new ResourceNotFoundException("Praia não encontrada", null));
+                        .orElseThrow(() -> new EntityNotFoundException("Praia não encontrada"));
                 novoPost.setBeach(beach);
             }
 

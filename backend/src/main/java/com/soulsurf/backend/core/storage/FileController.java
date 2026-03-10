@@ -1,6 +1,5 @@
 package com.soulsurf.backend.core.storage;
 
-import com.soulsurf.backend.core.storage.BlobStorageService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -19,15 +18,13 @@ import java.util.Optional;
 @Tag(name = "4. Ficheiros", description = "Endpoints para upload e listagem de ficheiros.")
 public class FileController {
 
-    private final Optional<BlobStorageService> blobStorageService;
+    private final Optional<OracleStorageService> blobStorageService;
 
-    public FileController(Optional<BlobStorageService> blobStorageService) {
+    public FileController(Optional<OracleStorageService> blobStorageService) {
         this.blobStorageService = blobStorageService;
     }
 
-    @Operation(summary = "Faz o upload de um ficheiro",
-            description = "Envia um ficheiro para o armazenamento na nuvem (Azure Blob Storage). Requer autenticação JWT e o 'Content-Type' deve ser 'multipart/form-data'.",
-            security = @SecurityRequirement(name = "bearerAuth"))
+    @Operation(summary = "Faz o upload de um ficheiro", description = "Envia um ficheiro para o armazenamento na nuvem (OCI Object Storage). Requer autenticação JWT e o 'Content-Type' deve ser 'multipart/form-data'.", security = @SecurityRequirement(name = "bearerAuth"))
     @ApiResponse(responseCode = "200", description = "Ficheiro enviado com sucesso, retorna a URL pública")
     @ApiResponse(responseCode = "500", description = "Erro no upload ou serviço de armazenamento não está ativo")
     @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)

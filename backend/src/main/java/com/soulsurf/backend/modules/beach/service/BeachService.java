@@ -15,7 +15,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-import com.soulsurf.backend.core.storage.BlobStorageService;
+import com.soulsurf.backend.core.storage.OracleStorageService;
 
 import java.io.IOException;
 import java.util.List;
@@ -27,12 +27,12 @@ public class BeachService {
 
     private final BeachRepository beachRepository;
     private final PostRepository postRepository;
-    private final Optional<BlobStorageService> blobStorageService;
+    private final Optional<OracleStorageService> blobStorageService;
     private final BeachMapper beachMapper;
     private final PostMapper postMapper;
 
     public BeachService(BeachRepository beachRepository, PostRepository postRepository,
-            Optional<BlobStorageService> blobStorageService,
+            Optional<OracleStorageService> blobStorageService,
             BeachMapper beachMapper, @Lazy PostMapper postMapper) {
         this.beachRepository = beachRepository;
         this.postRepository = postRepository;
@@ -102,4 +102,3 @@ public class BeachService {
                 .collect(Collectors.toList());
     }
 }
-
