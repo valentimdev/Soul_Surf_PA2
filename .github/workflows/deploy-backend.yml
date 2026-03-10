@@ -31,13 +31,18 @@ jobs:
         chmod +x mvnw
         ./mvnw clean package -DskipTests
 
+    - name: Prepare SSH key
+      run: |
+        echo "${{ secrets.OCI_SSH_KEY }}" > /tmp/ssh_key.pem
+        chmod 600 /tmp/ssh_key.pem
+
     - name: Copy files to Server via SSH
       uses: appleboy/scp-action@master
       with:
         host: ${{ secrets.OCI_HOST }}
         username: ${{ secrets.OCI_USER }}
-        key: ${{ secrets.OCI_SSH_KEY }}
-        source: "backend/target/*.jar,backend/src,Dockerfile,docker-compose.yml,backend/.mvn,backend/mvnw,backend/pom.xml"
+        key_path: /tmp/ssh_key.pem
+        source: "backend/target/*.jar,Dockerfile,docker-compose.yml"
         target: "~/soul-surf-deploy"
         strip_components: 0
 
@@ -46,7 +51,7 @@ jobs:
       with:
         host: ${{ secrets.OCI_HOST }}
         username: ${{ secrets.OCI_USER }}
-        key: ${{ secrets.OCI_SSH_KEY }}
+        key_path: /tmp/ssh_key.pem
         script: |
           cd ~/soul-surf-deploy
 
