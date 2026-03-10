@@ -8,9 +8,10 @@ services:
     ports:
       - "8080:8080"
     volumes:
-      - ./wallet:/app/wallet # Pasta onde você vai colocar os arquivos do Wallet.zip
+      - ./wallet:/app/wallet
+      - ./oci_api_key.pem:/app/oci_api_key.pem:ro
     environment:
-      - DB_URL=${DB_URL} # Ex: jdbc:oracle:thin:@soulsurfdb_high?TNS_ADMIN=/app/wallet
+      - DB_URL=${DB_URL}
       - DB_USER=ADMIN
       - DB_PASSWORD=${DB_PASSWORD}
       - JWT_SECRET=${JWT_SECRET}
@@ -24,6 +25,6 @@ services:
       - OCI_USER_ID=${OCI_USER_ID}
       - OCI_TENANCY_ID=${OCI_TENANCY_ID}
       - OCI_FINGERPRINT=${OCI_FINGERPRINT}
-      - OCI_PRIVATE_KEY=${OCI_PRIVATE_KEY}
+      - OCI_PRIVATE_KEY=/app/oci_api_key.pem
       - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-*}
       - RESEND_API_KEY=${RESEND_API_KEY}

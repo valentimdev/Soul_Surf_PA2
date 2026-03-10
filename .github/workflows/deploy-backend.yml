@@ -41,7 +41,7 @@ jobs:
       with:
         host: ${{ secrets.OCI_HOST }}
         username: ${{ secrets.OCI_USER }}
-        key_path: /tmp/ssh_key.pem
+        key: ${{ secrets.OCI_SSH_KEY }}
         source: "backend/target/*.jar,Dockerfile,docker-compose.yml"
         target: "~/soul-surf-deploy"
         strip_components: 0
@@ -51,30 +51,40 @@ jobs:
       with:
         host: ${{ secrets.OCI_HOST }}
         username: ${{ secrets.OCI_USER }}
-        key_path: /tmp/ssh_key.pem
+        key: ${{ secrets.OCI_SSH_KEY }}
         script: |
           cd ~/soul-surf-deploy
 
-          # Criar arquivo .env com os segredos
-          echo "DB_USER=${{ secrets.DB_USER }}" > .env
-          echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> .env
-          echo "DB_URL='${{ secrets.DB_URL }}'" >> .env
-          echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
-          echo "WEATHER_API_KEY=${{ secrets.WEATHER_API_KEY }}" >> .env
-          echo "MAIL_USERNAME=${{ secrets.MAIL_USERNAME }}" >> .env
-          echo "MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }}" >> .env
-          echo "FRONTEND_URL=${{ secrets.FRONTEND_URL }}" >> .env
-          echo "OCI_REGION=${{ secrets.OCI_REGION }}" >> .env
-          echo "OCI_NAMESPACE=${{ secrets.OCI_NAMESPACE }}" >> .env
-          echo "OCI_BUCKET_NAME=${{ secrets.OCI_BUCKET_NAME }}" >> .env
-          echo "OCI_USER_ID=${{ secrets.OCI_USER_ID }}" >> .env
-          echo "OCI_TENANCY_ID=${{ secrets.OCI_TENANCY_ID }}" >> .env
-          echo "OCI_FINGERPRINT=${{ secrets.OCI_FINGERPRINT }}" >> .env
-          echo "OCI_PRIVATE_KEY=${{ secrets.OCI_PRIVATE_KEY }}" >> .env
-          echo "ALLOWED_ORIGINS='${{ secrets.ALLOWED_ORIGINS }}'" >> .env
-          echo "RESEND_API_KEY=${{ secrets.RESEND_API_KEY }}" >> .env
+          # Criar arquivo .env com os segredos (sem OCI_PRIVATE_KEY que é multi-line)
+          cat > .env << 'ENVEOF'
+          DB_USER=ADMIN
+          ENVEOF
 
-          # Recriar apenas o backend com a nova imagem (não derruba o banco)
+          # Reescreve o .env corretamente
+          cat > .env << EOF
+          DB_USER=ADMIN
+          DB_PASSWORD=${{ secrets.DB_PASSWORD }}
+          DB_URL=${{ secrets.DB_URL }}
+          JWT_SECRET=${{ secrets.JWT_SECRET }}
+          WEATHER_API_KEY=${{ secrets.WEATHER_API_KEY }}
+          MAIL_USERNAME=${{ secrets.MAIL_USERNAME }}
+          MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }}
+          FRONTEND_URL=${{ secrets.FRONTEND_URL }}
+          OCI_REGION=${{ secrets.OCI_REGION }}
+          OCI_NAMESPACE=${{ secrets.OCI_NAMESPACE }}
+          OCI_BUCKET_NAME=${{ secrets.OCI_BUCKET_NAME }}
+          OCI_USER_ID=${{ secrets.OCI_USER_ID }}
+          OCI_TENANCY_ID=${{ secrets.OCI_TENANCY_ID }}
+          OCI_FINGERPRINT=${{ secrets.OCI_FINGERPRINT }}
+          ALLOWED_ORIGINS=${{ secrets.ALLOWED_ORIGINS }}
+          RESEND_API_KEY=${{ secrets.RESEND_API_KEY }}
+          EOF
+
+          # Escrever a chave privada OCI em arquivo separado (multi-line é seguro assim)
+          echo '${{ secrets.OCI_PRIVATE_KEY }}' > ~/soul-surf-deploy/oci_api_key.pem
+          chmod 600 ~/soul-surf-deploy/oci_api_key.pem
+
+          # Recriar apenas o backend com a nova imagem
           docker compose up -d --build --no-deps backend
 
           # Limpar imagens antigas
