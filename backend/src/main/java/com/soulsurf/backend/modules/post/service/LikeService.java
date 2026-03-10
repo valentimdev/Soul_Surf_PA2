@@ -62,7 +62,7 @@ public class LikeService {
 
             // ★ Criar notificação de like (apenas se não for o próprio usuário)
             if (!usuario.getId().equals(post.getUsuario().getId())) {
-                notificationService.createLikeNotification(usuario.getUsername(), postId);
+                notificationService.createLikeNotification(usuario.getEmail(), postId);
             }
         }
 
@@ -122,4 +122,3 @@ public class LikeService {
         }
     }
 }
-

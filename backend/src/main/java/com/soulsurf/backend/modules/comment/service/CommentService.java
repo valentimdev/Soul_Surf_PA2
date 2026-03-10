@@ -64,16 +64,16 @@ public class CommentService {
 
         comment = commentRepository.save(comment);
 
-        processarMencoes(comment, usuario.getUsername());
+        processarMencoes(comment, usuario.getEmail());
 
         if (parentId == null) {
             notificationService.createCommentNotification(
-                    usuario.getUsername(),
+                    usuario.getEmail(),
                     postId,
                     comment.getId());
         } else {
             notificationService.createReplyNotification(
-                    usuario.getUsername(),
+                    usuario.getEmail(),
                     postId,
                     comment.getId(),
                     parentId);
@@ -87,7 +87,7 @@ public class CommentService {
         return dto;
     }
 
-    public void processarMencoes(Comment comment, String senderUsername) {
+    public void processarMencoes(Comment comment, String senderEmail) {
         Pattern pattern = Pattern.compile("@(\\w+)");
         Matcher matcher = pattern.matcher(comment.getTexto());
 
@@ -96,7 +96,7 @@ public class CommentService {
 
             userRepository.findByUsername(mentionedUsername).ifPresent(mentionedUser -> {
                 notificationService.createMentionNotification(
-                        senderUsername,
+                        senderEmail,
                         mentionedUsername,
                         comment.getPost().getId(),
                         comment.getId());
@@ -122,7 +122,7 @@ public class CommentService {
 
         User usuario = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado"));
-        processarMencoes(comment, usuario.getUsername());
+        processarMencoes(comment, usuario.getEmail());
 
         CommentDTO dto = commentMapper.toDto(comment);
 
@@ -190,4 +190,3 @@ public class CommentService {
         }
     }
 }
-
