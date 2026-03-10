@@ -19,7 +19,8 @@ public class BeachMessage {
     private Long id;
 
     // O texto da BeachMessage. Usamos TEXT para suportar mensagens mais longas
-    @Column(nullable = false, columnDefinition = "TEXT")
+    @Lob
+    @Column(nullable = false)
     private String texto;
 
     // Data de criação, preenchida automaticamente
@@ -37,4 +38,3 @@ public class BeachMessage {
     @JoinColumn(name = "praia_id", nullable = false)
     private Beach beach;
 }
-

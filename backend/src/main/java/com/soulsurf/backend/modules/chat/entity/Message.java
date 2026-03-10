@@ -1,4 +1,5 @@
 package com.soulsurf.backend.modules.chat.entity;
+
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -6,18 +7,20 @@ import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.Instant;
-@Entity @Table(name = "messages")
+
+@Entity
+@Table(name = "messages")
 @Getter
 @Setter
 @NoArgsConstructor
 public class Message {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)           // << gera UUID no Java
-    @Column(name = "id", columnDefinition = "uuid", updatable = false, nullable = false)
+    @GeneratedValue(strategy = GenerationType.UUID) // << gera UUID no Java
+    @Column(name = "id", length = 36, updatable = false, nullable = false)
     private String id;
 
-    @Column(name = "conversation_id", columnDefinition = "uuid", nullable = false)
+    @Column(name = "conversation_id", length = 36, nullable = false)
     private String conversationId;
 
     @Column(name = "sender_id", nullable = false)
@@ -36,4 +39,3 @@ public class Message {
     @Column(name = "edited_at")
     private Instant editedAt;
 }
-

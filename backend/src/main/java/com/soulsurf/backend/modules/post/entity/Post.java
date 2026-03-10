@@ -28,7 +28,7 @@ public class Post {
     @Column(nullable = false)
     private String descricao;
 
-    @Column(nullable = false, columnDefinition = "BOOLEAN DEFAULT TRUE")
+    @Column(nullable = false)
     private boolean publico = true;
 
     @Column(name = "caminho_foto")
@@ -56,4 +56,3 @@ public class Post {
         this.data = LocalDateTime.now();
     }
 }
-

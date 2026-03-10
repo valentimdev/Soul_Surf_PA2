@@ -1,4 +1,5 @@
 package com.soulsurf.backend.modules.chat.entity;
+
 import jakarta.persistence.*;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -16,11 +17,11 @@ import java.time.Instant;
 @Getter
 @Setter
 @NoArgsConstructor
-public class Conversation{
+public class Conversation {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)   // <<<<<< gera UUID no Java
-    @Column(name = "id", columnDefinition = "uuid")
+    @GeneratedValue(strategy = GenerationType.UUID) // <<<<<< gera UUID no Java
+    @Column(name = "id", length = 36)
     private String id;
 
     @CreationTimestamp
@@ -30,5 +31,3 @@ public class Conversation{
     @Column(name = "is_group", nullable = false)
     private boolean group;
 }
-
-

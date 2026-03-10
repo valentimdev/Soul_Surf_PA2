@@ -33,7 +33,7 @@ public class User {
     private String fotoCapa;
 
     private String fotoPerfil;
-    private String bio; 
+    private String bio;
 
     // Relacionamento - seguidores (quem me segue)
     @ManyToMany(mappedBy = "seguindo", fetch = FetchType.LAZY)
@@ -41,17 +41,13 @@ public class User {
 
     // Relacionamento - seguindo (quem eu sigo)
     @ManyToMany(fetch = FetchType.LAZY)
-    @JoinTable(
-            name = "user_seguindo",
-            joinColumns = @JoinColumn(name = "user_id"),
-            inverseJoinColumns = @JoinColumn(name = "seguindo_id")
-    )
+    @JoinTable(name = "user_seguindo", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "seguindo_id"))
     private java.util.List<User> seguindo = new java.util.ArrayList<>();
 
-    @Column(nullable = false, columnDefinition = "BOOLEAN DEFAULT FALSE")
+    @Column(nullable = false)
     private boolean admin = false;
 
-    @Column(nullable = false, columnDefinition = "BOOLEAN DEFAULT FALSE")
+    @Column(nullable = false)
     private boolean banned = false;
 
     public User(String email, String password) {
@@ -59,4 +55,3 @@ public class User {
         this.password = password;
     }
 }
-
