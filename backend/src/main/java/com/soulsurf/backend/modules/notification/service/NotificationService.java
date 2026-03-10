@@ -53,17 +53,17 @@ public class NotificationService {
     }
 
     @Transactional
-    public void createMentionNotification(String senderUsername, String recipientUsername, Long postId,
+    public void createMentionNotification(String senderEmail, String recipientUsername, Long postId,
             Long commentId) {
-        if (senderUsername.equals(recipientUsername)) {
+        User sender = userRepository.findByEmail(senderEmail)
+                .orElseThrow(() -> new UsernameNotFoundException("Remetente não encontrado: " + senderEmail));
+
+        if (sender.getUsername().equals(recipientUsername)) {
             return;
         }
 
         User recipient = userRepository.findByUsername(recipientUsername)
                 .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado: " + recipientUsername));
-
-        User sender = userRepository.findByUsername(senderUsername)
-                .orElseThrow(() -> new UsernameNotFoundException("Remetente não encontrado: " + senderUsername));
 
         Notification notification = new Notification();
         notification.setRecipient(recipient);
@@ -88,8 +88,8 @@ public class NotificationService {
     }
 
     @Transactional
-    public void createCommentNotification(String senderUsername, Long postId, Long commentId) {
-        User sender = userRepository.findByUsername(senderUsername)
+    public void createCommentNotification(String senderEmail, Long postId, Long commentId) {
+        User sender = userRepository.findByEmail(senderEmail)
                 .orElseThrow(() -> new RuntimeException("Usuário remetente não encontrado"));
 
         Post post = postRepository.findById(postId)
@@ -114,8 +114,8 @@ public class NotificationService {
     }
 
     @Transactional
-    public void createReplyNotification(String senderUsername, Long postId, Long commentId, Long parentCommentId) {
-        User sender = userRepository.findByUsername(senderUsername)
+    public void createReplyNotification(String senderEmail, Long postId, Long commentId, Long parentCommentId) {
+        User sender = userRepository.findByEmail(senderEmail)
                 .orElseThrow(() -> new RuntimeException("Usuário remetente não encontrado"));
 
         Comment parentComment = commentRepository.findById(parentCommentId)
@@ -143,8 +143,8 @@ public class NotificationService {
     }
 
     @Transactional
-    public void createLikeNotification(String senderUsername, Long postId) {
-        User sender = userRepository.findByUsername(senderUsername)
+    public void createLikeNotification(String senderEmail, Long postId) {
+        User sender = userRepository.findByEmail(senderEmail)
                 .orElseThrow(() -> new RuntimeException("Usuário remetente não encontrado"));
 
         Post post = postRepository.findById(postId)
@@ -165,8 +165,8 @@ public class NotificationService {
     }
 
     @Transactional
-    public List<NotificationDTO> getUserNotifications(String email) {
-        User user = userRepository.findByEmail(email)
+    public List<NotificationDTO> getUserNotifications(String username) {
+        User user = userRepository.findByEmail(username)
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
 
         return notificationRepository.findByRecipientOrderByCreatedAtDesc(user).stream()
@@ -176,15 +176,15 @@ public class NotificationService {
 
     @Transactional
     public int getUnreadCount(String username) {
-        User user = userRepository.findByUsername(username)
+        User user = userRepository.findByEmail(username)
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
 
         return notificationRepository.countByRecipientAndReadFalse(user);
     }
 
     @Transactional
-    public void markAsRead(Long notificationId, String email) {
-        User user = userRepository.findByEmail(email)
+    public void markAsRead(Long notificationId, String username) {
+        User user = userRepository.findByEmail(username)
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
 
         Notification notification = notificationRepository.findById(notificationId)
