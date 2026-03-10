@@ -19,7 +19,7 @@ public class Beach {
     @Column(nullable = false)
     private String nome;
 
-    @Column(columnDefinition = "TEXT")
+    @Lob
     private String descricao;
 
     @Column(nullable = false)

@@ -20,7 +20,7 @@ public class PointOfInterest {
     @Column(nullable = false)
     private String nome;
 
-    @Column(columnDefinition = "TEXT")
+    @Lob
     private String descricao;
 
     @Enumerated(EnumType.STRING)
