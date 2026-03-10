@@ -51,6 +51,8 @@ public class BeachControllerTest extends BaseIntegrationTest {
         beach.setLocalizacao("SC");
         beach.setDescricao("Uma praia linda");
         beach.setNivelExperiencia("Iniciante");
+        beach.setLatitude(-27.59);
+        beach.setLongitude(-48.54);
         beach = beachRepository.save(beach);
         this.testBeachId = beach.getId();
 
@@ -99,7 +101,9 @@ public class BeachControllerTest extends BaseIntegrationTest {
         mockMvc.perform(get("/api/beaches"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].nome").value("Praia de Teste"))
-                .andExpect(jsonPath("$[0].localizacao").value("SC"));
+                .andExpect(jsonPath("$[0].localizacao").value("SC"))
+                .andExpect(jsonPath("$[0].latitude").value(-27.59))
+                .andExpect(jsonPath("$[0].longitude").value(-48.54));
     }
 
     @Test
@@ -107,7 +111,9 @@ public class BeachControllerTest extends BaseIntegrationTest {
         mockMvc.perform(get("/api/beaches/" + testBeachId))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.nome").value("Praia de Teste"))
-                .andExpect(jsonPath("$.localizacao").value("SC"));
+                .andExpect(jsonPath("$.localizacao").value("SC"))
+                .andExpect(jsonPath("$.latitude").value(-27.59))
+                .andExpect(jsonPath("$.longitude").value(-48.54));
     }
 
     @Test
