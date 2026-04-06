@@ -85,6 +85,19 @@ public class PostController {
                 return ResponseEntity.ok(posts);
         }
 
+        @Operation(summary = "Lista os meus posts", description = "Retorna os posts do usuario autenticado, incluindo privados.", security = @SecurityRequirement(name = "bearerAuth"))
+        @ApiResponse(responseCode = "200", description = "Posts retornados com sucesso")
+        @GetMapping("/me")
+        public ResponseEntity<Page<PostDTO>> getMyPosts(
+                        @RequestParam(defaultValue = "0") int page,
+                        @RequestParam(defaultValue = "20") int size,
+                        @AuthenticationPrincipal UserDetails userDetails) {
+                String userEmail = userDetails.getUsername();
+                Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "data"));
+                Page<PostDTO> posts = postService.getPostsByUserEmail(userEmail, userEmail, pageable);
+                return ResponseEntity.ok(posts);
+        }
+
         @Operation(summary = "Busca um post pelo ID", description = "Retorna os detalhes de um único post. Se for privado, só retorna para o dono.")
         @ApiResponses({
                         @ApiResponse(responseCode = "200", description = "Post encontrado"),
@@ -109,11 +122,13 @@ public class PostController {
         })
         @GetMapping("/user")
         public ResponseEntity<Page<PostDTO>> getPostsByUser(
-                        @Parameter(description = "E-mail do usuário") @RequestParam String email,
+                        @Parameter(description = "E-mail do usuario") @RequestParam String email,
                         @RequestParam(defaultValue = "0") int page,
-                        @RequestParam(defaultValue = "20") int size) {
+                        @RequestParam(defaultValue = "20") int size,
+                        @AuthenticationPrincipal UserDetails userDetails) {
                 Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "data"));
-                Page<PostDTO> posts = postService.getPostsByUserEmail(email, pageable);
+                String requesterEmail = userDetails != null ? userDetails.getUsername() : null;
+                Page<PostDTO> posts = postService.getPostsByUserEmail(email, requesterEmail, pageable);
                 return ResponseEntity.ok(posts);
         }
 
@@ -152,3 +167,4 @@ public class PostController {
                 return ResponseEntity.ok(new MessageResponse("Post excluído com sucesso!"));
         }
 }
+

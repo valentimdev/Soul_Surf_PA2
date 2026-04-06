@@ -1,29 +1,45 @@
-// src/main/java/com/soulsurf/backend/security/websocket/JwtChatChannelInterceptor.java
 package com.soulsurf.backend.core.security.websocket;
 
 import com.soulsurf.backend.core.security.jwt.JwtUtils;
 import com.soulsurf.backend.core.security.service.UserDetailsServiceImpl;
+import com.soulsurf.backend.modules.chat.entity.ConversationParticipantId;
+import com.soulsurf.backend.modules.chat.repository.ConversationParticipantRepository;
+import com.soulsurf.backend.modules.user.repository.UserRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.simp.stomp.StompCommand;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.messaging.support.ChannelInterceptor;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextImpl;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
+import java.util.Map;
+
 @Slf4j
 @Component
 public class JwtChatChannelInterceptor implements ChannelInterceptor {
 
+    private static final String CONVERSATION_TOPIC_PREFIX = "/topic/conversations/";
+    private static final String NOTIFICATION_TOPIC_PREFIX = "/topic/notifications/";
+
     private final JwtUtils jwtUtils;
     private final UserDetailsServiceImpl userDetailsService;
+    private final ConversationParticipantRepository conversationParticipantRepository;
+    private final UserRepository userRepository;
 
-    public JwtChatChannelInterceptor(JwtUtils jwtUtils, UserDetailsServiceImpl userDetailsService) {
+    public JwtChatChannelInterceptor(
+            JwtUtils jwtUtils,
+            UserDetailsServiceImpl userDetailsService,
+            ConversationParticipantRepository conversationParticipantRepository,
+            UserRepository userRepository) {
         this.jwtUtils = jwtUtils;
         this.userDetailsService = userDetailsService;
+        this.conversationParticipantRepository = conversationParticipantRepository;
+        this.userRepository = userRepository;
     }
 
     @Override
@@ -35,76 +51,109 @@ public class JwtChatChannelInterceptor implements ChannelInterceptor {
             return message;
         }
 
-        log.info("[STOMP] Comando: {}", command);
-
-        // APENAS NO CONNECT: autenticar e configurar o usuário
         if (StompCommand.CONNECT.equals(command)) {
-            // 1. Tentar token dos session attributes (via HandshakeInterceptor)
-            String token = (String) accessor.getSessionAttributes().get("jwt_token");
+            authenticateConnect(accessor);
+            return message;
+        }
 
-            // 2. Se não tiver, tentar header Authorization (opcional)
-            if (token == null) {
-                String authHeader = accessor.getFirstNativeHeader("Authorization");
-                if (authHeader != null && authHeader.startsWith("Bearer ")) {
-                    token = authHeader.substring(7);
-                }
-            }
+        if ((StompCommand.SUBSCRIBE.equals(command) || StompCommand.SEND.equals(command))
+                && accessor.getUser() == null) {
+            throw new MessagingException("Usuario nao autenticado");
+        }
 
-            if (token == null || token.isEmpty()) {
-                log.warn("CONNECT sem token JWT");
-                throw new MessagingException("Token ausente");
-            }
-
-            if (!jwtUtils.validateJwtToken(token)) {
-                log.warn("Token JWT inválido ou expirado");
-                throw new MessagingException("Token inválido");
-            }
-
-            String email = jwtUtils.getUserNameFromJwtToken(token);
-            UserDetails userDetails = userDetailsService.loadUserByUsername(email);
-
-            UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(userDetails, null,
-                    userDetails.getAuthorities());
-
-            // Define o usuário no accessor
-            accessor.setUser(auth);
-
-            // SALVA O SecurityContext para persistir entre frames (CRÍTICO!)
-            accessor.getSessionAttributes().put(
-                    "SPRING_SECURITY_CONTEXT",
-                    new SecurityContextImpl(auth));
-
-            log.info("[SUCESSO] CONNECT autenticado como: {}", email);
+        if (StompCommand.SUBSCRIBE.equals(command)) {
+            authorizeSubscription(accessor);
         }
 
         return message;
     }
 
-    @Override
-    public void postSend(Message<?> message, org.springframework.messaging.MessageChannel channel, boolean sent) {
-        if (!sent)
-            return;
+    private void authenticateConnect(StompHeaderAccessor accessor) {
+        String token = readTokenFromSession(accessor.getSessionAttributes());
 
-        StompHeaderAccessor accessor = StompHeaderAccessor.wrap(message);
-        StompCommand command = accessor.getCommand();
-
-        if (command == null)
-            return;
-
-        if (StompCommand.SUBSCRIBE.equals(command)) {
-            if (accessor.getUser() != null) {
-                log.info("[SUCESSO] SUBSCRIBE autenticado como: {} | Destino: {}",
-                        accessor.getUser().getName(), accessor.getDestination());
-            } else {
-                log.warn("[ERRO] SUBSCRIBE sem usuário autenticado");
+        if (token == null) {
+            String authHeader = accessor.getFirstNativeHeader("Authorization");
+            if (authHeader != null && authHeader.startsWith("Bearer ")) {
+                token = authHeader.substring(7);
             }
         }
 
-        if (StompCommand.SEND.equals(command)) {
-            if (accessor.getUser() != null) {
-                log.info("[SUCESSO] SEND autenticado como: {} | Destino: {}",
-                        accessor.getUser().getName(), accessor.getDestination());
+        if (token == null || token.isBlank()) {
+            throw new MessagingException("Token ausente");
+        }
+
+        if (!jwtUtils.validateJwtToken(token)) {
+            throw new MessagingException("Token invalido");
+        }
+
+        String email = jwtUtils.getUserNameFromJwtToken(token);
+        UserDetails userDetails = userDetailsService.loadUserByUsername(email);
+
+        UsernamePasswordAuthenticationToken auth =
+                new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+
+        accessor.setUser(auth);
+
+        Map<String, Object> sessionAttributes = accessor.getSessionAttributes();
+        if (sessionAttributes != null) {
+            sessionAttributes.put("SPRING_SECURITY_CONTEXT", new SecurityContextImpl(auth));
+        }
+
+        log.debug("[STOMP] CONNECT autenticado: {}", email);
+    }
+
+    private String readTokenFromSession(Map<String, Object> sessionAttributes) {
+        if (sessionAttributes == null) {
+            return null;
+        }
+        Object value = sessionAttributes.get("jwt_token");
+        if (value instanceof String token && !token.isBlank()) {
+            return token;
+        }
+        return null;
+    }
+
+    private void authorizeSubscription(StompHeaderAccessor accessor) {
+        if (accessor.getDestination() == null || accessor.getUser() == null) {
+            return;
+        }
+
+        String destination = accessor.getDestination();
+        String currentUserEmail = accessor.getUser().getName();
+
+        if (destination.startsWith(CONVERSATION_TOPIC_PREFIX)) {
+            String conversationId = extractDestinationSegment(destination, CONVERSATION_TOPIC_PREFIX);
+            if (conversationId.isBlank()) {
+                throw new AccessDeniedException("Conversa invalida");
+            }
+
+            ConversationParticipantId participantId = new ConversationParticipantId(conversationId, currentUserEmail);
+            boolean isParticipant = conversationParticipantRepository.findById(participantId).isPresent();
+            if (!isParticipant) {
+                throw new AccessDeniedException("Usuario nao participa da conversa");
+            }
+            return;
+        }
+
+        if (destination.startsWith(NOTIFICATION_TOPIC_PREFIX)) {
+            String requestedUsername = extractDestinationSegment(destination, NOTIFICATION_TOPIC_PREFIX);
+            if (requestedUsername.isBlank()) {
+                throw new AccessDeniedException("Destino de notificacao invalido");
+            }
+
+            String currentUsername = userRepository.findByEmail(currentUserEmail)
+                    .map(user -> user.getUsername())
+                    .orElseThrow(() -> new AccessDeniedException("Usuario autenticado nao encontrado"));
+
+            if (!currentUsername.equalsIgnoreCase(requestedUsername)) {
+                throw new AccessDeniedException("Acesso negado ao canal de notificacao");
             }
         }
+    }
+
+    private String extractDestinationSegment(String destination, String prefix) {
+        String raw = destination.substring(prefix.length()).trim();
+        int slashIndex = raw.indexOf('/');
+        return slashIndex >= 0 ? raw.substring(0, slashIndex) : raw;
     }
 }

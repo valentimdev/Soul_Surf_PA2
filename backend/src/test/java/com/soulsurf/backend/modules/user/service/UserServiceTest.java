@@ -55,7 +55,8 @@ public class UserServiceTest {
         mockDto.setUsername("testuser");
         mockDto.setEmail("test@example.com");
         when(userMapper.toDto(testUser)).thenReturn(mockDto);
-        when(postService.getPostsByUserEmail(eq("test@example.com"), any())).thenReturn(org.springframework.data.domain.Page.empty());
+        when(postService.getPostsByUserEmail(eq("test@example.com"), isNull(), any()))
+                .thenReturn(org.springframework.data.domain.Page.empty());
 
         Optional<UserDTO> foundUserOpt = userService.getUserProfile(1L);
 

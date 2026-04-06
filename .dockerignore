@@ -1,5 +1,5 @@
 # Docker Ignore for Soul Surf Backend
-backend/target/
+# backend/target/ (Removed to allow manual JAR copy)
 backend/.mvn/
 backend/mvnw
 backend/mvnw.cmd
@@ -16,3 +16,14 @@ ansible/
 *.md
 Dockerfile
 docker-compose*
+
+# Sensitive runtime files
+.env
+.env.*
+wallet/
+wallet/**
+oci_api_key.pem
+*.pem
+*.key
+*.p12
+*.pfx

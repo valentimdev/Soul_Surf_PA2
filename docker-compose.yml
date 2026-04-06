@@ -26,5 +26,5 @@ services:
       - OCI_TENANCY_ID=${OCI_TENANCY_ID}
       - OCI_FINGERPRINT=${OCI_FINGERPRINT}
       - OCI_PRIVATE_KEY=/app/oci_api_key.pem
-      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-*}
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-http://localhost:8081,http://localhost:3000,http://localhost:5173}
       - RESEND_API_KEY=${RESEND_API_KEY}

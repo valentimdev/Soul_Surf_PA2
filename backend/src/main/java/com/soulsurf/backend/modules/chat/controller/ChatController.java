@@ -99,7 +99,8 @@ public class ChatController {
     public List<ChatMessageResponse> listMessages(@PathVariable String id,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "30") int size) {
-        var msgs = chat.listMessages(id, page, size);
+        var me = AuthUtils.currentUserId();
+        var msgs = chat.listMessages(id, me, page, size);
         return msgs.getContent().stream().map(this::toResp).toList();
     }
 

@@ -27,18 +27,21 @@ public class PointOfInterestService {
         this.poiMapper = poiMapper;
     }
 
+    @Transactional(readOnly = true)
     public List<PointOfInterestDTO> getAllPois() {
         return poiRepository.findAll().stream()
                 .map(poiMapper::toDto)
                 .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
     public List<PointOfInterestDTO> getPoisByBeach(Long beachId) {
         return poiRepository.findByBeachId(beachId).stream()
                 .map(poiMapper::toDto)
                 .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
     public List<PointOfInterestDTO> getPoisByCategory(PoiCategory categoria) {
         return poiRepository.findByCategoria(categoria).stream()
                 .map(poiMapper::toDto)

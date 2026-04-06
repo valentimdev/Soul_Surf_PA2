@@ -60,8 +60,10 @@ public class UserController {
     @ApiResponse(responseCode = "404", description = "Usuário não encontrado")
     @GetMapping("/username/{username}")
     public ResponseEntity<UserDTO> getUserProfileByUsername(
-            @Parameter(description = "Username do usuário") @PathVariable String username) {
-        return userService.getUserProfileByUsername(username)
+            @Parameter(description = "Username do usuario") @PathVariable String username,
+            @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        String requesterEmail = userDetails != null ? userDetails.getUsername() : null;
+        return userService.getUserProfileByUsername(username, requesterEmail)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
@@ -70,8 +72,11 @@ public class UserController {
     @ApiResponse(responseCode = "200", description = "Perfil do usuário encontrado")
     @ApiResponse(responseCode = "404", description = "Usuário não encontrado")
     @GetMapping("/{id}")
-    public ResponseEntity<UserDTO> getUserProfile(@Parameter(description = "ID do usuário") @PathVariable Long id) {
-        return userService.getUserProfile(id)
+    public ResponseEntity<UserDTO> getUserProfile(
+            @Parameter(description = "ID do usuario") @PathVariable Long id,
+            @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        String requesterEmail = userDetails != null ? userDetails.getUsername() : null;
+        return userService.getUserProfile(id, requesterEmail)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
@@ -106,7 +111,7 @@ public class UserController {
     @ApiResponse(responseCode = "404", description = "Usuário não encontrado ou erro na conversão")
     @GetMapping("/me")
     public ResponseEntity<UserDTO> getMyProfile(@AuthenticationPrincipal UserDetailsImpl userDetails) {
-        return userService.getUserProfile(userDetails.getId())
+        return userService.getUserProfile(userDetails.getId(), userDetails.getUsername())
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
@@ -171,3 +176,4 @@ public class UserController {
         return ResponseEntity.ok(users);
     }
 }
+

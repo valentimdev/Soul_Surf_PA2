@@ -1,9 +1,8 @@
-// src/main/java/com/soulsurf/backend/config/WebSocketConfig.java
 package com.soulsurf.backend.core.config;
 
 import com.soulsurf.backend.core.security.websocket.JwtChatChannelInterceptor;
 import com.soulsurf.backend.core.security.websocket.JwtHandshakeInterceptor;
-import org.springframework.context.annotation.Bean;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.simp.config.ChannelRegistration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
@@ -11,17 +10,28 @@ import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBr
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
 
+import java.util.List;
+
 @Configuration
 @EnableWebSocketMessageBroker
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
+    private static final String[] SAFE_DEFAULT_ORIGINS = {
+            "http://localhost:8081",
+            "http://localhost:3000",
+            "http://localhost:5173"
+    };
 
     private final JwtChatChannelInterceptor jwtChatChannelInterceptor;
     private final JwtHandshakeInterceptor jwtHandshakeInterceptor;
+    private final String allowedOrigins;
 
-    public WebSocketConfig(JwtChatChannelInterceptor jwtChatChannelInterceptor,
-                           JwtHandshakeInterceptor jwtHandshakeInterceptor) {
+    public WebSocketConfig(
+            JwtChatChannelInterceptor jwtChatChannelInterceptor,
+            JwtHandshakeInterceptor jwtHandshakeInterceptor,
+            @Value("${app.cors.allowed-origins:http://localhost:8081,http://localhost:3000}") String allowedOrigins) {
         this.jwtChatChannelInterceptor = jwtChatChannelInterceptor;
         this.jwtHandshakeInterceptor = jwtHandshakeInterceptor;
+        this.allowedOrigins = allowedOrigins;
     }
 
     @Override
@@ -32,14 +42,14 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
-        // WEBSOCKET PURO (OBRIGATÓRIO)
+        String[] originPatterns = resolveAllowedOrigins();
+
         registry.addEndpoint("/ws")
-                .setAllowedOriginPatterns("*")
+                .setAllowedOriginPatterns(originPatterns)
                 .addInterceptors(jwtHandshakeInterceptor);
 
-        // OPCIONAL: SockJS em outro endpoint
         registry.addEndpoint("/ws/sockjs")
-                .setAllowedOriginPatterns("*")
+                .setAllowedOriginPatterns(originPatterns)
                 .addInterceptors(jwtHandshakeInterceptor)
                 .withSockJS();
     }
@@ -47,5 +57,19 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Override
     public void configureClientInboundChannel(ChannelRegistration registration) {
         registration.interceptors(jwtChatChannelInterceptor);
+    }
+
+    private String[] resolveAllowedOrigins() {
+        List<String> patterns = List.of(allowedOrigins.split(","))
+                .stream()
+                .map(String::trim)
+                .filter(origin -> !origin.isBlank())
+                .filter(origin -> !origin.equals("*"))
+                .toList();
+
+        if (patterns.isEmpty()) {
+            return SAFE_DEFAULT_ORIGINS;
+        }
+        return patterns.toArray(String[]::new);
     }
 }

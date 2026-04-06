@@ -1,0 +1,38 @@
+# Environment and secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks
+*.keystore
+oci_api_key.pem
+wallet/
+wallet/**
+
+# Terraform local state
+**/.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+!*.tfvars.example
+crash.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# IDE and editor files
+.idea/
+.vscode/
+
+# Build and dependencies
+backend/target/
+front_end/node_modules/
+front_end/dist/
+
+# OS metadata
+.DS_Store
+Thumbs.db
