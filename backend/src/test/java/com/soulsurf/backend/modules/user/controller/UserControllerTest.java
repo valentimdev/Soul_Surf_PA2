@@ -83,7 +83,7 @@ public class UserControllerTest extends BaseIntegrationTest {
         mockMvc.perform(get("/api/users/me")
                 .header("Authorization", "Bearer " + jwtToken))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.email").value("user@example.com"))
+                .andExpect(jsonPath("$.email").doesNotExist())
                 .andExpect(jsonPath("$.username").value("testuser"));
     }
 
@@ -116,7 +116,8 @@ public class UserControllerTest extends BaseIntegrationTest {
         mockMvc.perform(get("/api/users/" + testUserId)
                 .header("Authorization", "Bearer " + jwtToken))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.email").value("user@example.com"));
+                .andExpect(jsonPath("$.email").doesNotExist())
+                .andExpect(jsonPath("$.username").value("testuser"));
     }
 
     @Test

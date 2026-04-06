@@ -1,5 +1,6 @@
 package com.soulsurf.backend.modules.user.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.soulsurf.backend.modules.post.dto.PostDTO;
 import java.util.List;
 
@@ -11,6 +12,7 @@ import lombok.Setter;
 public class UserDTO {
     private Long id;
     private String username;
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String email;
     private String fotoPerfil;
     private String fotoCapa;

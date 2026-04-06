@@ -4,6 +4,7 @@ import com.soulsurf.backend.modules.chat.dto.MessageResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -37,6 +38,14 @@ public class GlobalExceptionHandler {
                 .body(new MessageResponse(e.getMessage()));
     }
 
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<MessageResponse> handleAccessDeniedException(AccessDeniedException e) {
+        log.warn("Acesso negado (security): {}", e.getMessage());
+        return ResponseEntity
+                .status(HttpStatus.FORBIDDEN)
+                .body(new MessageResponse("Acesso negado."));
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<MessageResponse> handleValidationException(MethodArgumentNotValidException e) {
         String message = e.getBindingResult().getFieldErrors().stream()
@@ -54,7 +63,7 @@ public class GlobalExceptionHandler {
         log.error("Erro interno: {}", e.getMessage(), e);
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(new MessageResponse("Erro interno do servidor: " + e.getMessage()));
+                .body(new MessageResponse("Erro interno do servidor."));
     }
 
     @ExceptionHandler(Exception.class)

@@ -74,7 +74,6 @@ public class BeachMessageService {
         UserDTO userDTO = new UserDTO();
         userDTO.setId(BeachMessage.getAutor().getId());
         userDTO.setUsername(BeachMessage.getAutor().getUsername());
-        userDTO.setEmail(BeachMessage.getAutor().getEmail());
         // Adicione fotoPerfil, etc., se UserDTO tiver esses campos
 
         dto.setAutor(userDTO);

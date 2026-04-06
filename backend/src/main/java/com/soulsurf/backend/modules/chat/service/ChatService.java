@@ -21,7 +21,9 @@ public class ChatService {
     private final ConversationParticipantRepository partRepo;
     private final MessageRepository msgRepo;
 
-    public ChatService(ConversationRepository convRepo, ConversationParticipantRepository partRepo,
+    public ChatService(
+            ConversationRepository convRepo,
+            ConversationParticipantRepository partRepo,
             MessageRepository msgRepo) {
         this.convRepo = convRepo;
         this.partRepo = partRepo;
@@ -30,18 +32,16 @@ public class ChatService {
 
     @Transactional
     public Conversation ensureDM(String userA, String userB) {
-        if (userA.equals(userB))
-            throw new RuntimeException("DM precisa de usuários distintos");
-
-        // Tenta achar conversa existente
-        String existingId = partRepo.findDMBetween(userA, userB);
-
-        if (existingId != null) {
-            return convRepo.findById(existingId)
-                    .orElseThrow(() -> new RuntimeException("Conversa existente não encontrada"));
+        if (userA.equals(userB)) {
+            throw new RuntimeException("DM precisa de usuarios distintos");
         }
 
-        // Cria nova
+        String existingId = partRepo.findDMBetween(userA, userB);
+        if (existingId != null) {
+            return convRepo.findById(existingId)
+                    .orElseThrow(() -> new RuntimeException("Conversa existente nao encontrada"));
+        }
+
         var conv = new Conversation();
         conv.setGroup(false);
         conv = convRepo.save(conv);
@@ -66,13 +66,9 @@ public class ChatService {
 
     @Transactional
     public Message sendMessage(String conversationId, String senderId, String content, String attachmentUrl) {
-        // valida se o remetente participa da conversa
-        var participantId = new ConversationParticipantId();
-        participantId.setConversationId(conversationId);
-        participantId.setUserId(senderId);
-        if (partRepo.findById(participantId).isEmpty()) {
-            throw new org.springframework.security.access.AccessDeniedException("Usuário não participa da conversa");
-        }
+        assertParticipant(conversationId, senderId);
+
+        var participantId = new ConversationParticipantId(conversationId, senderId);
 
         var msg = new Message();
         msg.setConversationId(conversationId);
@@ -80,15 +76,24 @@ public class ChatService {
         msg.setContent(content);
         msg.setAttachmentUrl(attachmentUrl);
         msg = msgRepo.save(msg);
-        // atualizar last_read do remetente, opcional
+
         partRepo.findById(participantId).ifPresent(p -> {
             p.setLastReadAt(Instant.now());
             partRepo.save(p);
         });
+
         return msg;
     }
 
-    public Page<Message> listMessages(String conversationId, int page, int size) {
+    public Page<Message> listMessages(String conversationId, String userId, int page, int size) {
+        assertParticipant(conversationId, userId);
         return msgRepo.findByConversationIdOrderByCreatedAtDesc(conversationId, PageRequest.of(page, size));
+    }
+
+    private void assertParticipant(String conversationId, String userId) {
+        var participantId = new ConversationParticipantId(conversationId, userId);
+        if (partRepo.findById(participantId).isEmpty()) {
+            throw new org.springframework.security.access.AccessDeniedException("Usuario nao participa da conversa");
+        }
     }
 }

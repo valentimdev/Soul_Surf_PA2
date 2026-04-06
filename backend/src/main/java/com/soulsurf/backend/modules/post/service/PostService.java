@@ -116,12 +116,20 @@ public class PostService {
 
     @Cacheable(value = "userPosts", key = "#userEmail + '_' + #pageable.pageNumber + '_' + #pageable.pageSize", unless = "#result.content.isEmpty()")
     public Page<PostDTO> getPostsByUserEmail(String userEmail, Pageable pageable) {
+        return getPostsByUserEmail(userEmail, userEmail, pageable);
+    }
+
+    @Cacheable(value = "userPosts", key = "#userEmail + '_' + (#requesterEmail == null ? 'anonymous' : #requesterEmail) + '_' + #pageable.pageNumber + '_' + #pageable.pageSize", unless = "#result.content.isEmpty()")
+    public Page<PostDTO> getPostsByUserEmail(String userEmail, String requesterEmail, Pageable pageable) {
         User usuario = userRepository.findByEmail(userEmail)
-                .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado com o e-mail: " + userEmail));
+                .orElseThrow(() -> new UsernameNotFoundException("Usuario nao encontrado com o e-mail: " + userEmail));
 
-        Page<Post> posts = postRepository.findByUsuario(usuario, pageable);
+        boolean isOwner = requesterEmail != null && requesterEmail.equalsIgnoreCase(usuario.getEmail());
+        Page<Post> posts = isOwner
+                ? postRepository.findByUsuario(usuario, pageable)
+                : postRepository.findByUsuarioAndPublicoIsTrue(usuario, pageable);
 
-        return posts.map(post -> postMapper.toDto(post, userEmail));
+        return posts.map(post -> postMapper.toDto(post, requesterEmail));
     }
 
     @Cacheable(value = "postById", key = "#id + '_' + (#requesterEmail ?: 'anonymous')")
@@ -174,3 +182,4 @@ public class PostService {
         postRepository.delete(post);
     }
 }
+

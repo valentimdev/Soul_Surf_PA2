@@ -66,11 +66,18 @@ public class UserService {
         return userMapper.toDto(savedUser);
     }
 
-    public Optional<UserDTO> getUserProfile(Long id) {
+    @Transactional(readOnly = true)
+    public Optional<UserDTO> getUserProfile(Long id, String requesterEmail) {
         return userRepository.findById(id)
-                .map(this::convertToDtoWithPosts);
+                .map(user -> convertToDtoWithPosts(user, requesterEmail));
     }
 
+    @Transactional(readOnly = true)
+    public Optional<UserDTO> getUserProfile(Long id) {
+        return getUserProfile(id, null);
+    }
+
+    @Transactional(readOnly = true)
     public Optional<UserDTO> getUserByEmail(String email) {
         return userRepository.findByEmail(email)
                 .map(userMapper::toDto);
@@ -106,12 +113,18 @@ public class UserService {
         userRepository.save(follower);
     }
 
-    @Transactional
-    public Optional<UserDTO> getUserProfileByUsername(String username) {
+    @Transactional(readOnly = true)
+    public Optional<UserDTO> getUserProfileByUsername(String username, String requesterEmail) {
         return userRepository.findByUsername(username)
-                .map(this::convertToDtoWithPosts);
+                .map(user -> convertToDtoWithPosts(user, requesterEmail));
     }
 
+    @Transactional(readOnly = true)
+    public Optional<UserDTO> getUserProfileByUsername(String username) {
+        return getUserProfileByUsername(username, null);
+    }
+
+    @Transactional(readOnly = true)
     public List<UserDTO> getUserFollowing(Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado com o ID: " + userId));
@@ -121,6 +134,7 @@ public class UserService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
     public List<UserDTO> getUserFollowers(Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado com o ID: " + userId));
@@ -181,10 +195,10 @@ public class UserService {
         }
 
         User updatedUser = userRepository.save(userToUpdate);
-        return convertToDtoWithPosts(updatedUser);
+        return convertToDtoWithPosts(updatedUser, updatedUser.getEmail());
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     public List<UserDTO> getUserSuggestions(String searchTerm, String currentUserEmail, int limit) {
         User currentUser = userRepository.findByEmail(currentUserEmail)
                 .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado"));
@@ -213,16 +227,17 @@ public class UserService {
      * Converts a User to UserDTO including the first 10 posts.
      * Used for full profile views.
      */
-    private UserDTO convertToDtoWithPosts(User user) {
+    private UserDTO convertToDtoWithPosts(User user, String requesterEmail) {
         UserDTO dto = userMapper.toDto(user);
 
         PageRequest pageRequest = PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "data"));
-        Page<PostDTO> postsPage = postService.getPostsByUserEmail(user.getEmail(), pageRequest);
+        Page<PostDTO> postsPage = postService.getPostsByUserEmail(user.getEmail(), requesterEmail, pageRequest);
         dto.setPosts(postsPage.getContent());
 
         return dto;
     }
 
+    @Transactional(readOnly = true)
     public List<UserDTO> getAllUsersPaginated(int offset, int limit, Long loggedUserId) {
         List<User> users = userRepository.findAllWithPagination(offset, limit);
 
@@ -233,6 +248,7 @@ public class UserService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
     public List<UserDTO> searchUsers(String query, Long loggedUserId) {
         List<User> users = userRepository.searchUsers(query);
 
@@ -247,3 +263,4 @@ public class UserService {
                 .collect(Collectors.toList());
     }
 }
+

@@ -14,7 +14,10 @@ import org.springframework.http.MediaType;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.util.UUID;
+import java.util.HexFormat;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -46,7 +49,7 @@ public class AuthenticationControllerTest extends BaseIntegrationTest {
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(signupRequest)))
                                 .andExpect(status().isCreated())
-                                .andExpect(jsonPath("$.email").value("test@example.com"))
+                                .andExpect(jsonPath("$.email").doesNotExist())
                                 .andExpect(jsonPath("$.username").value("testuser"));
 
                 // 2. Login
@@ -112,8 +115,10 @@ public class AuthenticationControllerTest extends BaseIntegrationTest {
                 // Manually create a reset token in DB
                 User user = userRepository.findByEmail("reset@example.com").orElseThrow();
                 String token = UUID.randomUUID().toString();
+                String tokenHash = HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256")
+                                .digest(token.getBytes(StandardCharsets.UTF_8)));
                 Instant expiryDate = Instant.now().plus(24, ChronoUnit.HOURS);
-                PasswordResetToken resetToken = new PasswordResetToken(token, user, expiryDate);
+                PasswordResetToken resetToken = new PasswordResetToken(tokenHash, user, expiryDate);
                 tokenRepository.save(resetToken);
 
                 // Use the token to reset password

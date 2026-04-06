@@ -4,27 +4,34 @@ import com.soulsurf.backend.modules.user.entity.PasswordResetToken;
 import com.soulsurf.backend.modules.user.entity.User;
 import com.soulsurf.backend.modules.user.repository.PasswordResetTokenRepository;
 import com.soulsurf.backend.modules.user.repository.UserRepository;
-
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.SecureRandom;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.Base64;
+import java.util.HexFormat;
 import java.util.Optional;
-import java.util.UUID;
 
 @Service
 public class PasswordResetService {
 
-    private static final long EXPIRATION_TIME = 1000 * 60 * 60 * 24; // 24 horas em milissegundos
+    private static final long EXPIRATION_TIME_MILLIS = 1000L * 60L * 60L * 24L; // 24h
+    private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
     private final UserRepository userRepository;
     private final PasswordResetTokenRepository tokenRepository;
     private final EmailService emailService;
     private final PasswordEncoder passwordEncoder;
 
-    public PasswordResetService(UserRepository userRepository, PasswordResetTokenRepository tokenRepository,
-            EmailService emailService, PasswordEncoder passwordEncoder) {
+    public PasswordResetService(
+            UserRepository userRepository,
+            PasswordResetTokenRepository tokenRepository,
+            EmailService emailService,
+            PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.tokenRepository = tokenRepository;
         this.emailService = emailService;
@@ -36,33 +43,31 @@ public class PasswordResetService {
 
         if (userOptional.isPresent()) {
             User user = userOptional.get();
-            String token = UUID.randomUUID().toString();
-
-            // CORREÇÃO: Usar Instant.now() para criar a data de expiração
-            Instant expiryDate = Instant.now().plus(EXPIRATION_TIME, ChronoUnit.MILLIS);
+            String rawToken = generateSecureToken();
+            String tokenHash = hashToken(rawToken);
+            Instant expiryDate = Instant.now().plus(EXPIRATION_TIME_MILLIS, ChronoUnit.MILLIS);
 
             tokenRepository.findByUser(user).ifPresent(tokenRepository::delete);
 
-            PasswordResetToken passwordResetToken = new PasswordResetToken(token, user, expiryDate);
+            PasswordResetToken passwordResetToken = new PasswordResetToken(tokenHash, user, expiryDate);
             tokenRepository.save(passwordResetToken);
 
-            emailService.sendPasswordResetEmail(user.getEmail(), token);
+            emailService.sendPasswordResetEmail(user.getEmail(), rawToken);
         }
     }
 
     public void resetPassword(String token, String newPassword) {
-        Optional<PasswordResetToken> tokenOptional = tokenRepository.findByToken(token);
+        String tokenHash = hashToken(token);
+        Optional<PasswordResetToken> tokenOptional = tokenRepository.findByToken(tokenHash);
 
         if (tokenOptional.isEmpty()) {
-            throw new IllegalArgumentException("Token de redefinição inválido.");
+            throw new IllegalArgumentException("Token de redefinicao invalido.");
         }
 
         PasswordResetToken passwordResetToken = tokenOptional.get();
-
-        // CORREÇÃO: Comparar com Instant.now() em vez de new Date()
         if (passwordResetToken.getExpiryDate().isBefore(Instant.now())) {
             tokenRepository.delete(passwordResetToken);
-            throw new IllegalArgumentException("Token de redefinição expirado.");
+            throw new IllegalArgumentException("Token de redefinicao expirado.");
         }
 
         User user = passwordResetToken.getUser();
@@ -70,5 +75,21 @@ public class PasswordResetService {
         userRepository.save(user);
 
         tokenRepository.delete(passwordResetToken);
+    }
+
+    private String generateSecureToken() {
+        byte[] bytes = new byte[32];
+        SECURE_RANDOM.nextBytes(bytes);
+        return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
+    }
+
+    private String hashToken(String token) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] hash = digest.digest(token.getBytes(StandardCharsets.UTF_8));
+            return HexFormat.of().formatHex(hash);
+        } catch (Exception e) {
+            throw new IllegalStateException("Nao foi possivel processar token de redefinicao.", e);
+        }
     }
 }

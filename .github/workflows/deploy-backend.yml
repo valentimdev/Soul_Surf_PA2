@@ -32,7 +32,7 @@ jobs:
         ./mvnw clean package -DskipTests
 
     - name: Copy files to Server via SSH
-      uses: appleboy/scp-action@master
+      uses: appleboy/scp-action@v0.1.7
       with:
         host: ${{ secrets.OCI_HOST }}
         username: ${{ secrets.OCI_USER }}
@@ -42,7 +42,7 @@ jobs:
         strip_components: 0
 
     - name: Deploy on Oracle Cloud via SSH
-      uses: appleboy/ssh-action@master
+      uses: appleboy/ssh-action@v1.0.3
       with:
         host: ${{ secrets.OCI_HOST }}
         username: ${{ secrets.OCI_USER }}
@@ -73,7 +73,16 @@ jobs:
           # Escrever a chave privada OCI em arquivo separado
           # printf preserva newlines corretamente
           printf '%s\n' '${{ secrets.OCI_PRIVATE_KEY }}' > ~/soul-surf-deploy/oci_api_key.pem
-          chmod 644 ~/soul-surf-deploy/oci_api_key.pem
+          
+          # Verificar se a chave tem os headers PEM (necessário para o OCI SDK Java)
+          if ! grep -q "BEGIN" ~/soul-surf-deploy/oci_api_key.pem; then
+            echo "Adicionando headers PEM à chave privada..."
+            # Adiciona header no início e footer no fim
+            sed -i '1i -----BEGIN PRIVATE KEY-----' ~/soul-surf-deploy/oci_api_key.pem
+            echo "-----END PRIVATE KEY-----" >> ~/soul-surf-deploy/oci_api_key.pem
+          fi
+          
+          chmod 600 ~/soul-surf-deploy/oci_api_key.pem
 
           # Recriar apenas o backend com a nova imagem
           docker compose up -d --build --no-deps backend

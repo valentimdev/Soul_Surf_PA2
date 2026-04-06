@@ -29,7 +29,6 @@ public class FollowService {
         return me.getSeguindo().stream().map(u -> {
             var dto = new UserDTO();
             dto.setId(u.getId());
-            dto.setEmail(u.getEmail());
             dto.setUsername(u.getUsername());
             dto.setFotoPerfil(u.getFotoPerfil());
             dto.setFotoCapa(u.getFotoCapa());

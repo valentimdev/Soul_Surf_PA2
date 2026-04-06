@@ -122,7 +122,7 @@ resource "azurerm_postgresql_flexible_server_firewall_rule" "allow_backend" {
   name             = "AllowBackendAppService"
   server_id        = azurerm_postgresql_flexible_server.database.id
   start_ip_address = "0.0.0.0"
-  end_ip_address   = "255.255.255.255"
+  end_ip_address   = "0.0.0.0"
   # Nota: Em produção, considere usar Private Endpoints para melhor segurança
 }
 
