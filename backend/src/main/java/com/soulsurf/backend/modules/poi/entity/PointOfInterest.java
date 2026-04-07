@@ -1,6 +1,5 @@
 package com.soulsurf.backend.modules.poi.entity;
 
-import com.soulsurf.backend.modules.beach.entity.Beach;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -38,7 +37,4 @@ public class PointOfInterest {
     @Column(name = "caminho_foto")
     private String caminhoFoto;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "beach_id")
-    private Beach beach;
 }
