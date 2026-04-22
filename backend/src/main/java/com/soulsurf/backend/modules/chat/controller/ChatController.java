@@ -9,8 +9,6 @@ import com.soulsurf.backend.modules.chat.entity.Message;
 import com.soulsurf.backend.modules.chat.repository.ConversationParticipantRepository;
 import com.soulsurf.backend.modules.chat.repository.MessageRepository;
 import com.soulsurf.backend.modules.user.repository.UserRepository;
-import com.soulsurf.backend.core.security.service.UserDetailsImpl;
-import com.soulsurf.backend.modules.user.service.FollowService;
 import com.soulsurf.backend.core.security.AuthUtils;
 import com.soulsurf.backend.modules.chat.service.ChatService;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -48,7 +46,8 @@ public class ChatController {
     @PostMapping("/dm")
     public Map<String, String> createOrGetDM(@RequestBody CreateDMRequest req) {
         var me = AuthUtils.currentUserId();
-        var conv = chat.ensureDM(me, req.getOtherUserId());
+        var otherUserKey = resolveUserKey(req.getOtherUserId());
+        var conv = chat.ensureDM(me, otherUserKey);
         return Map.of("conversationId", conv.getId());
     }
 
@@ -63,7 +62,7 @@ public class ChatController {
 
             if (!c.isGroup()) {
                 var otherId = partRepo.findOtherUserId(c.getId(), me);
-                r.setOtherUserId(otherId);
+                r.setOtherUserId(toClientUserId(otherId));
 
                 if (otherId != null) {
                     userRepo.findByEmail(otherId).ifPresent(u -> {
@@ -76,7 +75,7 @@ public class ChatController {
             var last = msgRepo.findTop1ByConversationIdOrderByCreatedAtDesc(c.getId());
             if (last != null) {
                 var p = new ConversationResponse.ChatMessagePreview();
-                p.setSenderId(last.getSenderId());
+                p.setSenderId(toClientUserId(last.getSenderId()));
                 p.setContent(last.getContent());
                 p.setCreatedAt(last.getCreatedAt());
                 r.setLastMessage(p);
@@ -120,11 +119,42 @@ public class ChatController {
         var r = new ChatMessageResponse();
         r.setId(m.getId());
         r.setConversationId(m.getConversationId());
-        r.setSenderId(m.getSenderId());
+        r.setSenderId(toClientUserId(m.getSenderId()));
         r.setContent(m.getContent());
         r.setAttachmentUrl(m.getAttachmentUrl());
         r.setCreatedAt(m.getCreatedAt());
         r.setEditedAt(m.getEditedAt());
         return r;
+    }
+
+    private String resolveUserKey(String otherUserId) {
+        if (otherUserId == null || otherUserId.isBlank()) {
+            throw new IllegalArgumentException("otherUserId obrigatorio");
+        }
+
+        // 1) Cliente enviou email (chave interna atual do chat)
+        if (userRepo.findByEmail(otherUserId).isPresent()) {
+            return otherUserId;
+        }
+
+        // 2) Cliente enviou ID numerico do usuario
+        try {
+            long numericId = Long.parseLong(otherUserId);
+            return userRepo.findById(numericId)
+                    .map(u -> u.getEmail())
+                    .orElseThrow(() -> new IllegalArgumentException("Usuario destino nao encontrado"));
+        } catch (NumberFormatException ex) {
+            throw new IllegalArgumentException("otherUserId invalido");
+        }
+    }
+
+    private String toClientUserId(String internalUserKey) {
+        if (internalUserKey == null || internalUserKey.isBlank()) {
+            return internalUserKey;
+        }
+
+        return userRepo.findByEmail(internalUserKey)
+                .map(u -> String.valueOf(u.getId()))
+                .orElse(internalUserKey);
     }
 }

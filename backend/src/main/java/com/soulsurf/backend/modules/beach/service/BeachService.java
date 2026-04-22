@@ -14,6 +14,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import com.soulsurf.backend.core.storage.OracleStorageService;
 
@@ -67,12 +68,14 @@ public class BeachService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
     public Optional<BeachDTO> getBeachById(Long id) {
         return beachRepository.findById(id)
                 .map(beachMapper::toDto);
     }
 
     @Cacheable(value = "beachPosts", key = "#beachId + '_' + #page + '_' + #size + '_' + (#currentUserEmail ?: 'anonymous')")
+    @Transactional(readOnly = true)
     public List<PostDTO> getBeachPosts(Long beachId, int page, int size, String currentUserEmail) {
         Beach beach = beachRepository.findById(beachId)
                 .orElseThrow(() -> new RuntimeException("Praia não encontrada"));
@@ -93,6 +96,7 @@ public class BeachService {
     }
 
     @Cacheable(value = "beachPosts", key = "#beachId + '_all_' + (#userEmail ?: 'anonymous')")
+    @Transactional(readOnly = true)
     public List<PostDTO> getAllBeachPosts(Long beachId, String userEmail) {
         Beach beach = beachRepository.findById(beachId)
                 .orElseThrow(() -> new RuntimeException("Praia não encontrada"));

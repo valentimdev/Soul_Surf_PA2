@@ -29,6 +29,7 @@ public class BeachMessageService {
     }
 
     // Método para listar mensagens (GET)
+    @Transactional(readOnly = true)
     public List<BeachMessageDTO> listarMensagensPorPraia(Long praiaId) {
         // Busca a praia primeiro
         Beach praia = beachRepository.findById(praiaId)
@@ -74,7 +75,7 @@ public class BeachMessageService {
         UserDTO userDTO = new UserDTO();
         userDTO.setId(BeachMessage.getAutor().getId());
         userDTO.setUsername(BeachMessage.getAutor().getUsername());
-        // Adicione fotoPerfil, etc., se UserDTO tiver esses campos
+        userDTO.setFotoPerfil(BeachMessage.getAutor().getFotoPerfil());
 
         dto.setAutor(userDTO);
 
