@@ -16,7 +16,7 @@ import com.soulsurf.backend.modules.comment.repository.CommentRepository;
 import com.soulsurf.backend.modules.notification.repository.NotificationRepository;
 import com.soulsurf.backend.core.storage.OracleStorageService;
 
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
@@ -93,12 +93,14 @@ public class PostService {
     }
 
     @Cacheable(value = "publicFeed", key = "#pageable.pageNumber + '_' + #pageable.pageSize", unless = "#result.content.isEmpty()")
+    @Transactional(readOnly = true)
     public Page<PostDTO> getPublicFeed(Pageable pageable) {
         Page<Post> posts = postRepository.findByPublicoIsTrue(pageable);
         return posts.map(post -> postMapper.toDto(post, null));
     }
 
     @Cacheable(value = "followingPosts", key = "#userEmail + '_' + #pageable.pageNumber + '_' + #pageable.pageSize", unless = "#result.content.isEmpty()")
+    @Transactional(readOnly = true)
     public Page<PostDTO> getFollowingPosts(String userEmail, Pageable pageable) {
         User currentUser = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado: " + userEmail));
@@ -115,11 +117,13 @@ public class PostService {
     }
 
     @Cacheable(value = "userPosts", key = "#userEmail + '_' + #pageable.pageNumber + '_' + #pageable.pageSize", unless = "#result.content.isEmpty()")
+    @Transactional(readOnly = true)
     public Page<PostDTO> getPostsByUserEmail(String userEmail, Pageable pageable) {
         return getPostsByUserEmail(userEmail, userEmail, pageable);
     }
 
     @Cacheable(value = "userPosts", key = "#userEmail + '_' + (#requesterEmail == null ? 'anonymous' : #requesterEmail) + '_' + #pageable.pageNumber + '_' + #pageable.pageSize", unless = "#result.content.isEmpty()")
+    @Transactional(readOnly = true)
     public Page<PostDTO> getPostsByUserEmail(String userEmail, String requesterEmail, Pageable pageable) {
         User usuario = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new UsernameNotFoundException("Usuario nao encontrado com o e-mail: " + userEmail));
@@ -133,6 +137,7 @@ public class PostService {
     }
 
     @Cacheable(value = "postById", key = "#id + '_' + (#requesterEmail ?: 'anonymous')")
+    @Transactional(readOnly = true)
     public Optional<PostDTO> getPostById(Long id, String requesterEmail) {
         Optional<Post> postOptional = postRepository.findById(id);
 

@@ -82,7 +82,9 @@ jobs:
             echo "-----END PRIVATE KEY-----" >> ~/soul-surf-deploy/oci_api_key.pem
           fi
           
-          chmod 600 ~/soul-surf-deploy/oci_api_key.pem
+          # O container roda como usuário não-root (spring). Em bind mount,
+          # 600 pode bloquear leitura quando UID/GID não bate com o host.
+          chmod 644 ~/soul-surf-deploy/oci_api_key.pem
 
           # Recriar apenas o backend com a nova imagem
           docker compose up -d --build --no-deps backend

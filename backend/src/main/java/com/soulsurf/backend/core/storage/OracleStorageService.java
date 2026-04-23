@@ -59,13 +59,14 @@ public class OracleStorageService {
 
     public String uploadFile(MultipartFile file) throws IOException {
         String fileName = FILE_TIMESTAMP.format(LocalDateTime.now()) + "-" + sanitizeFilename(file.getOriginalFilename());
+        byte[] fileBytes = file.getBytes();
 
-        try (InputStream inputStream = file.getInputStream()) {
+        try (InputStream inputStream = new ByteArrayInputStream(fileBytes)) {
             PutObjectRequest putRequest = PutObjectRequest.builder()
                     .namespaceName(namespace)
                     .bucketName(bucketName)
                     .objectName(fileName)
-                    .contentLength(file.getSize())
+                    .contentLength((long) fileBytes.length)
                     .contentType(file.getContentType())
                     .putObjectBody(inputStream)
                     .build();
