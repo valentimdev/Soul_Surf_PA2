@@ -1,7 +1,6 @@
 package com.soulsurf.backend.modules.poi.dto;
 
 import com.soulsurf.backend.modules.poi.entity.PoiCategory;
-import com.soulsurf.backend.modules.beach.dto.BeachDTO;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -18,5 +17,4 @@ public class PointOfInterestDTO {
     private Double longitude;
     private String telefone;
     private String caminhoFoto;
-    private BeachDTO beach;
 }

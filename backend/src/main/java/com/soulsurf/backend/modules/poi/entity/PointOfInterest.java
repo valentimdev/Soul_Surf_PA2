@@ -36,5 +36,4 @@ public class PointOfInterest {
 
     @Column(name = "caminho_foto")
     private String caminhoFoto;
-
 }

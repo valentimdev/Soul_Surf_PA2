@@ -27,12 +27,6 @@ public class PointOfInterestController {
         return poiService.getAllPois();
     }
 
-    @GetMapping("/beach/{beachId}")
-    @Operation(summary = "Lista pontos de interesse por praia")
-    public List<PointOfInterestDTO> getPoisByBeach(@PathVariable Long beachId) {
-        return poiService.getPoisByBeach(beachId);
-    }
-
     @GetMapping("/category/{category}")
     @Operation(summary = "Lista pontos de interesse por categoria")
     public List<PointOfInterestDTO> getPoisByCategory(@PathVariable PoiCategory category) {
