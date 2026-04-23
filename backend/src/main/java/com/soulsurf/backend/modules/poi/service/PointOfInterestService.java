@@ -5,7 +5,6 @@ import com.soulsurf.backend.modules.poi.entity.PointOfInterest;
 import com.soulsurf.backend.modules.poi.entity.PoiCategory;
 import com.soulsurf.backend.modules.poi.mapper.PoiMapper;
 import com.soulsurf.backend.modules.poi.repository.PointOfInterestRepository;
-import com.soulsurf.backend.modules.beach.repository.BeachRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,27 +15,17 @@ import java.util.stream.Collectors;
 public class PointOfInterestService {
 
     private final PointOfInterestRepository poiRepository;
-    private final BeachRepository beachRepository;
     private final PoiMapper poiMapper;
 
     public PointOfInterestService(PointOfInterestRepository poiRepository,
-            BeachRepository beachRepository,
             PoiMapper poiMapper) {
         this.poiRepository = poiRepository;
-        this.beachRepository = beachRepository;
         this.poiMapper = poiMapper;
     }
 
     @Transactional(readOnly = true)
     public List<PointOfInterestDTO> getAllPois() {
         return poiRepository.findAll().stream()
-                .map(poiMapper::toDto)
-                .collect(Collectors.toList());
-    }
-
-    @Transactional(readOnly = true)
-    public List<PointOfInterestDTO> getPoisByBeach(Long beachId) {
-        return poiRepository.findByBeachId(beachId).stream()
                 .map(poiMapper::toDto)
                 .collect(Collectors.toList());
     }
@@ -58,11 +47,6 @@ public class PointOfInterestService {
         poi.setLongitude(dto.getLongitude());
         poi.setTelefone(dto.getTelefone());
         poi.setCaminhoFoto(dto.getCaminhoFoto());
-
-        if (dto.getBeach() != null && dto.getBeach().getId() != null) {
-            beachRepository.findById(dto.getBeach().getId())
-                    .ifPresent(poi::setBeach);
-        }
 
         return poiMapper.toDto(poiRepository.save(poi));
     }

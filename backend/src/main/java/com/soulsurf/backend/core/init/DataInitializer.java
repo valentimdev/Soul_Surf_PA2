@@ -21,40 +21,38 @@ public class DataInitializer implements CommandLineRunner {
         }
 
         @Override
-        public void run(String... args) throws Exception {
+        public void run(String... args) {
                 if (beachRepository.count() == 0) {
-                        // Seed Beaches in Ceara
-                        Beach iracema = createBeach("Praia de Iracema",
-                                        "Berço da boemia e do surf clássico em Fortaleza.",
+                        // Seed beaches in Ceara
+                        createBeach("Praia de Iracema",
+                                        "Berco da boemia e do surf classico em Fortaleza.",
                                         "Fortaleza, CE", "Iniciante", -3.72, -38.52);
-                        Beach beiraMar = createBeach("Beira Mar",
-                                        "Ponto turístico central com águas tranquilas e calçadão integrado.",
-                                        "Fortaleza, CE", "Iniciante",
-                                        -3.725, -38.50);
-                        Beach lesteOeste = createBeach("Leste Oeste",
+                        createBeach("Beira Mar",
+                                        "Ponto turistico central com aguas tranquilas e calcadao integrado.",
+                                        "Fortaleza, CE", "Iniciante", -3.725, -38.50);
+                        createBeach("Leste Oeste",
                                         "Pico tradicional de surf urbano com boas esquerdas.",
-                                        "Fortaleza, CE", "Intermediário", -3.71, -38.54);
-                        Beach praiaDoFuturo = createBeach("Praia do Futuro",
-                                        "Melhor infraestrutura de barracas e ondas constantes.", "Fortaleza, CE",
-                                        "Avançado", -3.74,
-                                        -38.45);
+                                        "Fortaleza, CE", "Intermediario", -3.71, -38.54);
+                        createBeach("Praia do Futuro",
+                                        "Melhor infraestrutura de barracas e ondas constantes.",
+                                        "Fortaleza, CE", "Avancado", -3.74, -38.45);
 
-                        // Seed POIs
+                        // Seed POIs (no beach association)
                         createPoi("Escola de Surf Iracema", "Aulas para iniciantes e aluguel de pranchas.",
                                         PoiCategory.SURF_SCHOOL,
-                                        -3.721, -38.521, "(85) 9999-0001", iracema);
-                        createPoi("Surf Shop Leste", "Venda de pranchas e acessórios.", PoiCategory.SURF_SHOP, -3.711,
+                                        -3.721, -38.521, "(85) 9999-0001");
+                        createPoi("Surf Shop Leste", "Venda de pranchas e acessorios.", PoiCategory.SURF_SHOP, -3.711,
                                         -38.541,
-                                        "(85) 9999-0002", lesteOeste);
-                        createPoi("Reparos do Leste", "Concerto rápido de fibras e quilhas.", PoiCategory.BOARD_REPAIR,
+                                        "(85) 9999-0002");
+                        createPoi("Reparos do Leste", "Conserto rapido de fibras e quilhas.", PoiCategory.BOARD_REPAIR,
                                         -3.712,
-                                        -38.542, "(85) 9999-0003", lesteOeste);
-                        createPoi("Natação P. Futuro", "Treinos de águas abertas.", PoiCategory.SWIMMING_SCHOOL, -3.741,
+                                        -38.542, "(85) 9999-0003");
+                        createPoi("Natacao P. Futuro", "Treinos de aguas abertas.", PoiCategory.SWIMMING_SCHOOL, -3.741,
                                         -38.451,
-                                        "(85) 9999-0004", praiaDoFuturo);
-                        createPoi("Ponte dos Ingleses", "Cartão postal e mirante histórico.", PoiCategory.TOURIST_SPOT,
+                                        "(85) 9999-0004");
+                        createPoi("Ponte dos Ingleses", "Cartao postal e mirante historico.", PoiCategory.TOURIST_SPOT,
                                         -3.720,
-                                        -38.517, null, iracema);
+                                        -38.517, null);
                 }
         }
 
@@ -70,8 +68,7 @@ public class DataInitializer implements CommandLineRunner {
                 return beachRepository.save(beach);
         }
 
-        private void createPoi(String nome, String descricao, PoiCategory cat, Double lat, Double lon, String tel,
-                        Beach beach) {
+        private void createPoi(String nome, String descricao, PoiCategory cat, Double lat, Double lon, String tel) {
                 PointOfInterest poi = new PointOfInterest();
                 poi.setNome(nome);
                 poi.setDescricao(descricao);
@@ -79,7 +76,6 @@ public class DataInitializer implements CommandLineRunner {
                 poi.setLatitude(lat);
                 poi.setLongitude(lon);
                 poi.setTelefone(tel);
-                poi.setBeach(beach);
                 poiRepository.save(poi);
         }
 }
