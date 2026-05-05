@@ -70,6 +70,7 @@ public class WebSecurityConfig {
                         .requestMatchers("/api/beaches/*/mensagens").authenticated()
                         .requestMatchers("/api/files/**").authenticated()
                         .requestMatchers("/ws/**").permitAll()
+                        .requestMatchers("/actuator/health", "/actuator/health/**", "/actuator/prometheus").permitAll()
                         .requestMatchers("/api/chat/**").authenticated()
                         .anyRequest().authenticated()
                 );
