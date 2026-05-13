@@ -165,6 +165,27 @@ public class NotificationService {
     }
 
     @Transactional
+    public void createFollowNotification(String senderEmail, Long followedUserId) {
+        User sender = userRepository.findByEmail(senderEmail)
+                .orElseThrow(() -> new RuntimeException("Usuario remetente nao encontrado"));
+
+        User recipient = userRepository.findById(followedUserId)
+                .orElseThrow(() -> new RuntimeException("Usuario seguido nao encontrado"));
+
+        if (sender.getId().equals(recipient.getId())) {
+            return;
+        }
+
+        Notification notification = new Notification();
+        notification.setSender(sender);
+        notification.setRecipient(recipient);
+        notification.setType(NotificationType.FOLLOW);
+
+        Notification saved = notificationRepository.save(notification);
+        sendRealTimeNotification(saved);
+    }
+
+    @Transactional
     public List<NotificationDTO> getUserNotifications(String username) {
         User user = userRepository.findByEmail(username)
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));

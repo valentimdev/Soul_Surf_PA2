@@ -35,6 +35,7 @@ public class NotificationMapper {
             case COMMENT -> notification.getSender().getUsername() + " comentou em seu post";
             case REPLY -> notification.getSender().getUsername() + " respondeu ao seu comentário";
             case LIKE -> notification.getSender().getUsername() + " curtiu seu post";
+            case FOLLOW -> notification.getSender().getUsername() + " comecou a seguir voce";
         };
         dto.setMessage(message);
 
