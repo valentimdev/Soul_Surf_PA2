@@ -45,12 +45,26 @@ public class Notification {
     @Column(name = "is_read", nullable = false)
     private boolean read;
 
+    // Legacy Oracle column still exists in production and is NOT NULL.
+    @Column(name = "read", nullable = false)
+    private boolean legacyRead;
+
     @Column(nullable = false)
     private LocalDateTime createdAt;
 
     @PrePersist
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();
-        this.read = false;
+        setRead(false);
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        this.legacyRead = this.read;
+    }
+
+    public void setRead(boolean read) {
+        this.read = read;
+        this.legacyRead = read;
     }
 }

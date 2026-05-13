@@ -2,14 +2,15 @@ package com.soulsurf.backend.modules.comment.service;
 
 import com.soulsurf.backend.modules.comment.dto.CommentDTO;
 import com.soulsurf.backend.modules.comment.entity.Comment;
-import com.soulsurf.backend.modules.post.entity.Post;
-import com.soulsurf.backend.modules.user.entity.User;
 import com.soulsurf.backend.modules.comment.mapper.CommentMapper;
 import com.soulsurf.backend.modules.comment.repository.CommentRepository;
+import com.soulsurf.backend.modules.notification.event.NotificationEvent;
+import com.soulsurf.backend.modules.post.entity.Post;
 import com.soulsurf.backend.modules.post.repository.PostRepository;
+import com.soulsurf.backend.modules.user.entity.User;
 import com.soulsurf.backend.modules.user.repository.UserRepository;
-import com.soulsurf.backend.modules.notification.service.NotificationService;
 import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
@@ -27,20 +28,20 @@ public class CommentService {
     private final CommentRepository commentRepository;
     private final PostRepository postRepository;
     private final UserRepository userRepository;
-    private final NotificationService notificationService;
+    private final ApplicationEventPublisher eventPublisher;
     private final SimpMessagingTemplate messagingTemplate;
     private final CommentMapper commentMapper;
 
     public CommentService(CommentRepository commentRepository,
             PostRepository postRepository,
             UserRepository userRepository,
-            NotificationService notificationService,
+            ApplicationEventPublisher eventPublisher,
             SimpMessagingTemplate messagingTemplate,
             CommentMapper commentMapper) {
         this.commentRepository = commentRepository;
         this.postRepository = postRepository;
         this.userRepository = userRepository;
-        this.notificationService = notificationService;
+        this.eventPublisher = eventPublisher;
         this.messagingTemplate = messagingTemplate;
         this.commentMapper = commentMapper;
     }
@@ -48,10 +49,10 @@ public class CommentService {
     @CacheEvict(value = { "postById" }, allEntries = true)
     public CommentDTO createComment(Long postId, Long parentId, String texto, String userEmail) {
         User usuario = userRepository.findByEmail(userEmail)
-                .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado"));
+                .orElseThrow(() -> new UsernameNotFoundException("Usuario nao encontrado"));
 
         Post post = postRepository.findById(postId)
-                .orElseThrow(() -> new RuntimeException("Post não encontrado"));
+                .orElseThrow(() -> new RuntimeException("Post nao encontrado"));
 
         Comment comment = new Comment();
         comment.setTexto(texto);
@@ -60,7 +61,7 @@ public class CommentService {
 
         if (parentId != null) {
             Comment parentComment = commentRepository.findById(parentId)
-                    .orElseThrow(() -> new RuntimeException("Comentário pai não encontrado"));
+                    .orElseThrow(() -> new RuntimeException("Comentario pai nao encontrado"));
             comment.setParentComment(parentComment);
         }
 
@@ -69,16 +70,9 @@ public class CommentService {
         processarMencoes(comment, usuario.getEmail());
 
         if (parentId == null) {
-            notificationService.createCommentNotification(
-                    usuario.getEmail(),
-                    postId,
-                    comment.getId());
+            eventPublisher.publishEvent(NotificationEvent.comment(usuario.getEmail(), postId, comment.getId()));
         } else {
-            notificationService.createReplyNotification(
-                    usuario.getEmail(),
-                    postId,
-                    comment.getId(),
-                    parentId);
+            eventPublisher.publishEvent(NotificationEvent.reply(usuario.getEmail(), postId, comment.getId(), parentId));
         }
 
         CommentDTO dto = commentMapper.toDto(comment);
@@ -96,20 +90,19 @@ public class CommentService {
         while (matcher.find()) {
             String mentionedUsername = matcher.group(1);
 
-            userRepository.findByUsername(mentionedUsername).ifPresent(mentionedUser -> {
-                notificationService.createMentionNotification(
-                        senderEmail,
-                        mentionedUsername,
-                        comment.getPost().getId(),
-                        comment.getId());
-            });
+            userRepository.findByUsername(mentionedUsername).ifPresent(mentionedUser ->
+                    eventPublisher.publishEvent(NotificationEvent.mention(
+                            senderEmail,
+                            mentionedUsername,
+                            comment.getPost().getId(),
+                            comment.getId())));
         }
     }
 
     @Transactional(readOnly = true)
     public List<CommentDTO> getPostComments(Long postId) {
         Post post = postRepository.findById(postId)
-                .orElseThrow(() -> new RuntimeException("Post não encontrado"));
+                .orElseThrow(() -> new RuntimeException("Post nao encontrado"));
 
         return commentRepository.findByPostAndParentCommentIsNullOrderByDataDesc(post).stream()
                 .map(commentMapper::toDto)
@@ -124,7 +117,7 @@ public class CommentService {
         comment = commentRepository.save(comment);
 
         User usuario = userRepository.findByEmail(userEmail)
-                .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado"));
+                .orElseThrow(() -> new UsernameNotFoundException("Usuario nao encontrado"));
         processarMencoes(comment, usuario.getEmail());
 
         CommentDTO dto = commentMapper.toDto(comment);
@@ -150,20 +143,20 @@ public class CommentService {
 
     private Comment validateAndGetComment(Long postId, Long commentId, String userEmail) {
         postRepository.findById(postId)
-                .orElseThrow(() -> new RuntimeException("Post não encontrado"));
+                .orElseThrow(() -> new RuntimeException("Post nao encontrado"));
 
         Comment comment = commentRepository.findById(commentId)
-                .orElseThrow(() -> new RuntimeException("Comentário não encontrado"));
+                .orElseThrow(() -> new RuntimeException("Comentario nao encontrado"));
 
         User usuario = userRepository.findByEmail(userEmail)
-                .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado"));
+                .orElseThrow(() -> new UsernameNotFoundException("Usuario nao encontrado"));
 
         if (!comment.getPost().getId().equals(postId)) {
-            throw new RuntimeException("Comentário não pertence a este post");
+            throw new RuntimeException("Comentario nao pertence a este post");
         }
 
         if (!comment.getUsuario().equals(usuario)) {
-            throw new RuntimeException("Usuário não autorizado para realizar esta ação");
+            throw new RuntimeException("Usuario nao autorizado para realizar esta acao");
         }
 
         return comment;

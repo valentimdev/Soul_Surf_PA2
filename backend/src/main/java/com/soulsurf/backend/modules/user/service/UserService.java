@@ -23,6 +23,8 @@ import com.soulsurf.backend.modules.user.mapper.UserMapper;
 import com.soulsurf.backend.modules.user.repository.FollowRepository;
 import com.soulsurf.backend.modules.user.repository.UserRepository;
 import com.soulsurf.backend.modules.post.service.PostService;
+import com.soulsurf.backend.modules.notification.event.NotificationEvent;
+import org.springframework.context.ApplicationEventPublisher;
 
 @Service
 public class UserService {
@@ -33,6 +35,7 @@ public class UserService {
     private final Optional<OracleStorageService> blobStorageService;
     private final FollowRepository followRepository;
     private final UserMapper userMapper;
+    private final ApplicationEventPublisher eventPublisher;
 
     public UserService(
             UserRepository userRepository,
@@ -40,13 +43,15 @@ public class UserService {
             PostService postService,
             Optional<OracleStorageService> blobStorageService,
             FollowRepository followRepository,
-            UserMapper userMapper) {
+            UserMapper userMapper,
+            ApplicationEventPublisher eventPublisher) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.postService = postService;
         this.blobStorageService = blobStorageService;
         this.followRepository = followRepository;
         this.userMapper = userMapper;
+        this.eventPublisher = eventPublisher;
     }
 
     public boolean existsByEmail(String email) {
@@ -98,6 +103,7 @@ public class UserService {
         if (!follower.getSeguindo().contains(userToFollow)) {
             follower.getSeguindo().add(userToFollow);
             userRepository.save(follower);
+            eventPublisher.publishEvent(NotificationEvent.follow(follower.getEmail(), followedId));
         }
     }
 
