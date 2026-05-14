@@ -13,6 +13,7 @@ import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextImpl;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
@@ -56,9 +57,8 @@ public class JwtChatChannelInterceptor implements ChannelInterceptor {
             return message;
         }
 
-        if ((StompCommand.SUBSCRIBE.equals(command) || StompCommand.SEND.equals(command))
-                && accessor.getUser() == null) {
-            throw new MessagingException("Usuario nao autenticado");
+        if (StompCommand.SUBSCRIBE.equals(command) || StompCommand.SEND.equals(command)) {
+            ensureAuthenticatedSession(accessor);
         }
 
         if (StompCommand.SUBSCRIBE.equals(command)) {
@@ -103,6 +103,28 @@ public class JwtChatChannelInterceptor implements ChannelInterceptor {
         }
 
         log.debug("[STOMP] CONNECT autenticado: {}", email);
+    }
+
+    private void ensureAuthenticatedSession(StompHeaderAccessor accessor) {
+        if (accessor.getUser() != null) {
+            return;
+        }
+
+        Map<String, Object> sessionAttributes = accessor.getSessionAttributes();
+        if (sessionAttributes == null) {
+            throw new MessagingException("Usuario nao autenticado");
+        }
+
+        Object securityContext = sessionAttributes.get("SPRING_SECURITY_CONTEXT");
+        if (securityContext instanceof SecurityContextImpl context) {
+            Authentication auth = context.getAuthentication();
+            if (auth != null && auth.isAuthenticated()) {
+                accessor.setUser(auth);
+                return;
+            }
+        }
+
+        throw new MessagingException("Usuario nao autenticado");
     }
 
     private String readTokenFromSession(Map<String, Object> sessionAttributes) {
