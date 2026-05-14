@@ -14,6 +14,7 @@ public class SurfConditionsDTO {
     private WindDTO wind;
     private SurfQualityDTO surfQuality;
     private BalneabilityDTO balneability;
+    private TideDTO tide;
     private List<String> sources;
 
     @Data
@@ -74,5 +75,48 @@ public class SurfConditionsDTO {
         private String pointCode;
         private String description;
         private String status;
+    }
+
+    @Data
+    @Builder
+    public static class TideDTO {
+        private String provider;
+        private String station;
+        private String sourceUrl;
+        private String timezone;
+        private String updatedAt;
+        private String expiresAt;
+        private String currentStatus;
+        private String currentLabel;
+        private Double currentHeightMeters;
+        private Integer fillPercent;
+        private String nextTurnLabel;
+        private TideEventDTO previousEvent;
+        private TideEventDTO nextEvent;
+        private List<TideEventDTO> nextEvents;
+        private List<TideSurfWindowDTO> bestSurfWindows;
+        private String recommendationLabel;
+        private String recommendation;
+        private String observation;
+    }
+
+    @Data
+    @Builder
+    public static class TideEventDTO {
+        private String type;
+        private String dateTime;
+        private String timeLabel;
+        private Double heightMeters;
+    }
+
+    @Data
+    @Builder
+    public static class TideSurfWindowDTO {
+        private String startsAt;
+        private String endsAt;
+        private String label;
+        private Integer score;
+        private Boolean activeNow;
+        private String reason;
     }
 }
