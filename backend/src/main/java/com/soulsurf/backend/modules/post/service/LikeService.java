@@ -7,6 +7,7 @@ import com.soulsurf.backend.modules.post.repository.LikeRepository;
 import com.soulsurf.backend.modules.post.repository.PostRepository;
 import com.soulsurf.backend.modules.user.entity.User;
 import com.soulsurf.backend.modules.user.repository.UserRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -17,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Optional;
 
 @Service
+@Slf4j
 public class LikeService {
 
     private final LikeRepository likeRepository;
@@ -60,7 +62,14 @@ public class LikeService {
             isLiked = true;
 
             if (!usuario.getId().equals(post.getUsuario().getId())) {
+                log.info(
+                        "Like notification event published: postId={}, sender={}, recipient={}",
+                        postId,
+                        usuario.getUsername(),
+                        post.getUsuario().getUsername());
                 eventPublisher.publishEvent(NotificationEvent.like(usuario.getEmail(), postId));
+            } else {
+                log.debug("Skipping like notification for own post: postId={}, user={}", postId, usuario.getUsername());
             }
         }
 

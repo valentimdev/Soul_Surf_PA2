@@ -47,6 +47,12 @@ public class NotificationService {
             NotificationDTO dto = notificationMapper.toDto(notification);
             String destination = "/topic/notifications/" + notification.getRecipient().getUsername();
             messagingTemplate.convertAndSend(destination, dto);
+            log.info(
+                    "Realtime notification sent: id={}, type={}, recipient={}, destination={}",
+                    notification.getId(),
+                    notification.getType(),
+                    notification.getRecipient().getUsername(),
+                    destination);
         } catch (Exception e) {
             log.error("Erro ao enviar notificação em tempo real: {}", e.getMessage(), e);
         }
@@ -84,6 +90,12 @@ public class NotificationService {
         }
 
         Notification saved = notificationRepository.save(notification);
+        log.info(
+                "MENTION notification saved: id={}, postId={}, sender={}, recipient={}",
+                saved.getId(),
+                postId,
+                sender.getUsername(),
+                recipient.getUsername());
         sendRealTimeNotification(saved);
     }
 
@@ -161,6 +173,12 @@ public class NotificationService {
         notification.setPost(post);
 
         Notification saved = notificationRepository.save(notification);
+        log.info(
+                "LIKE notification saved: id={}, postId={}, sender={}, recipient={}",
+                saved.getId(),
+                postId,
+                sender.getUsername(),
+                post.getUsuario().getUsername());
         sendRealTimeNotification(saved);
     }
 
@@ -182,6 +200,11 @@ public class NotificationService {
         notification.setType(NotificationType.FOLLOW);
 
         Notification saved = notificationRepository.save(notification);
+        log.info(
+                "FOLLOW notification saved: id={}, sender={}, recipient={}",
+                saved.getId(),
+                sender.getUsername(),
+                recipient.getUsername());
         sendRealTimeNotification(saved);
     }
 
