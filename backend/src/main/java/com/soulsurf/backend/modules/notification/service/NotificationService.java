@@ -251,4 +251,12 @@ public class NotificationService {
     public void deleteNotificationsByComment(Comment comment) {
         notificationRepository.deleteByComment(comment);
     }
+
+    @Transactional
+    public void deleteNotificationsByComments(List<Comment> comments) {
+        if (comments == null || comments.isEmpty()) {
+            return;
+        }
+        notificationRepository.deleteAllByCommentIn(comments);
+    }
 }

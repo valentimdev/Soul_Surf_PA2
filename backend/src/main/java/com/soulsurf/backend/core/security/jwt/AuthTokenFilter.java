@@ -1,7 +1,5 @@
 package com.soulsurf.backend.core.security.jwt;
 
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -9,8 +7,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
@@ -21,8 +17,6 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import com.soulsurf.backend.core.security.service.UserDetailsServiceImpl;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
 @Component
 public class AuthTokenFilter extends OncePerRequestFilter {
@@ -48,25 +42,19 @@ public class AuthTokenFilter extends OncePerRequestFilter {
 
                 UserDetails userDetails = userDetailsService.loadUserByUsername(username);
 
-                Claims claims = Jwts.parserBuilder()
-                        .setSigningKey(jwtUtils.getKey())
-                        .build()
-                        .parseClaimsJws(jwt)
-                        .getBody();
-
-                List<GrantedAuthority> authorities = new ArrayList<>(userDetails.getAuthorities());
-
-                Boolean isAdmin = claims.get("admin", Boolean.class);
-                if (isAdmin != null && isAdmin) {
-                    authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
+                if (!userDetails.isAccountNonLocked() || !userDetails.isEnabled()) {
+                    logger.warn("Usuario {} esta bloqueado e nao sera autenticado por JWT", username);
+                    SecurityContextHolder.clearContext();
+                    filterChain.doFilter(request, response);
+                    return;
                 }
 
-                logger.debug("Authorities do usuário {}: {}", username, authorities);
+                logger.debug("Authorities do usuario {}: {}", username, userDetails.getAuthorities());
 
                 UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
                         userDetails,
                         null,
-                        authorities);
+                        userDetails.getAuthorities());
 
                 authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
