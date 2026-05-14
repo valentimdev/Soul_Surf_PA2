@@ -18,12 +18,14 @@ public class UserDetailsImpl implements UserDetails {
     private final String password;
 
     private final boolean admin;
+    private final boolean banned;
 
-    public UserDetailsImpl(Long id, String email, String password, boolean admin) {
+    public UserDetailsImpl(Long id, String email, String password, boolean admin, boolean banned) {
         this.id = id;
         this.email = email;
         this.password = password;
         this.admin = admin;
+        this.banned = banned;
     }
 
     public static UserDetailsImpl build(User user) {
@@ -31,7 +33,8 @@ public class UserDetailsImpl implements UserDetails {
                 user.getId(),
                 user.getEmail(),
                 user.getPassword(),
-                user.isAdmin());
+                user.isAdmin(),
+                user.isBanned());
     }
 
     @Override
@@ -59,7 +62,7 @@ public class UserDetailsImpl implements UserDetails {
 
     @Override
     public boolean isAccountNonLocked() {
-        return true;
+        return !banned;
     }
 
     @Override
@@ -69,6 +72,6 @@ public class UserDetailsImpl implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return true;
+        return !banned;
     }
 }

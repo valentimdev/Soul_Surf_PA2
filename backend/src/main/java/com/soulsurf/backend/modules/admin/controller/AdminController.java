@@ -48,6 +48,21 @@ public class AdminController {
         return ResponseEntity.ok(new MessageResponse("Post removido"));
     }
 
+    @GetMapping("/posts/{postId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Busca um post para moderacao")
+    public ResponseEntity<?> getPost(@PathVariable Long postId,
+            @AuthenticationPrincipal UserDetails actor) {
+        return ResponseEntity.ok(adminService.getPost(postId, actor.getUsername()));
+    }
+
+    @GetMapping("/posts/{postId}/comments")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Lista comentarios de um post para moderacao")
+    public ResponseEntity<?> getPostComments(@PathVariable Long postId) {
+        return ResponseEntity.ok(adminService.getPostComments(postId));
+    }
+
     @DeleteMapping("/comments/{commentId}")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Apaga um comentário")

@@ -88,6 +88,9 @@ public class JwtChatChannelInterceptor implements ChannelInterceptor {
 
         String email = jwtUtils.getUserNameFromJwtToken(token);
         UserDetails userDetails = userDetailsService.loadUserByUsername(email);
+        if (!userDetails.isAccountNonLocked() || !userDetails.isEnabled()) {
+            throw new MessagingException("Usuario bloqueado");
+        }
 
         UsernamePasswordAuthenticationToken auth =
                 new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
