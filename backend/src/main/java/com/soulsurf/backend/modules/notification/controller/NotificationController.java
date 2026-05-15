@@ -2,12 +2,15 @@ package com.soulsurf.backend.modules.notification.controller;
 
 import com.soulsurf.backend.modules.chat.dto.MessageResponse;
 import com.soulsurf.backend.modules.notification.dto.NotificationDTO;
-import com.soulsurf.backend.core.security.service.UserDetailsImpl;
+import com.soulsurf.backend.modules.notification.dto.RegisterDeviceTokenRequest;
+import com.soulsurf.backend.modules.notification.dto.SendPushNotificationRequest;
 import com.soulsurf.backend.modules.notification.service.NotificationService;
+import com.soulsurf.backend.modules.notification.service.PushNotificationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -21,9 +24,11 @@ import java.util.Map;
 public class NotificationController {
 
     private final NotificationService notificationService;
+    private final PushNotificationService pushNotificationService;
 
-    public NotificationController(NotificationService notificationService) {
+    public NotificationController(NotificationService notificationService, PushNotificationService pushNotificationService) {
         this.notificationService = notificationService;
+        this.pushNotificationService = pushNotificationService;
     }
 
     @Operation(summary = "Obter notificações do usuário", description = "Retorna todas as notificações do usuário autenticado", security = @SecurityRequirement(name = "bearerAuth"))
@@ -41,6 +46,26 @@ public class NotificationController {
     public ResponseEntity<Map<String, Integer>> getUnreadCount(@AuthenticationPrincipal UserDetails userDetails) {
         int count = notificationService.getUnreadCount(userDetails.getUsername());
         return ResponseEntity.ok(Map.of("count", count));
+    }
+
+    @Operation(summary = "Registrar token push do aparelho", description = "Salva ou reativa o token Expo Push do usuario autenticado", security = @SecurityRequirement(name = "bearerAuth"))
+    @ApiResponse(responseCode = "200", description = "Token registrado com sucesso")
+    @PostMapping("/device-token")
+    public ResponseEntity<MessageResponse> registerDeviceToken(
+            @Valid @RequestBody RegisterDeviceTokenRequest request,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        pushNotificationService.registerDeviceToken(userDetails.getUsername(), request);
+        return ResponseEntity.ok(new MessageResponse("Token registrado com sucesso"));
+    }
+
+    @Operation(summary = "Enviar push para usuario", description = "Envia uma notificacao push Expo para todos os aparelhos ativos do usuario destino", security = @SecurityRequirement(name = "bearerAuth"))
+    @ApiResponse(responseCode = "200", description = "Envio processado com sucesso")
+    @PostMapping("/send-to-user")
+    public ResponseEntity<Map<String, Integer>> sendToUser(
+            @Valid @RequestBody SendPushNotificationRequest request,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        int sent = pushNotificationService.sendToUser(userDetails.getUsername(), request);
+        return ResponseEntity.ok(Map.of("sent", sent));
     }
 
     @Operation(summary = "Marcar notificação como lida", description = "Marca uma notificação específica como lida", security = @SecurityRequirement(name = "bearerAuth"))
