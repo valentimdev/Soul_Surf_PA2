@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -30,16 +31,19 @@ public class NotificationService {
     private final CommentRepository commentRepository;
     private final SimpMessagingTemplate messagingTemplate;
     private final NotificationMapper notificationMapper;
+    private final PushNotificationService pushNotificationService;
 
     public NotificationService(NotificationRepository notificationRepository, UserRepository userRepository,
             PostRepository postRepository, CommentRepository commentRepository,
-            SimpMessagingTemplate messagingTemplate, NotificationMapper notificationMapper) {
+            SimpMessagingTemplate messagingTemplate, NotificationMapper notificationMapper,
+            PushNotificationService pushNotificationService) {
         this.notificationRepository = notificationRepository;
         this.userRepository = userRepository;
         this.postRepository = postRepository;
         this.commentRepository = commentRepository;
         this.messagingTemplate = messagingTemplate;
         this.notificationMapper = notificationMapper;
+        this.pushNotificationService = pushNotificationService;
     }
 
     private void sendRealTimeNotification(Notification notification) {
@@ -56,6 +60,33 @@ public class NotificationService {
         } catch (Exception e) {
             log.error("Erro ao enviar notificação em tempo real: {}", e.getMessage(), e);
         }
+    }
+
+    private void sendPushNotification(Notification notification) {
+        try {
+            pushNotificationService.sendToUser(
+                    notification.getRecipient(),
+                    "Soul Surf",
+                    buildPushBody(notification),
+                    Map.of(
+                            "notificationId", notification.getId(),
+                            "type", notification.getType().name()
+                    ));
+        } catch (Exception e) {
+            log.error("Erro ao enviar push notification: {}", e.getMessage(), e);
+        }
+    }
+
+    private String buildPushBody(Notification notification) {
+        String senderUsername = notification.getSender().getUsername();
+
+        return switch (notification.getType()) {
+            case MENTION -> senderUsername + " mencionou voce";
+            case COMMENT -> senderUsername + " comentou no seu post";
+            case REPLY -> senderUsername + " respondeu seu comentario";
+            case LIKE -> senderUsername + " curtiu seu post";
+            case FOLLOW -> senderUsername + " comecou a seguir voce";
+        };
     }
 
     @Transactional
@@ -97,6 +128,7 @@ public class NotificationService {
                 sender.getUsername(),
                 recipient.getUsername());
         sendRealTimeNotification(saved);
+        sendPushNotification(saved);
     }
 
     @Transactional
@@ -123,6 +155,7 @@ public class NotificationService {
 
         Notification saved = notificationRepository.save(notification);
         sendRealTimeNotification(saved);
+        sendPushNotification(saved);
     }
 
     @Transactional
@@ -152,6 +185,7 @@ public class NotificationService {
 
         Notification saved = notificationRepository.save(notification);
         sendRealTimeNotification(saved);
+        sendPushNotification(saved);
     }
 
     @Transactional
@@ -180,6 +214,7 @@ public class NotificationService {
                 sender.getUsername(),
                 post.getUsuario().getUsername());
         sendRealTimeNotification(saved);
+        sendPushNotification(saved);
     }
 
     @Transactional
@@ -206,6 +241,7 @@ public class NotificationService {
                 sender.getUsername(),
                 recipient.getUsername());
         sendRealTimeNotification(saved);
+        sendPushNotification(saved);
     }
 
     @Transactional
