@@ -6,6 +6,7 @@ import com.soulsurf.backend.modules.poi.dto.PointOfInterestDTO;
 import com.soulsurf.backend.modules.poi.entity.PoiCategory;
 import com.soulsurf.backend.modules.user.controller.LoginRequest;
 import com.soulsurf.backend.modules.user.controller.SignupRequest;
+import com.soulsurf.backend.modules.user.entity.User;
 import com.soulsurf.backend.modules.user.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -43,6 +44,10 @@ public class PointOfInterestControllerTest extends BaseIntegrationTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(signup)))
                 .andExpect(status().isCreated());
+
+        User admin = userRepository.findByEmail("poiuser@example.com").orElseThrow();
+        admin.setAdmin(true);
+        userRepository.save(admin);
 
         LoginRequest login = new LoginRequest();
         login.setEmail("poiuser@example.com");
