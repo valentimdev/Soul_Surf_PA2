@@ -61,6 +61,7 @@ public class WebSecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/beaches", "/api/beaches/*", "/api/beaches/*/posts").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/pois/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/beaches", "/api/beaches/").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/pois", "/api/pois/").hasRole("ADMIN")
                         .requestMatchers("/api/beaches/*/all-posts").hasRole("ADMIN")
                         .requestMatchers("/api/posts/home").authenticated()
                         .requestMatchers("/api/posts/**").authenticated()

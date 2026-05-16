@@ -59,8 +59,10 @@ public class BeachController {
             @RequestParam("descricao") String descricao,
             @RequestParam("localizacao") String localizacao,
             @RequestParam("nivelExperiencia") String nivelExperiencia,
+            @RequestParam(value = "latitude", required = false) Double latitude,
+            @RequestParam(value = "longitude", required = false) Double longitude,
             @RequestParam(value = "foto", required = false) MultipartFile foto) {
-        Beach beach = beachService.createBeach(nome, descricao, localizacao, nivelExperiencia, foto);
+        Beach beach = beachService.createBeach(nome, descricao, localizacao, nivelExperiencia, latitude, longitude, foto);
         BeachDTO dto = beachMapper.toDto(beach);
         return ResponseEntity.status(HttpStatus.CREATED).body(dto);
     }
