@@ -43,12 +43,14 @@ public class BeachService {
     }
 
     public Beach createBeach(String nome, String descricao, String localizacao, String nivelExperiencia,
-            MultipartFile foto) {
+            Double latitude, Double longitude, MultipartFile foto) {
         Beach beach = new Beach();
         beach.setNome(nome);
         beach.setDescricao(descricao);
         beach.setLocalizacao(localizacao);
         beach.setNivelExperiencia(nivelExperiencia);
+        beach.setLatitude(latitude);
+        beach.setLongitude(longitude);
 
         if (blobStorageService.isPresent() && foto != null && !foto.isEmpty()) {
             try {
