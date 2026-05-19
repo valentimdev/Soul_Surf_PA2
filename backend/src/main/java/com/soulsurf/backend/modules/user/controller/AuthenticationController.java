@@ -112,7 +112,7 @@ public class AuthenticationController {
         return ResponseEntity.status(HttpStatus.CREATED).body(newUser);
     }
 
-    @Operation(summary = "Solicita redefinicao de senha", description = "Envia um link de redefinicao para o e-mail informado.")
+    @Operation(summary = "Solicita redefinicao de senha", description = "Envia um codigo de redefinicao para o e-mail informado.")
     @ApiResponse(responseCode = "200", description = "Solicitacao recebida")
     @ApiResponse(responseCode = "429", description = "Muitas tentativas")
     @PostMapping("/forgot-password")
@@ -131,10 +131,10 @@ public class AuthenticationController {
         authRateLimitService.recordFailure(forgotRateKey, maxAttempts, windowSeconds, blockSeconds);
 
         return ResponseEntity.ok(
-                new MessageResponse("Se um e-mail valido for encontrado, um link de redefinicao sera enviado."));
+                new MessageResponse("Se um e-mail valido for encontrado, um codigo de redefinicao sera enviado."));
     }
 
-    @Operation(summary = "Redefine senha", description = "Atualiza a senha usando token de redefinicao.")
+    @Operation(summary = "Redefine senha", description = "Atualiza a senha usando token legado ou email + codigo.")
     @ApiResponse(responseCode = "200", description = "Senha atualizada com sucesso")
     @ApiResponse(responseCode = "400", description = "Token invalido ou expirado")
     @ApiResponse(responseCode = "429", description = "Muitas tentativas")
@@ -143,14 +143,14 @@ public class AuthenticationController {
             @Valid @RequestBody ResetPasswordRequest request,
             HttpServletRequest httpRequest) {
 
-        String resetRateKey = buildRateKey("reset", null, httpRequest);
+        String resetRateKey = buildRateKey("reset", request.getEmail(), httpRequest);
         if (authRateLimitService.isBlocked(resetRateKey, windowSeconds)) {
             return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
                     .body(new MessageResponse("Muitas tentativas. Tente novamente em alguns minutos."));
         }
 
         try {
-            passwordResetService.resetPassword(request.getToken(), request.getNewPassword());
+            passwordResetService.resetPassword(request);
             authRateLimitService.recordSuccess(resetRateKey);
             return ResponseEntity.ok(new MessageResponse("Senha atualizada com sucesso!"));
         } catch (IllegalArgumentException e) {

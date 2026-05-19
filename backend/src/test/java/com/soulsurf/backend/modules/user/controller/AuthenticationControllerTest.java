@@ -7,6 +7,7 @@ import com.soulsurf.backend.modules.user.entity.User;
 import com.soulsurf.backend.modules.user.repository.PasswordResetTokenRepository;
 import com.soulsurf.backend.modules.user.repository.UserRepository;
 import com.soulsurf.backend.modules.user.service.EmailService;
+import org.mockito.ArgumentCaptor;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -22,6 +23,8 @@ import java.util.HexFormat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.verify;
 
 public class AuthenticationControllerTest extends BaseIntegrationTest {
 
@@ -134,6 +137,53 @@ public class AuthenticationControllerTest extends BaseIntegrationTest {
                 // Verify new password works
                 LoginRequest login = new LoginRequest();
                 login.setEmail("reset@example.com");
+                login.setPassword("newpassword123");
+
+                mockMvc.perform(post("/api/auth/login")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(login)))
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$.token").exists());
+        }
+
+        @Test
+        public void testResetPasswordWithCode() throws Exception {
+                SignupRequest signup = new SignupRequest();
+                signup.setEmail("code@example.com");
+                signup.setPassword("password123");
+                signup.setUsername("codeuser");
+
+                mockMvc.perform(post("/api/auth/signup")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(signup)))
+                                .andExpect(status().isCreated());
+
+                ForgotPasswordRequest forgotRequest = new ForgotPasswordRequest();
+                forgotRequest.setEmail("code@example.com");
+
+                mockMvc.perform(post("/api/auth/forgot-password")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(forgotRequest)))
+                                .andExpect(status().isOk());
+
+                ArgumentCaptor<String> toCaptor = ArgumentCaptor.forClass(String.class);
+                ArgumentCaptor<String> tokenCaptor = ArgumentCaptor.forClass(String.class);
+                ArgumentCaptor<String> codeCaptor = ArgumentCaptor.forClass(String.class);
+                verify(emailService, atLeastOnce()).sendPasswordResetEmail(toCaptor.capture(), tokenCaptor.capture(), codeCaptor.capture());
+                String resetCode = codeCaptor.getAllValues().get(codeCaptor.getAllValues().size() - 1);
+
+                ResetPasswordRequest resetRequest = new ResetPasswordRequest();
+                resetRequest.setEmail("code@example.com");
+                resetRequest.setCode(resetCode);
+                resetRequest.setNewPassword("newpassword123");
+
+                mockMvc.perform(post("/api/auth/reset-password")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(resetRequest)))
+                                .andExpect(status().isOk());
+
+                LoginRequest login = new LoginRequest();
+                login.setEmail("code@example.com");
                 login.setPassword("newpassword123");
 
                 mockMvc.perform(post("/api/auth/login")
