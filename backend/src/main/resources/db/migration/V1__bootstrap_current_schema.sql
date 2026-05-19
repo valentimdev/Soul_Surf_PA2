@@ -72,7 +72,7 @@ DECLARE
                           ' DEFAULT ' || p_default || ' NOT NULL)';
     EXCEPTION
         WHEN OTHERS THEN
-            IF SQLCODE != -904 THEN
+            IF SQLCODE NOT IN (-904, -1442) THEN
                 RAISE;
             END IF;
     END;
@@ -85,7 +85,7 @@ DECLARE
     ) IS
     BEGIN
         FOR c IN (
-            SELECT constraint_name
+            SELECT uc.constraint_name
             FROM user_constraints uc
             JOIN user_cons_columns ucc ON uc.constraint_name = ucc.constraint_name
             WHERE uc.table_name = UPPER(p_table_name)
