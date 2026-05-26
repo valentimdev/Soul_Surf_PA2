@@ -9,10 +9,13 @@ import com.soulsurf.backend.modules.user.repository.UserRepository;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -22,19 +25,34 @@ import java.util.Map;
 @Slf4j
 public class PushNotificationService {
 
-    private static final String EXPO_PUSH_URL = "https://exp.host/--/api/v2/push/send";
+    private static final String EXPO_PUSH_BASE_URL = "https://exp.host";
+    private static final String EXPO_PUSH_SEND_PATH = "/--/api/v2/push/send";
+    private static final String DEFAULT_ANDROID_CHANNEL_ID = "default";
+    private static final String DEFAULT_IOS_SOUND = "default";
+    private static final String HIGH_PRIORITY = "high";
     private static final String DEVICE_NOT_REGISTERED = "DeviceNotRegistered";
 
     private final PushTokenRepository pushTokenRepository;
     private final UserRepository userRepository;
     private final WebClient webClient;
 
-    public PushNotificationService(PushTokenRepository pushTokenRepository, UserRepository userRepository) {
+    @Autowired
+    public PushNotificationService(
+            PushTokenRepository pushTokenRepository,
+            UserRepository userRepository,
+            WebClient.Builder webClientBuilder) {
+        this(pushTokenRepository, userRepository, webClientBuilder
+                .baseUrl(EXPO_PUSH_BASE_URL)
+                .build());
+    }
+
+    PushNotificationService(
+            PushTokenRepository pushTokenRepository,
+            UserRepository userRepository,
+            WebClient webClient) {
         this.pushTokenRepository = pushTokenRepository;
         this.userRepository = userRepository;
-        this.webClient = WebClient.builder()
-                .baseUrl(EXPO_PUSH_URL)
-                .build();
+        this.webClient = webClient;
     }
 
     @Transactional
@@ -83,42 +101,104 @@ public class PushNotificationService {
                 .map(token -> new ExpoPushMessage(token.getToken(), title, body, data))
                 .toList();
 
-        ExpoPushResponse response = webClient.post()
-                .bodyValue(messages)
-                .retrieve()
-                .bodyToMono(ExpoPushResponse.class)
-                .block();
+        ExpoPushResponse response;
+        try {
+            response = webClient.post()
+                    .uri(EXPO_PUSH_SEND_PATH)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .accept(MediaType.APPLICATION_JSON)
+                    .bodyValue(messages)
+                    .retrieve()
+                    .bodyToMono(ExpoPushResponse.class)
+                    .block();
+        } catch (WebClientResponseException e) {
+            log.error(
+                    "Expo push request failed: recipient={}, status={}, body={}",
+                    recipient.getUsername(),
+                    e.getStatusCode(),
+                    e.getResponseBodyAsString());
+            throw e;
+        }
 
         LocalDateTime now = LocalDateTime.now();
         tokens.forEach(token -> token.setLastUsedAt(now));
 
-        deactivateInvalidTokens(tokens, response);
+        int accepted = handleExpoResponse(recipient, tokens, response);
         pushTokenRepository.saveAll(tokens);
 
-        return tokens.size();
+        return accepted;
     }
 
-    private void deactivateInvalidTokens(List<PushToken> tokens, ExpoPushResponse response) {
-        if (response == null || response.getData() == null) {
-            return;
+    private int handleExpoResponse(User recipient, List<PushToken> tokens, ExpoPushResponse response) {
+        if (response == null) {
+            log.warn("Expo push returned empty response: recipient={}", recipient.getUsername());
+            return 0;
+        }
+
+        logRequestErrors(recipient, response);
+
+        if (response.getData() == null) {
+            return 0;
         }
 
         List<ExpoPushTicket> tickets = response.getData();
         int limit = Math.min(tokens.size(), tickets.size());
+        int accepted = 0;
 
         for (int i = 0; i < limit; i++) {
             ExpoPushTicket ticket = tickets.get(i);
-            if (!"error".equalsIgnoreCase(ticket.getStatus())) {
+
+            if ("ok".equalsIgnoreCase(ticket.getStatus())) {
+                accepted++;
                 continue;
             }
 
+            if (!"error".equalsIgnoreCase(ticket.getStatus())) {
+                log.warn(
+                        "Expo push returned unknown ticket status: recipient={}, tokenId={}, status={}, message={}",
+                        recipient.getUsername(),
+                        tokens.get(i).getId(),
+                        ticket.getStatus(),
+                        ticket.getMessage());
+                continue;
+            }
+
+            PushToken token = tokens.get(i);
             Object expoError = ticket.getDetails() == null ? null : ticket.getDetails().get("error");
+            log.warn(
+                    "Expo push ticket error: recipient={}, tokenId={}, error={}, message={}",
+                    recipient.getUsername(),
+                    token.getId(),
+                    expoError,
+                    ticket.getMessage());
+
             if (DEVICE_NOT_REGISTERED.equals(expoError)) {
-                PushToken token = tokens.get(i);
                 token.setActive(false);
                 log.info("Push token marked inactive: tokenId={}, reason={}", token.getId(), expoError);
             }
         }
+
+        if (tickets.size() != tokens.size()) {
+            log.warn(
+                    "Expo push ticket count mismatch: recipient={}, tokens={}, tickets={}",
+                    recipient.getUsername(),
+                    tokens.size(),
+                    tickets.size());
+        }
+
+        return accepted;
+    }
+
+    private void logRequestErrors(User recipient, ExpoPushResponse response) {
+        if (response.getErrors() == null || response.getErrors().isEmpty()) {
+            return;
+        }
+
+        response.getErrors().forEach(error -> log.error(
+                "Expo push request error: recipient={}, code={}, message={}",
+                recipient.getUsername(),
+                error.getCode(),
+                error.getMessage()));
     }
 
     @Getter
@@ -127,12 +207,18 @@ public class PushNotificationService {
         private final String title;
         private final String body;
         private final Map<String, Object> data;
+        private final String sound;
+        private final String channelId;
+        private final String priority;
 
         private ExpoPushMessage(String to, String title, String body, Map<String, Object> data) {
             this.to = to;
             this.title = title;
             this.body = body;
             this.data = data == null ? Map.of() : data;
+            this.sound = DEFAULT_IOS_SOUND;
+            this.channelId = DEFAULT_ANDROID_CHANNEL_ID;
+            this.priority = HIGH_PRIORITY;
         }
     }
 
@@ -140,6 +226,7 @@ public class PushNotificationService {
     @Setter
     private static class ExpoPushResponse {
         private List<ExpoPushTicket> data;
+        private List<ExpoPushRequestError> errors;
     }
 
     @Getter
@@ -149,5 +236,12 @@ public class PushNotificationService {
         private String id;
         private String message;
         private Map<String, Object> details;
+    }
+
+    @Getter
+    @Setter
+    private static class ExpoPushRequestError {
+        private String code;
+        private String message;
     }
 }

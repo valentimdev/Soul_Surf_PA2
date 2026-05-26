@@ -17,6 +17,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -68,13 +69,19 @@ public class NotificationService {
                     notification.getRecipient(),
                     "Soul Surf",
                     buildPushBody(notification),
-                    Map.of(
-                            "notificationId", notification.getId(),
-                            "type", notification.getType().name()
-                    ));
+                    buildPushData(notification));
         } catch (Exception e) {
             log.error("Erro ao enviar push notification: {}", e.getMessage(), e);
         }
+    }
+
+    private Map<String, Object> buildPushData(Notification notification) {
+        Map<String, Object> data = new HashMap<>();
+        if (notification.getId() != null) {
+            data.put("notificationId", notification.getId());
+        }
+        data.put("type", notification.getType().name());
+        return data;
     }
 
     private String buildPushBody(Notification notification) {
