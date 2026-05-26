@@ -2,6 +2,7 @@ package com.soulsurf.backend.modules.notification.service;
 
 import com.soulsurf.backend.modules.notification.dto.NotificationDTO;
 import com.soulsurf.backend.modules.notification.entity.Notification;
+import com.soulsurf.backend.modules.notification.entity.NotificationType;
 import com.soulsurf.backend.modules.notification.mapper.NotificationMapper;
 import com.soulsurf.backend.modules.notification.repository.NotificationRepository;
 import com.soulsurf.backend.modules.comment.entity.Comment;
@@ -20,7 +21,7 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 
 import java.util.Optional;
 
-import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -43,6 +44,9 @@ public class NotificationServiceTest {
 
     @Mock
     private NotificationMapper notificationMapper;
+
+    @Mock
+    private PushNotificationService pushNotificationService;
 
     @InjectMocks
     private NotificationService notificationService;
@@ -71,15 +75,18 @@ public class NotificationServiceTest {
         when(userRepository.findByEmail("actor@example.com")).thenReturn(Optional.of(actorUser));
         when(postRepository.findById(10L)).thenReturn(Optional.of(post));
 
-        Notification mockSaved = new Notification();
-        mockSaved.setRecipient(targetUser);
-        when(notificationRepository.save(any(Notification.class))).thenReturn(mockSaved);
+        when(notificationRepository.save(any(Notification.class))).thenAnswer(invocation -> invocation.getArgument(0));
         when(notificationMapper.toDto(any(Notification.class))).thenReturn(new NotificationDTO());
 
         notificationService.createLikeNotification("actor@example.com", 10L);
 
         verify(notificationRepository, times(1)).save(any(Notification.class));
         verify(messagingTemplate, times(1)).convertAndSend(eq("/topic/notifications/target"), any(Object.class));
+        verify(pushNotificationService, times(1)).sendToUser(
+                eq(targetUser),
+                eq("Soul Surf"),
+                contains("curtiu"),
+                argThat(data -> NotificationType.LIKE.name().equals(data.get("type"))));
     }
 
     @Test
@@ -96,14 +103,17 @@ public class NotificationServiceTest {
         when(userRepository.findByEmail("actor@example.com")).thenReturn(Optional.of(actorUser));
         when(commentRepository.findById(30L)).thenReturn(Optional.of(comment));
 
-        Notification mockSaved = new Notification();
-        mockSaved.setRecipient(targetUser);
-        when(notificationRepository.save(any(Notification.class))).thenReturn(mockSaved);
+        when(notificationRepository.save(any(Notification.class))).thenAnswer(invocation -> invocation.getArgument(0));
         when(notificationMapper.toDto(any(Notification.class))).thenReturn(new NotificationDTO());
 
         notificationService.createCommentNotification("actor@example.com", 20L, 30L);
 
         verify(notificationRepository, times(1)).save(any(Notification.class));
         verify(messagingTemplate, times(1)).convertAndSend(eq("/topic/notifications/target"), any(Object.class));
+        verify(pushNotificationService, times(1)).sendToUser(
+                eq(targetUser),
+                eq("Soul Surf"),
+                contains("comentou"),
+                argThat(data -> NotificationType.COMMENT.name().equals(data.get("type"))));
     }
 }
