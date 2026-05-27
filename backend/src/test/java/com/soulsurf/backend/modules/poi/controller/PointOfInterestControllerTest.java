@@ -10,6 +10,8 @@ import com.soulsurf.backend.modules.user.entity.User;
 import com.soulsurf.backend.modules.user.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MvcResult;
@@ -17,6 +19,7 @@ import org.springframework.test.web.servlet.MvcResult;
 import java.util.Map;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -67,16 +70,13 @@ public class PointOfInterestControllerTest extends BaseIntegrationTest {
 
     @Test
     public void testCreateAndGetPois() throws Exception {
-        PointOfInterestDTO dto = new PointOfInterestDTO();
-        dto.setNome("Escolinha de Surf");
-        dto.setCategoria(PoiCategory.SURF_SCHOOL);
-        dto.setLatitude(-3.721);
-        dto.setLongitude(-38.521);
-
-        mockMvc.perform(post("/api/pois")
+        mockMvc.perform(multipart("/api/pois")
                 .header("Authorization", "Bearer " + jwtToken)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(dto)))
+                .param("nome", "Escolinha de Surf")
+                .param("descricao", "Descrição do local")
+                .param("categoria", "SURF_SCHOOL")
+                .param("latitude", "-3.721")
+                .param("longitude", "-38.521"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.nome").value("Escolinha de Surf"));
 

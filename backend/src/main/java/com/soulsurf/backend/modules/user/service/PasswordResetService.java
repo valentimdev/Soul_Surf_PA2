@@ -5,6 +5,8 @@ import com.soulsurf.backend.modules.user.entity.PasswordResetToken;
 import com.soulsurf.backend.modules.user.entity.User;
 import com.soulsurf.backend.modules.user.repository.PasswordResetTokenRepository;
 import com.soulsurf.backend.modules.user.repository.UserRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -20,6 +22,7 @@ import java.util.Optional;
 @Service
 public class PasswordResetService {
 
+    private static final Logger log = LoggerFactory.getLogger(PasswordResetService.class);
     private static final long EXPIRATION_TIME_MILLIS = 1000L * 60L * 15L; // 15 min
     private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
@@ -54,7 +57,13 @@ public class PasswordResetService {
             PasswordResetToken passwordResetToken = new PasswordResetToken(tokenHash, user, expiryDate);
             tokenRepository.save(passwordResetToken);
 
-            emailService.sendPasswordResetEmail(user.getEmail(), rawToken, resetCode);
+            try {
+                emailService.sendPasswordResetEmail(user.getEmail(), rawToken, resetCode);
+            } catch (RuntimeException emailEx) {
+                log.error("Falha ao enviar email de redefinicao de senha para {}: {}",
+                        user.getEmail(), emailEx.getMessage());
+                // Token salvo — nao propaga o erro para o usuario
+            }
         }
     }
 
