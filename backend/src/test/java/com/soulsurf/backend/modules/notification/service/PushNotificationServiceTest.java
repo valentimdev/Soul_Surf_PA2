@@ -20,10 +20,12 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Function;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.never;
@@ -80,27 +82,34 @@ class PushNotificationServiceTest {
     }
 
     @Test
-    void sendToUserShouldUseExpoPushEndpointAndDeactivateInvalidTokens() throws IOException {
+    void sendToUserShouldSendOneExpoRequestPerTokenAndDeactivateInvalidTokens() throws IOException {
         AtomicReference<String> requestMethod = new AtomicReference<>();
         AtomicReference<String> requestPath = new AtomicReference<>();
-        AtomicReference<String> requestBody = new AtomicReference<>();
+        List<String> requestBodies = new ArrayList<>();
 
         PushNotificationService service = serviceWithExpoResponse(
-                """
-                {
-                  "data": [
-                    { "status": "ok", "id": "ticket-ok" },
-                    {
-                      "status": "error",
-                      "message": "Device is not registered",
-                      "details": { "error": "DeviceNotRegistered" }
-                    }
-                  ]
-                }
-                """,
+                body -> body.contains("ExpoPushToken[invalid]")
+                        ? """
+                        {
+                          "data": [
+                            {
+                              "status": "error",
+                              "message": "Device is not registered",
+                              "details": { "error": "DeviceNotRegistered" }
+                            }
+                          ]
+                        }
+                        """
+                        : """
+                        {
+                          "data": [
+                            { "status": "ok", "id": "ticket-ok" }
+                          ]
+                        }
+                        """,
                 requestMethod,
                 requestPath,
-                requestBody);
+                requestBodies);
 
         User recipient = new User();
         recipient.setId(7L);
@@ -117,14 +126,19 @@ class PushNotificationServiceTest {
         assertThat(accepted).isEqualTo(1);
         assertThat(requestMethod.get()).isEqualTo("POST");
         assertThat(requestPath.get()).isEqualTo("/--/api/v2/push/send");
-        assertThat(requestBody.get())
+        assertThat(requestBodies).hasSize(2);
+        assertThat(requestBodies.get(0))
                 .contains("\"to\":\"ExpoPushToken[ok]\"")
                 .contains("\"title\":\"Soul Surf\"")
                 .contains("\"body\":\"Nova onda\"")
                 .contains("\"type\":\"LIKE\"")
                 .contains("\"sound\":\"default\"")
                 .contains("\"channelId\":\"default\"")
-                .contains("\"priority\":\"high\"");
+                .contains("\"priority\":\"high\"")
+                .doesNotContain("ExpoPushToken[invalid]");
+        assertThat(requestBodies.get(1))
+                .contains("\"to\":\"ExpoPushToken[invalid]\"")
+                .doesNotContain("ExpoPushToken[ok]");
         assertThat(validToken.getLastUsedAt()).isNotNull();
         assertThat(invalidToken.getLastUsedAt()).isNotNull();
         assertThat(invalidToken.isActive()).isFalse();
@@ -163,16 +177,18 @@ class PushNotificationServiceTest {
     }
 
     private PushNotificationService serviceWithExpoResponse(
-            String responseBody,
+            Function<String, String> responseBodyFactory,
             AtomicReference<String> requestMethod,
             AtomicReference<String> requestPath,
-            AtomicReference<String> requestBody) throws IOException {
+            List<String> requestBodies) throws IOException {
         expoServer = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
         expoServer.createContext("/--/api/v2/push/send", exchange -> {
             requestMethod.set(exchange.getRequestMethod());
             requestPath.set(exchange.getRequestURI().getPath());
-            requestBody.set(new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8));
+            String requestBody = new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
+            requestBodies.add(requestBody);
 
+            String responseBody = responseBodyFactory.apply(requestBody);
             byte[] bytes = responseBody.getBytes(StandardCharsets.UTF_8);
             exchange.getResponseHeaders().add("Content-Type", "application/json");
             exchange.sendResponseHeaders(200, bytes.length);

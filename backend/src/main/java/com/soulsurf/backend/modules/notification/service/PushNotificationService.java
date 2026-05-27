@@ -19,6 +19,7 @@ import org.springframework.web.reactive.function.client.WebClientException;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -98,42 +99,62 @@ public class PushNotificationService {
             return 0;
         }
 
-        List<ExpoPushMessage> messages = tokens.stream()
-                .map(token -> new ExpoPushMessage(token.getToken(), title, body, data))
-                .toList();
+        LocalDateTime now = LocalDateTime.now();
+        List<PushToken> updatedTokens = new ArrayList<>();
+        int accepted = 0;
 
+        for (PushToken token : tokens) {
+            TokenPushResult result = sendToToken(recipient, token, title, body, data, now);
+            accepted += result.accepted;
+
+            if (result.tokenUpdated) {
+                updatedTokens.add(token);
+            }
+        }
+
+        if (!updatedTokens.isEmpty()) {
+            pushTokenRepository.saveAll(updatedTokens);
+        }
+
+        return accepted;
+    }
+
+    private TokenPushResult sendToToken(
+            User recipient,
+            PushToken token,
+            String title,
+            String body,
+            Map<String, Object> data,
+            LocalDateTime now) {
         ExpoPushResponse response;
         try {
             response = webClient.post()
                     .uri(EXPO_PUSH_SEND_PATH)
                     .contentType(MediaType.APPLICATION_JSON)
                     .accept(MediaType.APPLICATION_JSON)
-                    .bodyValue(messages)
+                    .bodyValue(List.of(new ExpoPushMessage(token.getToken(), title, body, data)))
                     .retrieve()
                     .bodyToMono(ExpoPushResponse.class)
                     .block();
         } catch (WebClientResponseException e) {
             log.warn(
-                    "Expo push request failed: recipient={}, status={}, body={}",
+                    "Expo push request failed: recipient={}, tokenId={}, status={}, body={}",
                     recipient.getUsername(),
+                    token.getId(),
                     e.getStatusCode(),
                     e.getResponseBodyAsString());
-            return 0;
+            return TokenPushResult.notUpdated();
         } catch (WebClientException e) {
             log.warn(
-                    "Expo push request failed: recipient={}, message={}",
+                    "Expo push request failed: recipient={}, tokenId={}, message={}",
                     recipient.getUsername(),
+                    token.getId(),
                     e.getMessage());
-            return 0;
+            return TokenPushResult.notUpdated();
         }
 
-        LocalDateTime now = LocalDateTime.now();
-        tokens.forEach(token -> token.setLastUsedAt(now));
-
-        int accepted = handleExpoResponse(recipient, tokens, response);
-        pushTokenRepository.saveAll(tokens);
-
-        return accepted;
+        token.setLastUsedAt(now);
+        return new TokenPushResult(handleExpoResponse(recipient, List.of(token), response), true);
     }
 
     private int handleExpoResponse(User recipient, List<PushToken> tokens, ExpoPushResponse response) {
@@ -250,5 +271,19 @@ public class PushNotificationService {
     private static class ExpoPushRequestError {
         private String code;
         private String message;
+    }
+
+    private static class TokenPushResult {
+        private final int accepted;
+        private final boolean tokenUpdated;
+
+        private TokenPushResult(int accepted, boolean tokenUpdated) {
+            this.accepted = accepted;
+            this.tokenUpdated = tokenUpdated;
+        }
+
+        private static TokenPushResult notUpdated() {
+            return new TokenPushResult(0, false);
+        }
     }
 }
