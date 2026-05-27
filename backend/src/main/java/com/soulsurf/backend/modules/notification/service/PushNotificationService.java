@@ -15,6 +15,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.reactive.function.client.WebClientException;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 import java.time.LocalDateTime;
@@ -112,12 +113,18 @@ public class PushNotificationService {
                     .bodyToMono(ExpoPushResponse.class)
                     .block();
         } catch (WebClientResponseException e) {
-            log.error(
+            log.warn(
                     "Expo push request failed: recipient={}, status={}, body={}",
                     recipient.getUsername(),
                     e.getStatusCode(),
                     e.getResponseBodyAsString());
-            throw e;
+            return 0;
+        } catch (WebClientException e) {
+            log.warn(
+                    "Expo push request failed: recipient={}, message={}",
+                    recipient.getUsername(),
+                    e.getMessage());
+            return 0;
         }
 
         LocalDateTime now = LocalDateTime.now();

@@ -2,6 +2,9 @@ package com.soulsurf.backend.modules.comment.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.soulsurf.backend.BaseIntegrationTest;
+import com.soulsurf.backend.modules.notification.entity.Notification;
+import com.soulsurf.backend.modules.notification.entity.NotificationType;
+import com.soulsurf.backend.modules.notification.repository.NotificationRepository;
 import com.soulsurf.backend.modules.user.controller.LoginRequest;
 import com.soulsurf.backend.modules.user.controller.SignupRequest;
 import com.soulsurf.backend.modules.post.entity.Post;
@@ -15,7 +18,10 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Map;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -36,12 +42,18 @@ public class CommentControllerTest extends BaseIntegrationTest {
     @Autowired
     private CommentRepository commentRepository;
 
+    @Autowired
+    private NotificationRepository notificationRepository;
+
     private String jwtToken;
     private Long testPostId;
     private Long testCommentId;
 
     @BeforeEach
     public void setUp() throws Exception {
+        notificationRepository.deleteAll();
+        commentRepository.deleteAll();
+        postRepository.deleteAll();
         userRepository.deleteAll();
 
         SignupRequest signup = new SignupRequest();
@@ -103,6 +115,47 @@ public class CommentControllerTest extends BaseIntegrationTest {
     }
 
     @Test
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    public void testAddCommentCreatesNotificationForPostOwnerAfterCommit() throws Exception {
+        try {
+            SignupRequest ownerSignup = new SignupRequest();
+            ownerSignup.setEmail("comment-owner@example.com");
+            ownerSignup.setPassword("password123");
+            ownerSignup.setUsername("commentowner");
+
+            mockMvc.perform(post("/api/auth/signup")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(ownerSignup)))
+                    .andExpect(status().isCreated());
+
+            User postOwner = userRepository.findByEmail("comment-owner@example.com").orElseThrow();
+            Post ownerPost = new Post();
+            ownerPost.setDescricao("Post owned by someone else");
+            ownerPost.setUsuario(postOwner);
+            ownerPost = postRepository.save(ownerPost);
+
+            mockMvc.perform(post("/api/posts/" + ownerPost.getId() + "/comments/")
+                    .header("Authorization", "Bearer " + jwtToken)
+                    .param("texto", "Great post from another user!"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.texto").value("Great post from another user!"));
+
+            var notifications = waitForNotifications(postOwner);
+
+            org.assertj.core.api.Assertions.assertThat(notifications)
+                    .hasSize(1)
+                    .first()
+                    .satisfies(notification -> {
+                        org.assertj.core.api.Assertions.assertThat(notification.getType()).isEqualTo(NotificationType.COMMENT);
+                        org.assertj.core.api.Assertions.assertThat(notification.getSender().getEmail())
+                                .isEqualTo("commenter@example.com");
+                    });
+        } finally {
+            cleanDatabase();
+        }
+    }
+
+    @Test
     public void testUpdateComment() throws Exception {
         mockMvc.perform(put("/api/posts/" + testPostId + "/comments/" + testCommentId)
                 .header("Authorization", "Bearer " + jwtToken)
@@ -116,5 +169,24 @@ public class CommentControllerTest extends BaseIntegrationTest {
         mockMvc.perform(delete("/api/posts/" + testPostId + "/comments/" + testCommentId)
                 .header("Authorization", "Bearer " + jwtToken))
                 .andExpect(status().isOk());
+    }
+
+    private void cleanDatabase() {
+        notificationRepository.deleteAll();
+        commentRepository.deleteAll();
+        postRepository.deleteAll();
+        userRepository.deleteAll();
+    }
+
+    private List<Notification> waitForNotifications(User recipient) throws InterruptedException {
+        for (int attempt = 0; attempt < 20; attempt++) {
+            var notifications = notificationRepository.findByRecipientOrderByCreatedAtDesc(recipient);
+            if (!notifications.isEmpty()) {
+                return notifications;
+            }
+            Thread.sleep(50);
+        }
+
+        return notificationRepository.findByRecipientOrderByCreatedAtDesc(recipient);
     }
 }

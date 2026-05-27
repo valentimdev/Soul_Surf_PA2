@@ -11,10 +11,14 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpHeaders;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.reactive.function.client.WebClientRequestException;
+import reactor.core.publisher.Mono;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
@@ -22,6 +26,7 @@ import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -124,6 +129,37 @@ class PushNotificationServiceTest {
         assertThat(invalidToken.getLastUsedAt()).isNotNull();
         assertThat(invalidToken.isActive()).isFalse();
         verify(pushTokenRepository).saveAll(tokens);
+    }
+
+    @Test
+    void sendToUserShouldReturnZeroWhenExpoRequestFails() {
+        WebClient failingClient = WebClient.builder()
+                .exchangeFunction(request -> Mono.error(new WebClientRequestException(
+                        new IOException("TLS handshake failed"),
+                        request.method(),
+                        URI.create("https://exp.host/--/api/v2/push/send"),
+                        HttpHeaders.EMPTY)))
+                .build();
+
+        PushNotificationService service = new PushNotificationService(
+                pushTokenRepository,
+                userRepository,
+                failingClient);
+
+        User recipient = new User();
+        recipient.setId(7L);
+        recipient.setUsername("target");
+
+        PushToken token = pushToken(10L, "ExpoPushToken[broken]");
+        List<PushToken> tokens = List.of(token);
+
+        when(pushTokenRepository.findByUserAndActiveTrue(recipient)).thenReturn(tokens);
+
+        int accepted = service.sendToUser(recipient, "Soul Surf", "Nova onda", Map.of("type", "LIKE"));
+
+        assertThat(accepted).isZero();
+        assertThat(token.getLastUsedAt()).isNull();
+        verify(pushTokenRepository, never()).saveAll(tokens);
     }
 
     private PushNotificationService serviceWithExpoResponse(
