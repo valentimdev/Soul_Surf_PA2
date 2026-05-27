@@ -68,6 +68,7 @@ jobs:
           OCI_FINGERPRINT=${{ secrets.OCI_FINGERPRINT }}
           ALLOWED_ORIGINS=${{ secrets.ALLOWED_ORIGINS }}
           RESEND_API_KEY=${{ secrets.RESEND_API_KEY }}
+          RESEND_FROM_EMAIL=${{ secrets.RESEND_FROM_EMAIL }}
           EOF
 
           # Escrever a chave privada OCI em arquivo separado

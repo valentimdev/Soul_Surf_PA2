@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -35,7 +36,14 @@ public class PointOfInterestController {
 
     @PostMapping
     @Operation(summary = "Cria um novo ponto de interesse")
-    public ResponseEntity<PointOfInterestDTO> createPoi(@RequestBody PointOfInterestDTO dto) {
-        return ResponseEntity.ok(poiService.createPoi(dto));
+    public ResponseEntity<PointOfInterestDTO> createPoi(
+            @RequestParam("nome") String nome,
+            @RequestParam("descricao") String descricao,
+            @RequestParam("categoria") PoiCategory categoria,
+            @RequestParam("latitude") Double latitude,
+            @RequestParam("longitude") Double longitude,
+            @RequestParam(value = "telefone", required = false) String telefone,
+            @RequestParam(value = "foto", required = false) MultipartFile foto) {
+        return ResponseEntity.ok(poiService.createPoi(nome, descricao, categoria, latitude, longitude, telefone, foto));
     }
 }
