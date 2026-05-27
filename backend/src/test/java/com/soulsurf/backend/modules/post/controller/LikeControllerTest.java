@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.soulsurf.backend.BaseIntegrationTest;
 import com.soulsurf.backend.modules.user.controller.LoginRequest;
 import com.soulsurf.backend.modules.user.controller.SignupRequest;
+import com.soulsurf.backend.modules.notification.entity.Notification;
 import com.soulsurf.backend.modules.notification.entity.NotificationType;
 import com.soulsurf.backend.modules.notification.repository.NotificationRepository;
 import com.soulsurf.backend.modules.post.entity.Post;
@@ -15,7 +16,10 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Map;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -100,21 +104,44 @@ public class LikeControllerTest extends BaseIntegrationTest {
     }
 
     @Test
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public void testLikePostCreatesNotificationForPostOwner() throws Exception {
-        mockMvc.perform(post("/api/posts/" + testPostId + "/likes")
-                .header("Authorization", "Bearer " + jwtToken))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.liked").value(true));
+        try {
+            mockMvc.perform(post("/api/posts/" + testPostId + "/likes")
+                    .header("Authorization", "Bearer " + jwtToken))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.liked").value(true));
 
-        var notifications = notificationRepository.findByRecipientOrderByCreatedAtDesc(postOwner);
+            var notifications = waitForNotifications(postOwner);
 
-        org.assertj.core.api.Assertions.assertThat(notifications)
-                .hasSize(1)
-                .first()
-                .satisfies(notification -> {
-                    org.assertj.core.api.Assertions.assertThat(notification.getType()).isEqualTo(NotificationType.LIKE);
-                    org.assertj.core.api.Assertions.assertThat(notification.getSender().getEmail()).isEqualTo("liker@example.com");
-                });
+            org.assertj.core.api.Assertions.assertThat(notifications)
+                    .hasSize(1)
+                    .first()
+                    .satisfies(notification -> {
+                        org.assertj.core.api.Assertions.assertThat(notification.getType()).isEqualTo(NotificationType.LIKE);
+                        org.assertj.core.api.Assertions.assertThat(notification.getSender().getEmail()).isEqualTo("liker@example.com");
+                    });
+        } finally {
+            cleanDatabase();
+        }
+    }
+
+    private void cleanDatabase() {
+        notificationRepository.deleteAll();
+        postRepository.deleteAll();
+        userRepository.deleteAll();
+    }
+
+    private List<Notification> waitForNotifications(User recipient) throws InterruptedException {
+        for (int attempt = 0; attempt < 20; attempt++) {
+            var notifications = notificationRepository.findByRecipientOrderByCreatedAtDesc(recipient);
+            if (!notifications.isEmpty()) {
+                return notifications;
+            }
+            Thread.sleep(50);
+        }
+
+        return notificationRepository.findByRecipientOrderByCreatedAtDesc(recipient);
     }
 
     @Test
