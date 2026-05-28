@@ -65,7 +65,7 @@ public class SurfConditionsService {
     private static final Set<String> PROPER_STATUS_CODES = Set.of("P", "A");
     private static final String TIDE_PROVIDER = "Apolo11 - Tabua de Mares";
     private static final String TIDE_STATION = "Fortaleza / CE";
-    private static final Duration TIDE_CACHE_TTL = Duration.ofDays(7);
+    private static final Duration TIDE_CACHE_TTL = Duration.ofHours(12);
     private static final DateTimeFormatter APOLO_DATE_FORMAT = DateTimeFormatter.ofPattern("dd/MM/yyyy");
     private static final DateTimeFormatter APOLO_TIME_FORMAT = DateTimeFormatter.ofPattern("H:mm");
     private static final DateTimeFormatter TIME_LABEL_FORMAT = DateTimeFormatter.ofPattern("HH:mm");
@@ -119,7 +119,7 @@ public class SurfConditionsService {
     }
 
     @Scheduled(
-            cron = "${surf.api.apolo11.tide-refresh-cron:0 20 5 * * MON}",
+            cron = "${surf.api.apolo11.tide-refresh-cron:0 20 5 * * *}",
             zone = "${surf.api.tide.timezone:America/Fortaleza}"
     )
     public void refreshWeeklyTideForecastCache() {
