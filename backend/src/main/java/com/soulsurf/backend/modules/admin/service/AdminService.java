@@ -70,7 +70,7 @@ public class AdminService {
     }
 
     @Transactional
-    @CacheEvict(value = { "publicFeed", "userPosts", "followingPosts", "postById" }, allEntries = true)
+    @CacheEvict(value = { "publicFeed", "userPosts", "followingPosts", "beachPosts", "postById" }, allEntries = true)
     public void deletePost(Long postId, String actorEmail) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new IllegalArgumentException("Post não encontrado"));
@@ -82,7 +82,7 @@ public class AdminService {
     }
 
     @Transactional
-    @CacheEvict(value = { "postById" }, allEntries = true)
+    @CacheEvict(value = { "postById", "publicFeed", "followingPosts", "userPosts", "beachPosts" }, allEntries = true)
     public void deleteComment(Long commentId, String actorEmail) {
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new IllegalArgumentException("Comentário não encontrado"));

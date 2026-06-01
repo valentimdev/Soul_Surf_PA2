@@ -30,6 +30,9 @@ export type PostDTO = {
     descricao: string;
     localizacao: string;
     caminhoFoto?: string;
+    nivelExperiencia?: string;
+    latitude?: number;
+    longitude?: number;
   };
 
   comments: CommentDTO[];      // 👈 igual ao backend

@@ -32,7 +32,15 @@ export type UserDTO = {
     posts: PostDTO[];
     isFollowing?: boolean;
     admin?: boolean;
+    banned?: boolean;
 };
+
+function normalizeList<T>(raw: any): T[] {
+    if (Array.isArray(raw)) return raw;
+    if (Array.isArray(raw?.content)) return raw.content;
+    if (Array.isArray(raw?.data)) return raw.data;
+    return [];
+}
 
 export const UserService = {
     getUserById: async (id: number | string): Promise<UserDTO> => {
@@ -80,14 +88,25 @@ export const UserService = {
         return data;
     },
 
-    getAllUsersPaginated: async (page = 0, size = 30): Promise<{ content: UserDTO[], totalPages: number, totalElements: number, number: number, last: boolean, first: boolean }> => {
-        const { data } = await api.get(`${userRoutes.base}?page=${page}&size=${size}`);
-        return data;
+    getUsers: async (offset = 0, limit = 30): Promise<UserDTO[]> => {
+        const { data } = await api.get(userRoutes.base, {
+            params: { offset, limit },
+        });
+        return normalizeList<UserDTO>(data);
     },
 
-    searchUsers: async (query: string, page = 0, size = 30): Promise<{ content: UserDTO[], totalPages: number, totalElements: number, number: number, last: boolean, first: boolean }> => {
-        const { data } = await api.get(`${userRoutes.base}/search?query=${query}&page=${page}&size=${size}`);
-        return data;
+    getAllUsersPaginated: async (offset = 0, limit = 30): Promise<UserDTO[]> => {
+        const { data } = await api.get(userRoutes.base, {
+            params: { offset, limit },
+        });
+        return normalizeList<UserDTO>(data);
+    },
+
+    searchUsers: async (query: string): Promise<UserDTO[]> => {
+        const { data } = await api.get(`${userRoutes.base}/search`, {
+            params: { query },
+        });
+        return normalizeList<UserDTO>(data);
     },
 
     hello: async (): Promise<string> => {

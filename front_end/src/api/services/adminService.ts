@@ -36,4 +36,7 @@ export const AdminService = {
 
     getPostsByBeach: (start: string, end: string) =>
         api.get(`/admin/metrics/by-beach?start=${start}&end=${end}`),
+
+    clearCache: () =>
+        api.post(`/admin/cache/clear`),
 };

@@ -60,6 +60,7 @@ const RootLayout: React.FC = () => {
     if (showLayout && !user && !authLoading) return <Navigate to="/login" replace />;
 
     const isPraiasPage = location.pathname === '/praias' || location.pathname === '/beaches';
+    const isAdminPage = location.pathname === '/admin';
     const isAdmin = user?.admin === true;
 
     return (
@@ -72,7 +73,7 @@ const RootLayout: React.FC = () => {
                     <div className="flex pt-20">
                         <div className="hidden md:block w-[20%]">
                             <div className="fixed w-[20%] h-screen">
-                                <SideBarLeft />
+                                <SideBarLeft isAdmin={isAdmin} />
                             </div>
                         </div>
                         <div className="w-full md:w-[60%] relative">
@@ -80,7 +81,7 @@ const RootLayout: React.FC = () => {
                         </div>
                         <div className="hidden md:block w-[20%]" />
                     </div>
-                    {(isPraiasPage && isAdmin) || !isPraiasPage ? (
+                    {!isAdminPage && ((isPraiasPage && isAdmin) || !isPraiasPage) ? (
                         <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
                             <DialogTrigger asChild>
                                 <Button

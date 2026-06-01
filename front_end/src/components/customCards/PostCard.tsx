@@ -72,6 +72,7 @@ export function PostCard({
     const [isLiking, setIsLiking] = useState(false);
     const [editDialogOpen, setEditDialogOpen] = useState(false);
     const [editedContent, setEditedContent] = useState(description);
+    const [currentDescription, setCurrentDescription] = useState(description);
     const [isDeleting, setIsDeleting] = useState(false);
     const [isAdmin, setIsAdmin] = useState(false);
     const [commentsCount, setCommentsCount] = useState(initialCommentsCount);
@@ -85,6 +86,11 @@ export function PostCard({
     useEffect(() => {
         setCommentsCount(initialCommentsCount);
     }, [initialCommentsCount]);
+
+    useEffect(() => {
+        setCurrentDescription(description);
+        setEditedContent(description);
+    }, [description]);
 
     useEffect(() => {
         UserService.getMe()
@@ -109,7 +115,7 @@ export function PostCard({
         return () => {
             spans.forEach((span) => span.replaceWith(span.cloneNode(true)));
         };
-    }, [description, navigate]);
+    }, [currentDescription, navigate]);
 
     const highlightMentions = (text?: string) => {
         if (!text) return "";
@@ -129,6 +135,10 @@ export function PostCard({
                 headers: { "Content-Type": "multipart/form-data" },
             });
 
+            setCurrentDescription(editedContent);
+            window.dispatchEvent(new CustomEvent("postUpdated", {
+                detail: { id: postId, descricao: editedContent },
+            }));
             setEditDialogOpen(false);
         } catch (err) {
             console.error("Erro ao editar post:", err);
@@ -148,6 +158,7 @@ export function PostCard({
             }
 
             onPostDeleted(postId);
+            window.dispatchEvent(new CustomEvent("postDeleted", { detail: { id: postId } }));
         } catch (err) {
             console.error("Erro ao excluir post:", err);
             alert("Não foi possível excluir o post.");
@@ -253,7 +264,7 @@ export function PostCard({
                                 ref={contentRef}
                                 className="text-foreground whitespace-pre-wrap break-words leading-relaxed text-sm"
                                 dangerouslySetInnerHTML={{
-                                    __html: highlightMentions(description),
+                                    __html: highlightMentions(currentDescription),
                                 }}
                             />
                         </div>
@@ -264,7 +275,7 @@ export function PostCard({
                             ref={contentRef}
                             className="text-foreground whitespace-pre-wrap break-words leading-relaxed text-sm"
                             dangerouslySetInnerHTML={{
-                                __html: highlightMentions(description),
+                                __html: highlightMentions(currentDescription),
                             }}
                         />
                     </CardContent>

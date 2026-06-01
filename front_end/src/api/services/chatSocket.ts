@@ -1,6 +1,15 @@
 // src/api/services/chatSocket.ts
 import { Client } from '@stomp/stompjs';
 
+function resolveWsBaseUrl(): string {
+  const configuredUrl = (import.meta as any).env?.VITE_WS_URL?.replace(/\/+$/, "");
+  if (configuredUrl) return configuredUrl;
+
+  return window.location.hostname === 'localhost'
+    ? 'ws://localhost:8080/ws'
+    : 'wss://soulsurfpa2-production.up.railway.app/ws';
+}
+
 /**
  * Conexão para CHAT (já existia)
  */
@@ -15,11 +24,7 @@ export const connectChat = (
     return null;
   }
 
-  const isLocalhost = window.location.hostname === 'localhost';
-
-  const baseWsUrl = isLocalhost
-    ? 'ws://localhost:8080/ws'
-    : 'wss://soulsurfpa2-production.up.railway.app/ws';
+  const baseWsUrl = resolveWsBaseUrl();
 
   const socketUrl = `${baseWsUrl}?access_token=${encodeURIComponent(token)}`;
 
@@ -98,11 +103,7 @@ export const connectPostRealtime = (
     return null;
   }
 
-  const isLocalhost = window.location.hostname === 'localhost';
-
-  const baseWsUrl = isLocalhost
-    ? 'ws://localhost:8080/ws'
-    : 'wss://soulsurfpa2-production.up.railway.app/ws';
+  const baseWsUrl = resolveWsBaseUrl();
 
   const socketUrl = `${baseWsUrl}?access_token=${encodeURIComponent(token)}`;
 
@@ -193,11 +194,7 @@ export const connectNotifications = (
     return null;
   }
 
-  const isLocalhost = window.location.hostname === 'localhost';
-
-  const baseWsUrl = isLocalhost
-    ? 'ws://localhost:8080/ws'
-    : 'wss://soulsurfpa2-production.up.railway.app/ws';
+  const baseWsUrl = resolveWsBaseUrl();
 
   const socketUrl = `${baseWsUrl}?access_token=${encodeURIComponent(token)}`;
 

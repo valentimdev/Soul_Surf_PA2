@@ -61,7 +61,7 @@ public class PostService {
     }
 
     @Transactional
-    @CacheEvict(value = { "publicFeed", "userPosts", "followingPosts" }, allEntries = true)
+    @CacheEvict(value = { "publicFeed", "userPosts", "followingPosts", "beachPosts" }, allEntries = true)
     public PostDTO createPost(CreatePostRequest request, MultipartFile foto, String userEmail) {
         try {
             User usuario = userRepository.findByEmail(userEmail)
@@ -153,7 +153,7 @@ public class PostService {
         return Optional.empty();
     }
 
-    @CacheEvict(value = { "publicFeed", "userPosts", "followingPosts", "postById" }, allEntries = true)
+    @CacheEvict(value = { "publicFeed", "userPosts", "followingPosts", "beachPosts", "postById" }, allEntries = true)
     public void updatePost(Long id, String descricao, String userEmail) {
         Post post = postRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Post não encontrado"));
@@ -166,7 +166,7 @@ public class PostService {
         postRepository.save(post);
     }
 
-    @CacheEvict(value = { "publicFeed", "userPosts", "followingPosts", "postById" }, allEntries = true)
+    @CacheEvict(value = { "publicFeed", "userPosts", "followingPosts", "beachPosts", "postById" }, allEntries = true)
     @Transactional
     public void deletePost(Long postId, User requester) {
 

@@ -46,7 +46,7 @@ public class CommentService {
         this.commentMapper = commentMapper;
     }
 
-    @CacheEvict(value = { "postById" }, allEntries = true)
+    @CacheEvict(value = { "postById", "publicFeed", "followingPosts", "userPosts", "beachPosts" }, allEntries = true)
     public CommentDTO createComment(Long postId, Long parentId, String texto, String userEmail) {
         User usuario = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new UsernameNotFoundException("Usuario nao encontrado"));
@@ -109,7 +109,7 @@ public class CommentService {
                 .collect(Collectors.toList());
     }
 
-    @CacheEvict(value = { "postById" }, allEntries = true)
+    @CacheEvict(value = { "postById", "publicFeed", "followingPosts", "userPosts", "beachPosts" }, allEntries = true)
     public CommentDTO updateComment(Long postId, Long commentId, String texto, String userEmail) {
         Comment comment = validateAndGetComment(postId, commentId, userEmail);
 
@@ -128,7 +128,7 @@ public class CommentService {
         return dto;
     }
 
-    @CacheEvict(value = { "postById" }, allEntries = true)
+    @CacheEvict(value = { "postById", "publicFeed", "followingPosts", "userPosts", "beachPosts" }, allEntries = true)
     public void deleteComment(Long postId, Long commentId, String userEmail) {
         Comment comment = validateAndGetComment(postId, commentId, userEmail);
 

@@ -39,7 +39,7 @@ public class LikeService {
         this.eventPublisher = eventPublisher;
     }
 
-    @CacheEvict(value = { "postById", "publicFeed", "followingPosts", "userPosts" }, allEntries = true)
+    @CacheEvict(value = { "postById", "publicFeed", "followingPosts", "userPosts", "beachPosts" }, allEntries = true)
     @Transactional
     public boolean toggleLike(Long postId, String userEmail) {
         Post post = postRepository.findById(postId)

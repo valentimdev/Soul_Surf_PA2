@@ -7,8 +7,6 @@ export interface WeatherDTO {
     iconCode: string;
 }
 
-const API_URL = "https://soulsurfpa2-production.up.railway.app/api";
-
 export class WeatherService {
 
     /**
@@ -18,10 +16,8 @@ export class WeatherService {
      */
     static async getCurrentWeather(city: string = "Fortaleza,BR"): Promise<WeatherDTO> {
 
-        const endpoint = `${API_URL}/weather/current`;
-
         try {
-            const response = await axios.get<WeatherDTO>(endpoint, {
+            const response = await axios.get<WeatherDTO>("/weather/current", {
                 params: { city: city } // Passa a cidade como query parameter
             });
 
