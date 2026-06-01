@@ -23,10 +23,8 @@ export default function SearchResultsPage() {
                 const loggedUser = await UserService.getMe();
                 setMe(loggedUser);
 
-                const followingRes = await api.get<UserDTO[]>(
-                    `/users/${loggedUser.id}/following`
-                );
-                setFollowingIds(followingRes.data.map((u) => u.id));
+                const following = await UserService.getFollowing(loggedUser.id);
+                setFollowingIds(following.map((u) => u.id));
             } catch (err) {
                 console.error("Erro ao buscar dados do usuário:", err);
             }
@@ -37,8 +35,7 @@ export default function SearchResultsPage() {
 
     async function fetchUsers() {
         try {
-            const res = await api.get(`/users/search?query=${query}`);
-            const result = res.data || [];
+            const result = await UserService.searchUsers(query);
 
             // ✅ injeta isFollowing corretamente
             const usersWithFollow = result.map((user: any) => ({
@@ -83,7 +80,11 @@ export default function SearchResultsPage() {
         try {
             const isCurrentlyFollowing = followingIds.includes(userId);
 
-            await api.post(`/users/${userId}/follow`);
+            if (isCurrentlyFollowing) {
+                await UserService.unfollow(userId);
+            } else {
+                await UserService.follow(userId);
+            }
 
             setFollowingIds((prev) =>
                 isCurrentlyFollowing

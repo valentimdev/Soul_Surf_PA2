@@ -1,6 +1,7 @@
 package com.soulsurf.backend.modules.admin.controller;
 
 import com.soulsurf.backend.modules.chat.dto.MessageResponse;
+import com.soulsurf.backend.core.cache.AppCacheService;
 import com.soulsurf.backend.modules.admin.service.AdminAuditService;
 import com.soulsurf.backend.modules.admin.service.AdminMetricsService;
 import com.soulsurf.backend.modules.admin.service.AdminService;
@@ -22,12 +23,15 @@ public class AdminController {
     private final AdminService adminService;
     private final AdminAuditService auditService;
     private final AdminMetricsService metricsService;
+    private final AppCacheService appCacheService;
 
     public AdminController(AdminService adminService, AdminAuditService auditService,
-            AdminMetricsService metricsService) {
+            AdminMetricsService metricsService,
+            AppCacheService appCacheService) {
         this.adminService = adminService;
         this.auditService = auditService;
         this.metricsService = metricsService;
+        this.appCacheService = appCacheService;
     }
 
     @DeleteMapping("/users/{userId}")
@@ -106,6 +110,14 @@ public class AdminController {
             @AuthenticationPrincipal UserDetails actor) {
         adminService.unbanUser(userId, actor.getUsername());
         return ResponseEntity.ok(new MessageResponse("Usuário desbanido"));
+    }
+
+    @PostMapping("/cache/clear")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Limpa caches em memoria")
+    public ResponseEntity<MessageResponse> clearCache() {
+        appCacheService.clearAll();
+        return ResponseEntity.ok(new MessageResponse("Cache limpo"));
     }
 
     @GetMapping("/audits")

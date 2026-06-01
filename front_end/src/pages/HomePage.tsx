@@ -8,6 +8,15 @@ import LoadingSpinner from "@/components/LoadingSpinner.tsx";
 import { Button } from "@/components/ui/button";
 import { usePagination } from "@/hooks/usePagination";
 
+function resolveWsBaseUrl(): string {
+    const configuredUrl = (import.meta as any).env?.VITE_WS_URL?.replace(/\/+$/, "");
+    if (configuredUrl) return configuredUrl;
+
+    return window.location.hostname === "localhost"
+        ? "ws://localhost:8080/ws"
+        : "wss://soulsurfpa2-production.up.railway.app/ws";
+}
+
 function HomePage() {
     const [me, setMe] = useState<UserDTO | null>(null);
     const [followingIds, setFollowingIds] = useState<number[]>([]);
@@ -43,8 +52,8 @@ function HomePage() {
                 const loggedUser = await UserService.getMe();
                 setMe(loggedUser);
 
-                const followingRes = await api.get<UserDTO[]>(`/users/${loggedUser.id}/following`);
-                setFollowingIds(followingRes.data.map((u) => u.id));
+                const following = await UserService.getFollowing(loggedUser.id);
+                setFollowingIds(following.map((u) => u.id));
             } catch (error) {
                 console.error("Erro ao buscar dados do usuário:", error);
             }
@@ -86,11 +95,7 @@ function HomePage() {
             return; // já existe client
         }
 
-        const isLocalhost = window.location.hostname === "localhost";
-        const baseWsUrl = isLocalhost
-            ? "ws://localhost:8080/ws"
-            : "wss://soulsurfpa2-production.up.railway.app/ws";
-
+        const baseWsUrl = resolveWsBaseUrl();
         const socketUrl = `${baseWsUrl}?access_token=${encodeURIComponent(token)}`;
 
         let reconnectAttempts = 0;
@@ -209,11 +214,34 @@ function HomePage() {
     useEffect(() => {
         const handleNewPost = (e: Event) => {
             const customEvent = e as CustomEvent<PostDTO>;
-            setPosts((prev) => [customEvent.detail, ...prev]);
+            setPosts((prev) => [
+                customEvent.detail,
+                ...prev.filter((post) => post.id !== customEvent.detail.id),
+            ]);
+        };
+        const handlePostDeleted = (e: Event) => {
+            const postId = (e as CustomEvent<{ id: number }>).detail?.id;
+            if (postId) {
+                setPosts((prev) => prev.filter((post) => post.id !== postId));
+            }
+        };
+        const handlePostUpdated = (e: Event) => {
+            const detail = (e as CustomEvent<Partial<PostDTO> & { id: number }>).detail;
+            if (detail?.id) {
+                setPosts((prev) =>
+                    prev.map((post) => (post.id === detail.id ? { ...post, ...detail } : post))
+                );
+            }
         };
 
         window.addEventListener("newPost", handleNewPost);
-        return () => window.removeEventListener("newPost", handleNewPost);
+        window.addEventListener("postDeleted", handlePostDeleted);
+        window.addEventListener("postUpdated", handlePostUpdated);
+        return () => {
+            window.removeEventListener("newPost", handleNewPost);
+            window.removeEventListener("postDeleted", handlePostDeleted);
+            window.removeEventListener("postUpdated", handlePostUpdated);
+        };
     }, [setPosts]);
 
     const handleDeletePostFromList = (postId: number) => {

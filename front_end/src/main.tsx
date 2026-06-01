@@ -21,6 +21,7 @@ import AboutPage from './pages/AboutPage.tsx';
 import ChatPage from './pages/ChatPage';
 import UserTimelinePage from './pages/UserTimelinePage.tsx';
 import SearchResultsPage from "@/pages/SearchResultsPage.tsx";
+import AdminPage from "@/pages/AdminPage.tsx";
 
 const router = createBrowserRouter([
     {
@@ -43,6 +44,7 @@ const router = createBrowserRouter([
                     { path: 'chat/:conversationId', element: <ChatPage /> },
                     { path: 'mensagens', element: <MessagesPage /> },
                     { path: 'usuarios', element: <UserTimelinePage /> },
+                    { path: 'admin', element: <AdminPage /> },
                 ],
             },
 

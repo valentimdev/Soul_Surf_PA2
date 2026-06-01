@@ -7,7 +7,7 @@ interface Beach {
     nome: string;
     descricao: string;
     localizacao: string;
-    caminhoFoto: string;
+    caminhoFoto?: string;
 }
 
 interface BeachCardProps {
@@ -44,11 +44,15 @@ export function BeachCard({ beach, isAdmin = false, onEdit, onDelete }: BeachCar
                         <p className="text-sm italic font-semibold my-1">{beach.descricao}</p>
                         <span className="text-xs font-normal">{beach.localizacao}</span>
                     </CardHeader>
-                    <img
-                        src={beach.caminhoFoto}
-                        alt={`Foto da praia ${beach.nome}`}
-                        className="w-full aspect-video object-cover"
-                    />
+                    {beach.caminhoFoto ? (
+                        <img
+                            src={beach.caminhoFoto}
+                            alt={`Foto da praia ${beach.nome}`}
+                            className="w-full aspect-video object-cover"
+                        />
+                    ) : (
+                        <div className="w-full aspect-video bg-slate-100" />
+                    )}
                 </Card>
             </Link>
         </div>

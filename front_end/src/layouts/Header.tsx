@@ -14,6 +14,7 @@ import {
   MessageSquare,
   Settings,
   LogOut,
+  ShieldCheck,
 } from 'lucide-react';
 import NotificationDropdown from '@/components/NotificationDropdown';
 import { useNotifications } from '@/contexts/NotificationContext';
@@ -82,6 +83,7 @@ function Header() {
     { href: '/praias', icon: Waves, label: 'Praias' },
     { href: '/usuarios', icon: Users, label: 'Usuários' },
     { href: '/mensagens', icon: MessageSquare, label: 'Mensagens' },
+    ...(currentUser?.admin ? [{ href: '/admin', icon: ShieldCheck, label: 'Gestao' }] : []),
   ];
 
   const cityName = weatherData ? weatherData.cityName.split(',')[0] : 'Local';

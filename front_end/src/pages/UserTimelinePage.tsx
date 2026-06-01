@@ -2,15 +2,9 @@ import React, { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import api from "@/api/axios";
+import { UserService, type UserDTO } from "@/api/services/userService";
 
-interface User {
-    id: number;
-    username: string;
-    bio: string;
-    fotoPerfil: string | "";
-    isFollowing: boolean;
-}
+type User = UserDTO;
 
 export default function UsersTimelinePage() {
     const navigate = useNavigate();
@@ -22,11 +16,12 @@ export default function UsersTimelinePage() {
 
     const fetchUsers = useCallback(async (reset = false) => {
         try {
-            const res = await api.get(`/users?offset=${reset ? 0 : offset}`);
+            const nextOffset = reset ? 0 : offset;
+            const result = await UserService.getUsers(nextOffset, 10);
             setUsers((prev) =>
-                reset ? res.data : [...prev, ...res.data.filter((u: { id: number; }) => !prev.some(p => p.id === u.id))]
+                reset ? result : [...prev, ...result.filter((u) => !prev.some(p => p.id === u.id))]
             );
-            if (res.data.length < 10) setHasMore(false);
+            setHasMore(result.length >= 10);
         } catch (err) {
             console.error(err);
         }
@@ -34,13 +29,14 @@ export default function UsersTimelinePage() {
 
     const handleSearch = useCallback(async (term: string) => {
         if (!term.trim()) {
+            setOffset(0);
             await fetchUsers(true);
             return;
         }
 
         try {
-            const res = await api.get(`/users/search?query=${term}`);
-            setUsers(res.data);
+            const result = await UserService.searchUsers(term);
+            setUsers(result);
             setHasMore(false);
         } catch (err) {
             console.error(err);
@@ -53,6 +49,12 @@ export default function UsersTimelinePage() {
     useEffect(() => {
         fetchUsers(true);
     }, []);
+
+    useEffect(() => {
+        if (offset > 0 && !searchQuery) {
+            void fetchUsers(false);
+        }
+    }, [fetchUsers, offset, searchQuery]);
 
     // ================================
     // 🔹 Dispara busca quando muda o searchQuery
@@ -73,7 +75,12 @@ export default function UsersTimelinePage() {
 
     const handleFollow = async (userId: number) => {
         try {
-            await api.post(`/follow/${userId}`);
+            const target = users.find((u) => u.id === userId);
+            if (target?.isFollowing) {
+                await UserService.unfollow(userId);
+            } else {
+                await UserService.follow(userId);
+            }
             setUsers((prev) =>
                 prev.map((u) =>
                     u.id === userId ? { ...u, isFollowing: !u.isFollowing } : u

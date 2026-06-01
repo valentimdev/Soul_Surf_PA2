@@ -18,7 +18,7 @@ import { BeachService, type BeachDTO } from "@/api/services/beachService";
 
 interface NovoPraiaCardProps {
     beach?: BeachDTO; // se existir, estamos editando
-    onSuccess?: () => void;
+    onSuccess?: (beach?: BeachDTO) => void;
 }
 
 export default function NovoPraiaCard({ beach, onSuccess }: NovoPraiaCardProps) {
@@ -26,6 +26,8 @@ export default function NovoPraiaCard({ beach, onSuccess }: NovoPraiaCardProps) 
     const [descricao, setDescricao] = useState("");
     const [localizacao, setLocalizacao] = useState("");
     const [nivelExperiencia, setNivelExperiencia] = useState("INICIANTE");
+    const [latitude, setLatitude] = useState("");
+    const [longitude, setLongitude] = useState("");
     const [foto, setFoto] = useState<File | null>(null);
     const [loading, setLoading] = useState(false);
 
@@ -36,6 +38,8 @@ export default function NovoPraiaCard({ beach, onSuccess }: NovoPraiaCardProps) 
             setDescricao(beach.descricao);
             setLocalizacao(beach.localizacao);
             setNivelExperiencia(beach.nivelExperiencia || "INICIANTE");
+            setLatitude(beach.latitude != null ? String(beach.latitude) : "");
+            setLongitude(beach.longitude != null ? String(beach.longitude) : "");
             // foto não é preenchida, só upload de nova imagem
         }
     }, [beach]);
@@ -54,17 +58,21 @@ export default function NovoPraiaCard({ beach, onSuccess }: NovoPraiaCardProps) 
             formData.append("descricao", descricao);
             formData.append("localizacao", localizacao);
             formData.append("nivelExperiencia", nivelExperiencia);
+            if (latitude.trim()) formData.append("latitude", latitude.trim());
+            if (longitude.trim()) formData.append("longitude", longitude.trim());
             if (foto) formData.append("foto", foto);
 
+            let savedBeach: BeachDTO | undefined;
             if (beach) {
                 // Editar
                 /* await BeachService.updateBeach(beach.id, formData); */
             } else {
                 // Criar nova praia
-                await BeachService.createBeach(formData);
+                savedBeach = await BeachService.createBeach(formData);
+                window.dispatchEvent(new CustomEvent("beachCreated", { detail: savedBeach }));
             }
 
-            if (onSuccess) onSuccess();
+            if (onSuccess) onSuccess(savedBeach);
         } catch (error) {
             console.error("Erro ao salvar praia:", error);
         } finally {
@@ -131,6 +139,29 @@ export default function NovoPraiaCard({ beach, onSuccess }: NovoPraiaCardProps) 
                             <option value="INTERMEDIARIO">INTERMEDIARIO</option>
                             <option value="AVANÇADO">AVANÇADO</option>
                         </select>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="latitude">Latitude</Label>
+                            <Input
+                                id="latitude"
+                                value={latitude}
+                                onChange={(e) => setLatitude(e.target.value)}
+                                placeholder="-3.7345"
+                                inputMode="decimal"
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="longitude">Longitude</Label>
+                            <Input
+                                id="longitude"
+                                value={longitude}
+                                onChange={(e) => setLongitude(e.target.value)}
+                                placeholder="-38.4712"
+                                inputMode="decimal"
+                            />
+                        </div>
                     </div>
 
                     <div className="space-y-2">

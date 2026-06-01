@@ -7,13 +7,14 @@ export type BeachDTO = {
     nome: string;
     descricao: string;
     localizacao: string;
-    caminhoFoto: string;
-    nivelExperiencia: string;
+    caminhoFoto?: string;
+    nivelExperiencia?: string;
+    latitude?: number;
+    longitude?: number;
 };
 
 export type PostDTO = {
     id: number;
-    titulo: string;
     descricao: string;
     caminhoFoto?: string;
     data: string;
@@ -23,6 +24,11 @@ export type PostDTO = {
         email: string;
         fotoPerfil?: string;
     };
+    publico?: boolean;
+    beach?: BeachDTO;
+    likesCount?: number;
+    commentsCount?: number;
+    likedByCurrentUser?: boolean;
 };
 
 export type MessageResponse = {
@@ -43,8 +49,8 @@ export const BeachService = {
 
     createBeach: async (
         formData: FormData
-    ): Promise<MessageResponse> => {
-        const { data } = await api.post<MessageResponse>(
+    ): Promise<BeachDTO> => {
+        const { data } = await api.post<BeachDTO>(
             beachRoutes.create(),
             formData,
             {

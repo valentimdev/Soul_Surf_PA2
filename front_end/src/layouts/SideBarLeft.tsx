@@ -8,6 +8,7 @@ import {
     User,
     Settings,
     LogOut,
+    ShieldCheck,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -33,9 +34,16 @@ const navItems: NavItemProps[] = [
     { href: '/mensagens', icon: MessageSquare, label: 'Mensagens' },
 ];
 
-const SidebarLeft: React.FC = () => {
+type SidebarLeftProps = {
+    isAdmin?: boolean;
+};
+
+const SidebarLeft: React.FC<SidebarLeftProps> = ({ isAdmin = false }) => {
     const location = useLocation();
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+    const visibleNavItems = isAdmin
+        ? [...navItems, { href: '/admin', icon: ShieldCheck, label: 'Gestao' }]
+        : navItems;
 
     const handleLogout = () => {
         localStorage.removeItem('token');
@@ -46,7 +54,7 @@ const SidebarLeft: React.FC = () => {
         <aside className="w-60 h-[90%] flex flex-col justify-between p-4 bg-white border-r border-gray-200">
             <nav>
                 <ul className="space-y-1">
-                    {navItems.map((item) => {
+                    {visibleNavItems.map((item) => {
                         const isActive = location.pathname === item.href;
                         return (
                             <li key={item.label}>

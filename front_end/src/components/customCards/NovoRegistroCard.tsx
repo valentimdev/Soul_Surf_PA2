@@ -139,14 +139,18 @@ function NovoRegistroCard({ onSuccess }: NovoRegistroCardProps) {
                 };
 
             const tempPost: PostDTO = {
+                ...createdPost,
                 id: createdPost.id ?? Math.random(),
-                descricao,
-                caminhoFoto: foto ? URL.createObjectURL(foto) : "",
-                data: new Date().toISOString(),
+                descricao: createdPost.descricao ?? descricao,
+                caminhoFoto: createdPost.caminhoFoto ?? (foto ? URL.createObjectURL(foto) : ""),
+                data: createdPost.data ?? new Date().toISOString(),
                 usuario: createdPost.usuario ?? me,
-                publico: true,
-                beach: selectedBeach,
-                comments: [],
+                publico: createdPost.publico ?? true,
+                beach: createdPost.beach ?? selectedBeach,
+                comments: createdPost.comments ?? [],
+                likesCount: createdPost.likesCount ?? 0,
+                commentsCount: createdPost.commentsCount ?? 0,
+                likedByCurrentUser: createdPost.likedByCurrentUser ?? false,
             };
 
             setDescricao("");

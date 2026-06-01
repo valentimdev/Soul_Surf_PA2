@@ -5,11 +5,13 @@ import com.soulsurf.backend.modules.beach.repository.BeachRepository;
 import com.soulsurf.backend.modules.poi.entity.PointOfInterest;
 import com.soulsurf.backend.modules.poi.entity.PoiCategory;
 import com.soulsurf.backend.modules.poi.repository.PointOfInterestRepository;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
 @Component
 @org.springframework.context.annotation.Profile("!test")
+@ConditionalOnProperty(name = "soulsurf.seed.enabled", havingValue = "true")
 public class DataInitializer implements CommandLineRunner {
 
         private final BeachRepository beachRepository;

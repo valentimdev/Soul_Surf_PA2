@@ -8,6 +8,7 @@ export const adminRoutes = {
     unban: (id: number) => `/admin/users/${id}/unban`,
     audits: (page = 0, size = 20) => `/admin/audits?page=${page}&size=${size}`,
     metrics: `/admin/metrics`,
+    clearCache: `/admin/cache/clear`,
     metricsByPeriod: (start: string, end: string) =>
         `/admin/metrics/period?start=${start}&end=${end}`,
     topAuthors: (start: string, end: string, limit = 10) =>
