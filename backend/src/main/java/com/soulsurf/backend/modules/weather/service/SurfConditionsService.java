@@ -102,7 +102,7 @@ public class SurfConditionsService {
             @Value("${surf.api.open-meteo.forecast-url}") String forecastApiUrl,
             @Value("${surf.api.semace.bulletin-page-url}") String semaceBulletinPageUrl,
             @Value("${surf.api.apolo11.tide-url}") String tideForecastUrl,
-            @Value("${surf.api.tide.timezone:America/Fortaleza}") String tideTimezone,
+            @Value("${surf.api.tide.timezone:America/Sao_Paulo}") String tideTimezone,
             WebClient.Builder webClientBuilder
     ) {
         this.marineWebClient = webClientBuilder.baseUrl(marineApiUrl).build();
@@ -120,7 +120,7 @@ public class SurfConditionsService {
 
     @Scheduled(
             cron = "${surf.api.apolo11.tide-refresh-cron:0 20 5 * * *}",
-            zone = "${surf.api.tide.timezone:America/Fortaleza}"
+            zone = "${surf.api.tide.timezone:America/Sao_Paulo}"
     )
     public void refreshWeeklyTideForecastCache() {
         refreshTideForecastCache("weekly schedule");
