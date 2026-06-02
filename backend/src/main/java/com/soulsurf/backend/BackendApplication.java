@@ -6,11 +6,14 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
+import java.util.TimeZone;
+
 @SpringBootApplication
 @EnableScheduling
 @OpenAPIDefinition(info = @Info(title = "SoulSurf API", version = "1.0", description = "Documentacao completa dos endpoints da API SoulSurf"))
 public class BackendApplication {
     public static void main(String[] args) {
+        TimeZone.setDefault(TimeZone.getTimeZone("America/Sao_Paulo"));
         SpringApplication.run(BackendApplication.class, args);
     }
 }
