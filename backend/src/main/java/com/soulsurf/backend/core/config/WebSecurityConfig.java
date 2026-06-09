@@ -26,10 +26,11 @@ public class WebSecurityConfig {
     private static final List<String> SAFE_DEFAULT_ORIGINS = List.of(
             "http://localhost:8081",
             "http://localhost:3000",
-            "http://localhost:5173"
+            "http://localhost:5173",
+            "https://soul-surf-pa-2.vercel.app"
     );
 
-    @Value("${app.cors.allowed-origins:http://localhost:8081,http://localhost:3000}")
+    @Value("${app.cors.allowed-origins:http://localhost:8081,http://localhost:3000,http://localhost:5173,https://soul-surf-pa-2.vercel.app}")
     private String allowedOrigins;
 
     @Bean
