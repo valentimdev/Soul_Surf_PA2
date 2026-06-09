@@ -11,6 +11,7 @@ import org.mockito.ArgumentCaptor;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 
 import java.time.Instant;
@@ -20,8 +21,10 @@ import java.security.MessageDigest;
 import java.util.UUID;
 import java.util.HexFormat;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.options;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.verify;
@@ -39,6 +42,17 @@ public class AuthenticationControllerTest extends BaseIntegrationTest {
 
         @MockBean
         private EmailService emailService;
+
+        @Test
+        public void testSignupPreflightAllowsVercelOrigin() throws Exception {
+                mockMvc.perform(options("/api/auth/signup")
+                                .header(HttpHeaders.ORIGIN, "https://soul-surf-pa-2.vercel.app")
+                                .header(HttpHeaders.ACCESS_CONTROL_REQUEST_METHOD, "POST")
+                                .header(HttpHeaders.ACCESS_CONTROL_REQUEST_HEADERS, "content-type"))
+                                .andExpect(status().isOk())
+                                .andExpect(header().string(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN,
+                                                "https://soul-surf-pa-2.vercel.app"));
+        }
 
         @Test
         public void testSignupAndLogin() throws Exception {
